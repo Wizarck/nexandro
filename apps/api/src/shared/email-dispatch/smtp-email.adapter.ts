@@ -189,20 +189,22 @@ export class SmtpEmailAdapter implements EmailDispatchService {
     };
     const message = anyErr.message ?? 'SMTP send failed';
     // nodemailer surfaces the SMTP server response code as `responseCode`
-    // (numeric). 5xx → retry; 4xx → permanent.
+    // (numeric). SMTP convention is INVERTED vs HTTP:
+    //   5xx = permanent failure (no retry) — e.g. 535 auth, 550 mailbox unavailable
+    //   4xx = transient (retryable) — e.g. 421 service unavailable, 450 mailbox busy
     if (typeof anyErr.responseCode === 'number') {
       if (anyErr.responseCode >= 500 && anyErr.responseCode < 600) {
         return new EmailAdapterError(
-          EmailDispatchErrorCode.RETRYABLE_TRANSIENT,
+          EmailDispatchErrorCode.PERMANENT_AUTH_OR_VALIDATION,
           `SMTP 5xx ${anyErr.responseCode}: ${message}`,
-          { providerError: message, retryable: true },
+          { providerError: message, retryable: false },
         );
       }
       if (anyErr.responseCode >= 400 && anyErr.responseCode < 500) {
         return new EmailAdapterError(
-          EmailDispatchErrorCode.PERMANENT_AUTH_OR_VALIDATION,
+          EmailDispatchErrorCode.RETRYABLE_TRANSIENT,
           `SMTP 4xx ${anyErr.responseCode}: ${message}`,
-          { providerError: message, retryable: false },
+          { providerError: message, retryable: true },
         );
       }
     }

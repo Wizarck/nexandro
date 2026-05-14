@@ -1,5 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import sgMail, { MailDataRequired } from '@sendgrid/mail';
+// CJS interop: apps/api tsconfig has allowSyntheticDefaultImports but
+// NOT esModuleInterop, so `import sgMail from '@sendgrid/mail'`
+// compiles to `require('@sendgrid/mail').default` which is `undefined`
+// (the package exports the singleton as `module.exports` directly).
+// Use namespace import to grab the singleton, then alias for clarity.
+import * as sgMailModule from '@sendgrid/mail';
+import type { MailDataRequired } from '@sendgrid/mail';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const sgMail = (sgMailModule as any).default ?? sgMailModule;
 import {
   EmailDispatchErrorCode,
   EmailDispatchInput,
