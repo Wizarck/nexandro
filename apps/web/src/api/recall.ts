@@ -1,14 +1,5 @@
 import { api } from './client';
 
-/**
- * Local mirror of `apps/api/src/recall/types.ts` per ADR-RECALL-CONTRACT-
- * INLINE (slice #11 m3-incident-search-multi-anchor). NO import from
- * `packages/contracts` — the cross-app contract is duplicated here and
- * in the apps/api source of truth.
- *
- * SYNC contract: every field name + type matches
- * `apps/api/src/recall/types.ts` exactly.
- */
 export type IncidentSearchKind =
   | 'lot'
   | 'supplier'
@@ -20,7 +11,6 @@ export interface IncidentSearchHit {
   id: string;
   label: string;
   supportingText: string;
-  /** ISO 8601 timestamp; null for non-temporal hits. */
   receivedAt: string | null;
   symptomMatchScore: number;
 }
@@ -36,10 +26,6 @@ export interface IncidentSearchParams {
   limit?: number;
 }
 
-/**
- * Build query string for `GET /m3/recall/search`. Empty / nullish values
- * are dropped. `types` is serialised as CSV per the backend DTO.
- */
 function buildQuery(params: IncidentSearchParams): string {
   const search = new URLSearchParams();
   search.set('organizationId', params.organizationId);
@@ -57,4 +43,145 @@ export async function getRecallSearch(
   params: IncidentSearchParams,
 ): Promise<IncidentSearchResponse> {
   return api<IncidentSearchResponse>(`/m3/recall/search?${buildQuery(params)}`);
+}
+
+export interface IncidentResponse {
+  incidentId: string;
+  incidentCode: string;
+  legalDeadline: string;
+  status: 'open' | 'dispatched' | 'closed';
+}
+
+export interface IncidentProjectionResponse {
+  incident: {
+    id: string;
+    organizationId: string;
+    incidentCode: string;
+    openedAt: string;
+    openedByUserId: string | null;
+    legalDeadline: string;
+    status: 'open' | 'dispatched' | 'closed';
+    lotIds: string[];
+    locationIds: string[];
+    recipientList: string[];
+    dossierHash: string | null;
+  };
+  chronology: Array<{
+    id: string;
+    eventType: string;
+    actorUserId: string | null;
+    actorKind: 'user' | 'agent' | 'system';
+    createdAt: string;
+    payloadAfter: unknown;
+    reason: string | null;
+  }>;
+  recipientReceipts: Array<{
+    address: string;
+    status: 'pending' | 'delivered' | 'retrying' | 'failed';
+    providerMessageId: string | null;
+    errorCode: string | null;
+    errorMessage: string | null;
+    attempt: number;
+    deliveredAt: string | null;
+  }>;
+  addenda: Array<{
+    id: string;
+    attachedByUserId: string | null;
+    attachedAt: string;
+    text: string;
+    attachmentMetadata: Array<{
+      filename: string;
+      contentType: string;
+      byteSize: number;
+    }>;
+  }>;
+  legalWindowStatus: 'within_deadline' | 'over_deadline' | 'pending';
+  dossierMeta: {
+    generatedAt: string | null;
+    chainBroken: boolean;
+    firstBrokenRowId: string | null;
+  };
+}
+
+export interface DispatchOutcomeResponse {
+  dispatchedAt: string;
+  incidentStatus: 'dispatched';
+  recipientReceipts: IncidentProjectionResponse['recipientReceipts'];
+  dossierError?: { code: string; message: string };
+}
+
+export async function openIncident(input: {
+  organizationId: string;
+  lotIds: string[];
+  locationIds: string[];
+  recipientList: string[];
+  reason?: string;
+}): Promise<IncidentResponse> {
+  return api<IncidentResponse>(`/m3/recall/incidents`, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function getIncident(
+  organizationId: string,
+  incidentId: string,
+): Promise<IncidentProjectionResponse> {
+  const qs = new URLSearchParams({ organizationId }).toString();
+  return api<IncidentProjectionResponse>(
+    `/m3/recall/incidents/${incidentId}?${qs}`,
+  );
+}
+
+export async function dispatchIncident(
+  incidentId: string,
+  input: {
+    organizationId: string;
+    recipientList: string[];
+    lotIds?: string[];
+    locationIds?: string[];
+    subject?: string;
+    bodyText?: string;
+  },
+): Promise<DispatchOutcomeResponse> {
+  return api<DispatchOutcomeResponse>(
+    `/m3/recall/incidents/${incidentId}/dispatch`,
+    { method: 'POST', body: JSON.stringify(input) },
+  );
+}
+
+export async function redispatchIncident(
+  incidentId: string,
+  input: { organizationId: string; recipientList: string[] },
+): Promise<DispatchOutcomeResponse> {
+  return api<DispatchOutcomeResponse>(
+    `/m3/recall/incidents/${incidentId}/redispatch`,
+    { method: 'POST', body: JSON.stringify(input) },
+  );
+}
+
+export async function attachAddendum(
+  incidentId: string,
+  input: {
+    organizationId: string;
+    text: string;
+    attachments?: Array<{
+      filename: string;
+      contentType: string;
+      contentBase64: string;
+    }>;
+  },
+): Promise<{ addendumId: string; attachedAt: string }> {
+  return api<{ addendumId: string; attachedAt: string }>(
+    `/m3/recall/incidents/${incidentId}/addenda`,
+    { method: 'POST', body: JSON.stringify(input) },
+  );
+}
+
+export function dossierPdfUrl(
+  organizationId: string,
+  incidentId: string,
+): string {
+  const qs = new URLSearchParams({ organizationId }).toString();
+  return `/api/m3/recall/incidents/${incidentId}/dossier.pdf?${qs}`;
 }

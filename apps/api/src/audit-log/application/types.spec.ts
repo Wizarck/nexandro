@@ -14,6 +14,11 @@ describe('computeRetentionClass', () => {
     'PO_RECEIVED_PARTIAL',
     'LOT_CREATED',
     'STOCK_MOVE_CREATED',
+    'RECALL_INVESTIGATION_OPENED',
+    'RECALL_86_FLAG_DISPATCHED',
+    'RECALL_DOSSIER_GENERATED',
+    'RECALL_DOSSIER_REDISPATCHED',
+    'RECALL_ADDENDUM_ATTACHED',
   ])('classifies %s as regulatory (HACCP / EU 178/2002 footprint)', (eventType) => {
     expect(computeRetentionClass(eventType)).toBe('regulatory');
   });

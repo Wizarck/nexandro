@@ -47,6 +47,12 @@ export const AuditEventType = {
   PHOTO_DELETED: 'm3.photo-storage.photo-deleted',
   // ---- Slice #19 m3-ai-obs-budget-tier-emitter (Wave 2.4) ----
   AI_BUDGET_TIER_CROSSED: 'ai-observability.budget-tier-crossed',
+  // ---- Slice #13 m3-recall-86-flag-dispatch (Wave 2.5) ----
+  RECALL_INVESTIGATION_OPENED: 'recall.investigation-opened',
+  RECALL_86_FLAG_DISPATCHED: 'recall.86-flag-dispatched',
+  RECALL_DOSSIER_GENERATED: 'recall.dossier-generated',
+  RECALL_DOSSIER_REDISPATCHED: 'recall.dossier-redispatched',
+  RECALL_ADDENDUM_ATTACHED: 'recall.addendum-attached',
 } as const;
 
 /**
@@ -89,6 +95,12 @@ export const AuditEventTypeName: Record<AuditEventType, string> = {
   'm3.photo-storage.photo-deleted': 'PHOTO_DELETED',
   // ---- Slice #19 m3-ai-obs-budget-tier-emitter ----
   'ai-observability.budget-tier-crossed': 'AI_BUDGET_TIER_CROSSED',
+  // ---- Slice #13 m3-recall-86-flag-dispatch ----
+  'recall.investigation-opened': 'RECALL_INVESTIGATION_OPENED',
+  'recall.86-flag-dispatched': 'RECALL_86_FLAG_DISPATCHED',
+  'recall.dossier-generated': 'RECALL_DOSSIER_GENERATED',
+  'recall.dossier-redispatched': 'RECALL_DOSSIER_REDISPATCHED',
+  'recall.addendum-attached': 'RECALL_ADDENDUM_ATTACHED',
 };
 
 /**
@@ -140,6 +152,12 @@ const RETENTION_BY_EVENT_NAME: Record<string, RetentionClass> = {
   PO_RECEIVED_PARTIAL: 'regulatory',
   LOT_CREATED: 'regulatory',
   STOCK_MOVE_CREATED: 'regulatory',
+  // Recall envelopes — regulator-facing chain of custody.
+  RECALL_INVESTIGATION_OPENED: 'regulatory',
+  RECALL_86_FLAG_DISPATCHED: 'regulatory',
+  RECALL_DOSSIER_GENERATED: 'regulatory',
+  RECALL_DOSSIER_REDISPATCHED: 'regulatory',
+  RECALL_ADDENDUM_ATTACHED: 'regulatory',
   // Ephemeral — lean per-request log; 90-day rolling
   AGENT_ACTION_EXECUTED: 'ephemeral',
 };

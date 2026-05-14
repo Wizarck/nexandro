@@ -283,6 +283,39 @@ export class AuditLogSubscriber {
     return this.persistEnvelope(AuditEventType.AI_BUDGET_TIER_CROSSED, payload);
   }
 
+  // ---- Slice #13 m3-recall-86-flag-dispatch (Wave 2.5) ----
+  //
+  // Five new event types covering the J6 + J7 recall surface. All carry
+  // `aggregate_type='recall_incident'` + `aggregate_id=<incidentUuid>` so
+  // the chronology projection uses the existing `ix_audit_log_aggregate`
+  // index. Per ADR-RECALL-INCIDENT-VIA-AUDIT-LOG (slice #13 design.md),
+  // these envelopes ARE the canonical incident record — no side table.
+
+  @OnEvent(AuditEventType.RECALL_INVESTIGATION_OPENED)
+  onRecallInvestigationOpened(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.RECALL_INVESTIGATION_OPENED, payload);
+  }
+
+  @OnEvent(AuditEventType.RECALL_86_FLAG_DISPATCHED)
+  onRecall86FlagDispatched(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.RECALL_86_FLAG_DISPATCHED, payload);
+  }
+
+  @OnEvent(AuditEventType.RECALL_DOSSIER_GENERATED)
+  onRecallDossierGenerated(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.RECALL_DOSSIER_GENERATED, payload);
+  }
+
+  @OnEvent(AuditEventType.RECALL_DOSSIER_REDISPATCHED)
+  onRecallDossierRedispatched(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.RECALL_DOSSIER_REDISPATCHED, payload);
+  }
+
+  @OnEvent(AuditEventType.RECALL_ADDENDUM_ATTACHED)
+  onRecallAddendumAttached(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.RECALL_ADDENDUM_ATTACHED, payload);
+  }
+
   // ------------- Internals -------------
 
   /**

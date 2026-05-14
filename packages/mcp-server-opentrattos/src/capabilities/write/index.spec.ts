@@ -12,6 +12,7 @@ import {
   IAM_USERS_WRITE_CAPABILITIES,
   IAM_LOCATIONS_WRITE_CAPABILITIES,
   IAM_ORGANIZATIONS_WRITE_CAPABILITIES,
+  RECALL_WRITE_CAPABILITIES,
 } from './index.js';
 
 // `<segment>(\.<segment>)+` where each segment starts lowercase. Segments
@@ -21,8 +22,8 @@ import {
 const NAME_REGEX = /^[a-z][a-zA-Z0-9-]*(\.[a-z][a-zA-Z0-9-]*)+$/;
 
 describe('WRITE_CAPABILITIES registry', () => {
-  it('contains exactly 43 entries', () => {
-    expect(WRITE_CAPABILITIES).toHaveLength(43);
+  it('contains exactly 45 entries', () => {
+    expect(WRITE_CAPABILITIES).toHaveLength(45);
   });
 
   it('has unique capability names', () => {
@@ -37,7 +38,7 @@ describe('WRITE_CAPABILITIES registry', () => {
     }
   });
 
-  it('exposes the 12 expected namespaces', () => {
+  it('exposes the 13 expected namespaces', () => {
     // Top-level namespace token; iam.users / iam.locations / iam.organizations
     // are 3 distinct namespaces per the slice spec.
     const distinguish = (name: string): string => {
@@ -64,9 +65,10 @@ describe('WRITE_CAPABILITIES registry', () => {
         'iam.users',
         'iam.locations',
         'iam.organizations',
+        'recall',
       ]),
     );
-    expect(namespaces.size).toBe(12);
+    expect(namespaces.size).toBe(13);
   });
 
   it('every restMethod is a valid write verb', () => {
@@ -108,9 +110,10 @@ describe('WRITE_CAPABILITIES registry', () => {
       EXTERNAL_CATALOG_WRITE_CAPABILITIES.length +
       IAM_USERS_WRITE_CAPABILITIES.length +
       IAM_LOCATIONS_WRITE_CAPABILITIES.length +
-      IAM_ORGANIZATIONS_WRITE_CAPABILITIES.length;
+      IAM_ORGANIZATIONS_WRITE_CAPABILITIES.length +
+      RECALL_WRITE_CAPABILITIES.length;
     expect(sum).toBe(WRITE_CAPABILITIES.length);
-    expect(sum).toBe(43);
+    expect(sum).toBe(45);
   });
 
   it('every capability with :param tokens defines restPathParams', () => {

@@ -24,6 +24,7 @@ import { EXTERNAL_CATALOG_WRITE_CAPABILITIES } from './external-catalog.js';
 import { IAM_USERS_WRITE_CAPABILITIES } from './iam-users.js';
 import { IAM_LOCATIONS_WRITE_CAPABILITIES } from './iam-locations.js';
 import { IAM_ORGANIZATIONS_WRITE_CAPABILITIES } from './iam-organizations.js';
+import { RECALL_WRITE_CAPABILITIES } from './recall.js';
 
 import type { WriteCapability } from './types.js';
 
@@ -40,6 +41,7 @@ export {
   IAM_USERS_WRITE_CAPABILITIES,
   IAM_LOCATIONS_WRITE_CAPABILITIES,
   IAM_ORGANIZATIONS_WRITE_CAPABILITIES,
+  RECALL_WRITE_CAPABILITIES,
 };
 
 export const WRITE_CAPABILITIES: ReadonlyArray<WriteCapability> = [
@@ -55,6 +57,7 @@ export const WRITE_CAPABILITIES: ReadonlyArray<WriteCapability> = [
   ...IAM_USERS_WRITE_CAPABILITIES,
   ...IAM_LOCATIONS_WRITE_CAPABILITIES,
   ...IAM_ORGANIZATIONS_WRITE_CAPABILITIES,
+  ...RECALL_WRITE_CAPABILITIES,
 ];
 
 /**
