@@ -10,6 +10,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { ExternalCatalogModule } from './external-catalog/external-catalog.module';
 import { IamModule } from './iam/iam.module';
 import { IngredientsModule } from './ingredients/ingredients.module';
+import { InventoryModule } from './inventory/inventory.module';
 import { LabelsModule } from './labels/labels.module';
 import { MenusModule } from './menus/menus.module';
 import { RecipesModule } from './recipes/recipes.module';
@@ -70,9 +71,17 @@ import { SharedModule } from './shared/shared.module';
     // SharedModule) verifies signatures against rows from this table.
     AgentCredentialsModule,
 
+    // M3 inventory foundation (m3-lot-aggregate, Wave 2.1, slice #1):
+    // Lot + StockMove entities, repository (read-only public surface), factory.
+    // Foundation for FR4 (lot generation, slice #7), FR6 (consumption, slice #2),
+    // FR7 (cost resolver, slice #4), FR8 (expiry alerts, slice #3), recall trace
+    // (slices #11-13). Mutation flows reserved for downstream slices.
+    InventoryModule,
+
     // Future Bounded Contexts:
-    // HaccpModule,       // M3 — HACCP / APPCC
-    // OperationsModule,  // M4 — Inventory & Orders
+    // HaccpModule,       // M3 — HACCP / APPCC (slices #9-10)
+    // ProcurementModule, // M3 — PO/GR (slices #6-8)
+    // RecallModule,      // M3 — Recall (slices #11-13)
   ],
   providers: [
     { provide: APP_GUARD, useClass: RolesGuard },
