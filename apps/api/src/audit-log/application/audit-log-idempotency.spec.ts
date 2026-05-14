@@ -37,10 +37,12 @@ describe('AuditLogIdempotencyCache', () => {
     const cache = new AuditLogIdempotencyCache({ capacity: 2, ttlMs: 10_000 });
     cache.shouldDedup('E', 'A', 'k1'); // size=1
     cache.shouldDedup('E', 'A', 'k2'); // size=2
-    cache.shouldDedup('E', 'A', 'k3'); // evicts k1, size=2
+    cache.shouldDedup('E', 'A', 'k3'); // evicts k1, size=2 (now {k2, k3})
+    // shouldDedup is check-and-insert; verify the still-present key
+    // BEFORE the missing-key check (which would evict the present key
+    // via re-insertion at capacity).
+    expect(cache.shouldDedup('E', 'A', 'k2')).toBe(true); // k2 still present
     expect(cache.shouldDedup('E', 'A', 'k1')).toBe(false); // k1 was evicted
-    // k2 should still be present
-    expect(cache.shouldDedup('E', 'A', 'k2')).toBe(true);
   });
 
   it('payloadHash is stable for the same payload', () => {
