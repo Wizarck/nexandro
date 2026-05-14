@@ -1,0 +1,40 @@
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { InventoryModule } from '../../inventory/inventory.module';
+import { GoodsReceipt } from './domain/goods-receipt.entity';
+import { GoodsReceiptLine } from './domain/goods-receipt-line.entity';
+import { GoodsReceiptRepository } from './application/gr.repository';
+import { GoodsReceiptLineRepository } from './application/gr-line.repository';
+import { GrConfirmationService } from './application/gr-confirmation.service';
+
+/**
+ * procurement.gr bounded context (M3 Wave 2.2 — slice #7).
+ *
+ * Exports the GR confirmation service + read-only repositories so
+ * downstream M3 slices (#8 UI, #11 incident search, #14 APPCC bundle,
+ * #21 audit-chain) can `@Inject` them.
+ *
+ * Imports slice-#1 `InventoryModule` to access `LotRepository` (the
+ * Lot creation seam reserved in slice #1 design.md).
+ *
+ * Per ADR-GR-PO-STATE-TRANSITION: slice-#6 `PoModule` is NOT imported
+ * here unless `M3_PO_AGGREGATE_ENABLED=true`. The conditional import
+ * happens in `ProcurementModule` to keep this leaf module pure.
+ */
+@Module({
+  imports: [
+    TypeOrmModule.forFeature([GoodsReceipt, GoodsReceiptLine]),
+    InventoryModule,
+  ],
+  providers: [
+    GoodsReceiptRepository,
+    GoodsReceiptLineRepository,
+    GrConfirmationService,
+  ],
+  exports: [
+    GoodsReceiptRepository,
+    GoodsReceiptLineRepository,
+    GrConfirmationService,
+  ],
+})
+export class GrModule {}

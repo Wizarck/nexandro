@@ -106,14 +106,14 @@ import { SharedModule } from './shared/shared.module';
     // #19 (AI budget tier alerts) per ADR-039.
     EmailDispatchModule,
 
-    // M3 procurement foundation (m3-po-aggregate, Wave 2.2, slice #6):
-    // PurchaseOrder + PurchaseOrderLine entities, six-state machine,
-    // per-org row-locked PO-number counter, multi-tenant-gated repositories,
-    // PoFactory + PoService. Foundation for FR-PO-1..3 (PO creation, send,
-    // state transitions). GR confirmation (sent -> partially_received ->
-    // received) is reserved for slice #7 m3-gr-aggregate-reconciliation;
-    // operator UI for slice #8 m3-procurement-ui; audit-log emission for
-    // slice #21 m3-audit-log-hash-chain-hardening per ADR-PO-NO-AUDIT-EMIT-HERE.
+    // M3 procurement (Wave 2.2, slices #6 m3-po-aggregate + #7 m3-gr-aggregate-
+    // reconciliation): PurchaseOrder + PurchaseOrderLine + state machine + PO
+    // counter, plus GoodsReceipt aggregate + Lot creation seam + variance
+    // events. GR confirmation is the single code path that materialises new
+    // `lots` rows in M3. PO/GR state-transition integration gated behind
+    // `M3_PO_AGGREGATE_ENABLED=true` env flag (ADR-GR-PO-STATE-TRANSITION).
+    // Operator UI for slice #8 m3-procurement-ui; audit-log emission for
+    // slice #21 m3-audit-log-hash-chain-hardening.
     ProcurementModule,
 
     // Future Bounded Contexts:
