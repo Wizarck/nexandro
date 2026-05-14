@@ -45,6 +45,8 @@ export const AuditEventType = {
   // ---- Slice #18 m3-photo-storage-lifecycle (Wave 2.4) ----
   PHOTO_UPLOADED: 'm3.photo-storage.photo-uploaded',
   PHOTO_DELETED: 'm3.photo-storage.photo-deleted',
+  // ---- Slice #19 m3-ai-obs-budget-tier-emitter (Wave 2.4) ----
+  AI_BUDGET_TIER_CROSSED: 'ai-observability.budget-tier-crossed',
 } as const;
 
 /**
@@ -85,6 +87,8 @@ export const AuditEventTypeName: Record<AuditEventType, string> = {
   // ---- Slice #18 m3-photo-storage-lifecycle ----
   'm3.photo-storage.photo-uploaded': 'PHOTO_UPLOADED',
   'm3.photo-storage.photo-deleted': 'PHOTO_DELETED',
+  // ---- Slice #19 m3-ai-obs-budget-tier-emitter ----
+  'ai-observability.budget-tier-crossed': 'AI_BUDGET_TIER_CROSSED',
 };
 
 /**

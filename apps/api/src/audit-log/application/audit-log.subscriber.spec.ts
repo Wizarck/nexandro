@@ -388,6 +388,15 @@ describe('AuditLogSubscriber', () => {
       expect(recordSpy.mock.calls[0][0]).toBe('EMAIL_FAILED');
     });
 
+    // ---- Slice #19 m3-ai-obs-budget-tier-emitter (Wave 2.4) ----
+
+    it('AI_BUDGET_TIER_CROSSED handler is wired', async () => {
+      const aggId = `${ORG}:2026-05`;
+      await subscriber.onAiBudgetTierCrossed(envelope('ai_usage_rollup', aggId));
+      expect(recordSpy.mock.calls[0][0]).toBe('AI_BUDGET_TIER_CROSSED');
+      expect(recordSpy.mock.calls[0][1].aggregateId).toBe(aggId);
+    });
+
     it('GR_CONFIRMED with missing required fields is logged + skipped (no throw)', async () => {
       const grPayload = { lines: [] }; // missing grId + organizationId
       await expect(subscriber.onGrConfirmed(grPayload)).resolves.toBeUndefined();

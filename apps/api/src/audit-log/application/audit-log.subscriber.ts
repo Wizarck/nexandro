@@ -271,6 +271,18 @@ export class AuditLogSubscriber {
     return this.persistEnvelope(AuditEventType.PHOTO_DELETED, payload);
   }
 
+  // ---- Slice #19 m3-ai-obs-budget-tier-emitter (Wave 2.4) ----
+  //
+  // `RollupSchedulerService.processOrg()` emits `AI_BUDGET_TIER_CROSSED`
+  // already in the canonical envelope shape (per
+  // `apps/api/src/ai-observability/budget/domain/events.ts` +
+  // ADR-BUDGET-TIER-CROSSED-EVENT). Persist as-is via `persistEnvelope`.
+
+  @OnEvent(AuditEventType.AI_BUDGET_TIER_CROSSED)
+  onAiBudgetTierCrossed(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.AI_BUDGET_TIER_CROSSED, payload);
+  }
+
   // ------------- Internals -------------
 
   /**

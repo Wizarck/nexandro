@@ -4,6 +4,20 @@ import { Column, CreateDateColumn, Entity, Index, PrimaryColumn, UpdateDateColum
 const ISO_4217 = /^[A-Z]{3}$/;
 const LOCALE_LOWER_2 = /^[a-z]{2}$/;
 
+/**
+ * TypeORM transformer for the `ai_monthly_budget_eur numeric(12,2) NULL`
+ * column added by m3 slice #19 (`m3-ai-obs-budget-tier-emitter`). Per
+ * Wave 2.1 typing-cascade lesson: hoist ABOVE the @Entity decorator so
+ * the decorator factory captures the function reference at class-eval
+ * time. Nullable variant — NULL = unlimited budget per
+ * ADR-NULL-BUDGET-UNLIMITED.
+ */
+const numericNullableTransformer = {
+  to: (value: number | null): number | null => value,
+  from: (value: string | null): number | null =>
+    value === null ? null : Number.parseFloat(value),
+};
+
 export type OrganizationLabelPageSize = 'a4' | 'thermal-4x6' | 'thermal-50x80';
 
 export interface OrganizationLabelPostalAddress {
@@ -73,6 +87,23 @@ export class Organization {
 
   @Column({ name: 'label_fields', type: 'jsonb', default: () => `'{}'::jsonb` })
   labelFields: OrganizationLabelFields = {};
+
+  /**
+   * Per-tenant monthly AI budget in EUR (slice #19, m3-ai-obs-budget-tier-
+   * emitter). NULL = unlimited (tier evaluation short-circuits per
+   * ADR-NULL-BUDGET-UNLIMITED). Owner-side configuration UI lands in
+   * slice #20 (`m3-ai-obs-ui`); until then, the column is mutated only by
+   * direct DB UPDATE or future REST endpoint.
+   */
+  @Column({
+    name: 'ai_monthly_budget_eur',
+    type: 'numeric',
+    precision: 12,
+    scale: 2,
+    nullable: true,
+    transformer: numericNullableTransformer,
+  })
+  aiMonthlyBudgetEur: number | null = null;
 
   @Column({ name: 'created_by', type: 'uuid', nullable: true })
   createdBy: string | null = null;
