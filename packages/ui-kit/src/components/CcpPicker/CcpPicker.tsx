@@ -1,0 +1,137 @@
+import { cn } from '../../lib/cn';
+import type { Ccp, CcpPickerProps } from './CcpPicker.types';
+
+/**
+ * j10 region #2 — CCP picker (slice #10 m3-haccp-ui).
+ *
+ * Two visual states driven by `selectedId`:
+ *  - Open list (`selectedId == null`): vertical rows, each a button with
+ *    CCP name + last reading + due-by countdown.
+ *  - Collapsed (`selectedId != null`): single bordered row with the
+ *    selected CCP name + a `cambiar →` button that re-opens the list.
+ *
+ * Per ADR-J10-CCP-PICKER-COLLAPSES (design.md): once the CCP is chosen,
+ * the picker is no longer load-bearing on the surface. Collapsing
+ * removes a column from the eye's scan and gives the input + readback
+ * more room.
+ */
+export function CcpPicker({
+  ccps,
+  selectedId,
+  onSelect,
+  className,
+}: CcpPickerProps) {
+  const selected = selectedId
+    ? ccps.find((c) => c.id === selectedId) ?? null
+    : null;
+
+  if (selected) {
+    return (
+      <div
+        className={cn(
+          'mt-4 flex items-center justify-between rounded-md border px-4 py-3 text-sm',
+          className,
+        )}
+        style={{
+          backgroundColor: 'var(--color-surface)',
+          borderColor: 'var(--color-border)',
+          color: 'var(--color-ink)',
+        }}
+        data-state="collapsed"
+        aria-label="CCP seleccionado"
+      >
+        <span>{selected.name}</span>
+        <button
+          type="button"
+          onClick={() => onSelect(null)}
+          className="bg-transparent text-sm font-medium"
+          style={{ color: 'var(--color-accent-press)' }}
+        >
+          cambiar →
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <ul
+      className={cn(
+        'mt-4 list-none divide-y rounded-md border p-0',
+        className,
+      )}
+      style={{
+        backgroundColor: 'var(--color-surface)',
+        borderColor: 'var(--color-border)',
+      }}
+      data-state="open"
+      aria-label="Lista de PCC del día"
+    >
+      {ccps.map((ccp) => (
+        <CcpRow key={ccp.id} ccp={ccp} onSelect={() => onSelect(ccp.id)} />
+      ))}
+    </ul>
+  );
+}
+
+function CcpRow({ ccp, onSelect }: { ccp: Ccp; onSelect: () => void }) {
+  const overdue =
+    ccp.dueBy != null && Date.parse(ccp.dueBy) < Date.now();
+  const dueLabel = ccp.dueBy ? formatDueBy(ccp.dueBy, overdue) : null;
+
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={onSelect}
+        className="flex w-full items-center justify-between bg-transparent px-4 py-3 text-left text-sm"
+        style={{ color: 'var(--color-ink)' }}
+        data-overdue={overdue ? 'true' : 'false'}
+        data-ccp-id={ccp.id}
+      >
+        <span className="flex flex-col">
+          <span style={{ color: 'var(--color-ink)' }}>{ccp.name}</span>
+          {ccp.lastReading && (
+            <span
+              className="mt-1 text-xs"
+              style={{ color: 'var(--color-mute)' }}
+            >
+              Última: {ccp.lastReading.display}
+              {ccp.lastReading.actor ? ` · ${ccp.lastReading.actor}` : ''}
+            </span>
+          )}
+        </span>
+        {dueLabel && (
+          <span
+            className="ml-3 rounded-pill border px-2 py-0.5 text-xs font-medium"
+            style={{
+              borderColor: overdue
+                ? 'var(--color-destructive)'
+                : 'var(--color-border)',
+              color: overdue
+                ? 'var(--color-destructive)'
+                : 'var(--color-mute)',
+              backgroundColor: overdue
+                ? 'var(--color-warn-bg)'
+                : 'transparent',
+            }}
+          >
+            {dueLabel}
+          </span>
+        )}
+      </button>
+    </li>
+  );
+}
+
+function formatDueBy(dueByIso: string, overdue: boolean): string {
+  const deltaMs = Date.parse(dueByIso) - Date.now();
+  const minutes = Math.round(Math.abs(deltaMs) / 60_000);
+  if (overdue) {
+    if (minutes < 60) return `Vencido hace ${minutes} min`;
+    const hours = Math.round(minutes / 60);
+    return `Vencido hace ${hours} h`;
+  }
+  if (minutes < 60) return `Vence en ${minutes} min`;
+  const hours = Math.round(minutes / 60);
+  return `Vence en ${hours} h`;
+}

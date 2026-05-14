@@ -12,6 +12,7 @@ import { CostInvestigationJ2Screen } from './screens/CostInvestigationJ2Screen';
 import { AiObsDashboardScreen } from './m3/ai-obs/AiObsDashboardScreen';
 import { IncidentSearchFieldScreen } from './screens/j6/IncidentSearchFieldScreen';
 import { RecallInvestigateJ6Route, RecallDossierJ7Route } from './m3/recall/recall-routes';
+import { HaccpRecordScreen } from './screens/j10/HaccpRecordScreen';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -55,6 +56,10 @@ const router = createBrowserRouter([
       {
         path: 'recall/investigate',
         element: <IncidentSearchFieldScreen />,
+      },
+      {
+        path: 'haccp/record',
+        element: <HaccpRecordScreen />,
       },
       // J7 recall dossier surface uses the standard AppLayout per j7.md.
       {

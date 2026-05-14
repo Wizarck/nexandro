@@ -163,3 +163,37 @@ export type {
   RecipientListEntry,
   RecipientListProps,
 } from './components/RecipientList';
+
+// ---- HACCP primitives (slice #10 m3-haccp-ui, Wave 2.6) ----
+export { CcpPicker } from './components/CcpPicker';
+export type {
+  Ccp,
+  CcpInputType,
+  CcpLastReading,
+  CcpPickerProps,
+  CcpSpecRange,
+} from './components/CcpPicker';
+export { ReadingInput } from './components/ReadingInput';
+export type {
+  MultiSelectOption,
+  ReadingInputProps,
+  ReadingInputType,
+  ReadingInputValue,
+} from './components/ReadingInput';
+export { SpecRangeReadback } from './components/SpecRangeReadback';
+export type {
+  SpecRangeReadbackProps,
+  SpecRangeStatus,
+} from './components/SpecRangeReadback';
+export { CorrectiveActionPicker } from './components/CorrectiveActionPicker';
+export type {
+  CorrectiveActionOption,
+  CorrectiveActionPickerProps,
+} from './components/CorrectiveActionPicker';
+export { RecentReadingsStrip } from './components/RecentReadingsStrip';
+export type {
+  RecentReadingRow,
+  RecentReadingsStripProps,
+} from './components/RecentReadingsStrip';
+export { OutOfSpecStickyWarning } from './components/OutOfSpecStickyWarning';
+export type { OutOfSpecStickyWarningProps } from './components/OutOfSpecStickyWarning';

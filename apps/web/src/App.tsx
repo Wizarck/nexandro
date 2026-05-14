@@ -41,6 +41,9 @@ export function App() {
                 Recall
               </Link>
             </RoleGuard>
+            <Link to="/haccp/record" className="hover:text-ink">
+              HACCP
+            </Link>
           </nav>
         </div>
       </header>
