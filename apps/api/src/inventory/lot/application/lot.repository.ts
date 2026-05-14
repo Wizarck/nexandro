@@ -98,4 +98,65 @@ export class LotRepository {
   async save(lot: Lot): Promise<Lot> {
     return this.typeormRepo.save(lot);
   }
+
+  /**
+   * Slice #3 (`m3-lot-expiry-alerts`, Wave 2.2) — additive read-only
+   * scan used by `ExpiryScannerService`.
+   *
+   * Returns lots with `expires_at` strictly in the future and within
+   * `withinHours` of `now()`, with `quantity_remaining > 0`. Filters
+   * `expires_at IS NOT NULL` so the planner picks the partial index
+   * `idx_lots_org_expires_active` (provisioned in migration 0026 per
+   * ADR-LOT-INDEXES, claimed by this slice per ADR-EXPIRY-INDEX-USE).
+   *
+   * Per REQ-EX-4: `organizationId` is the FIRST parameter and gates
+   * every WHERE clause.
+   *
+   * Per REQ-EX-5 + REQ-EX-6: excludes zero-quantity and past-expiry
+   * lots at the SQL layer.
+   */
+  async findByExpiryWindow(
+    organizationId: string,
+    withinHours: number,
+  ): Promise<Lot[]> {
+    return this.typeormRepo
+      .createQueryBuilder('lot')
+      .where('lot.organization_id = :organizationId', { organizationId })
+      .andWhere('lot.expires_at IS NOT NULL')
+      .andWhere('lot.expires_at > now()')
+      .andWhere(
+        `lot.expires_at <= now() + (:withinHours * interval '1 hour')`,
+        { withinHours },
+      )
+      .andWhere('lot.quantity_remaining > 0')
+      .orderBy('lot.expires_at', 'ASC')
+      .getMany();
+  }
+
+  /**
+   * Slice #3 helper — return the distinct `organization_id` set with
+   * at least one lot whose `expires_at` falls in `(now, now+within]`
+   * and `quantity_remaining > 0`. Used by `ExpiryScannerService` to
+   * enumerate tenants per tick without violating REQ-EX-4 (the
+   * subsequent `findByExpiryWindow` call gates on org).
+   *
+   * Uses the partial index `idx_lots_org_expires_active`. Returns an
+   * array of UUID strings.
+   */
+  async findDistinctOrgsWithExpiryIn(
+    withinHours: number,
+  ): Promise<string[]> {
+    const rows: Array<{ organization_id: string }> = await this.typeormRepo
+      .createQueryBuilder('lot')
+      .select('DISTINCT lot.organization_id', 'organization_id')
+      .where('lot.expires_at IS NOT NULL')
+      .andWhere('lot.expires_at > now()')
+      .andWhere(
+        `lot.expires_at <= now() + (:withinHours * interval '1 hour')`,
+        { withinHours },
+      )
+      .andWhere('lot.quantity_remaining > 0')
+      .getRawMany();
+    return rows.map((r) => r.organization_id);
+  }
 }

@@ -1,6 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AgentChatModule } from './agent-chat/agent-chat.module';
 import { AgentCredentialsModule } from './agent-credentials/agent-credentials.module';
 import { AiObservabilityModule } from './ai-observability/ai-observability.module';
@@ -30,6 +31,14 @@ import { SharedModule } from './shared/shared.module';
 @Module({
   imports: [
     EventEmitterModule.forRoot(),
+
+    // M3 Wave 2.2 — m3-lot-expiry-alerts (slice #3): registers cron
+    // discovery at the app root so `@Cron`-decorated providers across
+    // feature modules (`ExpiryScannerService`, `OffSyncService`, etc)
+    // share the same scheduler. Idempotent: NestJS deduplicates the
+    // forRoot import — feature modules MAY still `imports: [ScheduleModule]`
+    // for type hints but the root registration is canonical.
+    ScheduleModule.forRoot(),
 
     // m2-mcp-write-capabilities (Wave 1.13): @Global() module exporting
     // AuditResolverRegistry + AgentIdempotencyService + the
