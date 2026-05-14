@@ -3,6 +3,7 @@ import { OpenTrattosRestClient } from './http-client.js';
 import { registerRecipesCapabilities } from './capabilities/recipes.js';
 import { registerMenuItemsCapabilities } from './capabilities/menu-items.js';
 import { registerIngredientsCapabilities } from './capabilities/ingredients.js';
+import { registerRecallCapabilities } from './capabilities/recall.js';
 import {
   WRITE_CAPABILITIES,
   UNSUPPORTED_VIA_MCP,
@@ -46,6 +47,7 @@ export function buildServer(options: ServerOptions): {
   registerRecipesCapabilities(server, rest);
   registerMenuItemsCapabilities(server, rest);
   registerIngredientsCapabilities(server, rest);
+  registerRecallCapabilities(server, rest);
 
   // m2-mcp-write-capabilities (Wave 1.13) — registry-driven write tools.
   for (const cap of WRITE_CAPABILITIES) {

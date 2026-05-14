@@ -122,3 +122,11 @@ export { MetricCard } from './components/MetricCard';
 export type { MetricCardProps } from './components/MetricCard';
 export { EmptyStateCard } from './components/EmptyStateCard';
 export type { EmptyStateCardProps } from './components/EmptyStateCard';
+
+// ---- Recall primitives (slice #11 m3-incident-search-multi-anchor, Wave 2.5) ----
+export { IncidentSearchField } from './components/IncidentSearchField';
+export type {
+  IncidentSearchFieldProps,
+  IncidentSearchHit,
+  IncidentSearchKind,
+} from './components/IncidentSearchField';

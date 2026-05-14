@@ -10,6 +10,7 @@ import { OwnerOrgSettingsScreen } from './screens/OwnerOrgSettingsScreen';
 import { RecipeBuilderJ1Screen } from './screens/RecipeBuilderJ1Screen';
 import { CostInvestigationJ2Screen } from './screens/CostInvestigationJ2Screen';
 import { AiObsDashboardScreen } from './m3/ai-obs/AiObsDashboardScreen';
+import { IncidentSearchFieldScreen } from './screens/j6/IncidentSearchFieldScreen';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -49,6 +50,10 @@ const router = createBrowserRouter([
       {
         path: 'ai-obs/dashboard',
         element: <AiObsDashboardScreen />,
+      },
+      {
+        path: 'recall/investigate',
+        element: <IncidentSearchFieldScreen />,
       },
     ],
   },

@@ -140,19 +140,15 @@ import { SharedModule } from './shared/shared.module';
     // #13 (recall dossier signed URLs), #15 (APPCC export bundle).
     PhotoStorageModule,
 
-    // M3 recall (m3-trace-tree-forward-reverse, Wave 2.5, slice #12):
-    // Read-only traversal engine over the audit_log consumption ledger.
-    // SQL recursive CTE walks lot → recipe → menu-item → service-window
-    // (forward) or the same chain in reverse from an anchor. Depth-capped
-    // at RECALL_TRACE_MAX_DEPTH=10 (per-org override via
-    // organizations.recall_max_depth). Three partial B-tree expression
-    // indexes on audit_log.payload_after->>{lot_id,recipe_id,menu_item_id}
-    // provisioned by migration 0036.
-    //
-    // Parallel slice #11 (m3-incident-search-multi-anchor) also writes to
-    // this module; resolver picks up both providers + both controllers
-    // at master. Downstream consumers: slice #13 (dossier), slice #14
-    // (PDF export), slice #15 (APPCC export).
+    // M3 recall BC (Wave 2.5, slices #11+#12): canonical Recall BC at
+    // `apps/api/src/recall/` per ADR-028. Slice #11 ships IncidentSearchService
+    // (multi-anchor lot/supplier/ingredient/aggregate search, 8-result cap)
+    // and the GET /m3/recall/search surface. Slice #12 ships TraceService
+    // (forward+reverse consumption traversal via SQL recursive CTE,
+    // depth-capped at RECALL_TRACE_MAX_DEPTH=10 with per-org override) and
+    // the GET /m3/recall/trace/{forward,reverse} surface. Migrations 0035
+    // (search indexes) + 0036 (traversal indexes) provision the index plan.
+    // Downstream: slice #13 (dispatch + dossier).
     RecallModule,
 
     // Future Bounded Contexts:

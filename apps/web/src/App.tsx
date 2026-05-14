@@ -36,6 +36,11 @@ export function App() {
                 AI obs
               </Link>
             </RoleGuard>
+            <RoleGuard role={['OWNER', 'MANAGER']} currentRole={currentRole}>
+              <Link to="/recall/investigate" className="hover:text-ink">
+                Recall
+              </Link>
+            </RoleGuard>
           </nav>
         </div>
       </header>
