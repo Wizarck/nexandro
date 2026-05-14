@@ -54,9 +54,14 @@ export class SmtpEmailAdapter implements EmailDispatchService {
 
   constructor(config: SmtpAdapterConfig) {
     this.from = config.from;
+    // nodemailer.createTransport returns a union of overloads
+    // (SMTPTransport vs SMTPPool depending on `pool: true`); cast
+    // through unknown per TS escape-hatch idiom — the runtime shape
+    // is `Transporter<SMTPTransport.SentMessageInfo, SMTPTransport.Options>`
+    // for the pool case (verified by nodemailer source).
     this.transport =
       config.transport ??
-      nodemailer.createTransport({
+      (nodemailer.createTransport({
         host: config.host,
         port: config.port,
         auth:
@@ -70,7 +75,10 @@ export class SmtpEmailAdapter implements EmailDispatchService {
         // at 30s to enforce the per-attempt SLO declared in
         // architecture-m3.md NFR-REL-2.
         socketTimeout: 30_000,
-      });
+      }) as unknown as Transporter<
+        SMTPTransport.SentMessageInfo,
+        SMTPTransport.Options
+      >);
   }
 
   static fromEnv(env: NodeJS.ProcessEnv = process.env): SmtpEmailAdapter {
