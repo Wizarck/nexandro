@@ -6,6 +6,8 @@ import {
   AuditEventEnvelope,
   AuditEventType,
   AuditEventTypeName,
+  LOT_EXPIRY_NEAR_CHANNEL_NAME,
+  LOT_EXPIRY_NEAR_EVENT_TYPE_NAME,
 } from './types';
 
 /**
@@ -114,7 +116,162 @@ export class AuditLogSubscriber {
     return this.persistEnvelope(AuditEventType.AGENT_ACTION_FORENSIC, payload);
   }
 
+  // ------------- M3 channels (slice #21 m3-audit-log-hash-chain-hardening) -------------
+  //
+  // Per ADR-SUBSCRIBER-FAN-OUT (design.md), all M3 deferred event types are
+  // wired onto this single subscriber class. Each handler is 3-5 LOC of
+  // envelope mapping; the audit-log BC is the sole owner of audit_log
+  // writes per ADR-CROSS-BC-SUBSCRIBER-LOCATION.
+
+  /** Slice #1 m3-lot-aggregate — emit-side deferred to ops follow-up. */
+  @OnEvent(AuditEventType.LOT_CREATED)
+  onLotCreated(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.LOT_CREATED, payload);
+  }
+
+  /** Slice #1 m3-lot-aggregate — emit-side deferred to ops follow-up. */
+  @OnEvent(AuditEventType.STOCK_MOVE_CREATED)
+  onStockMoveCreated(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.STOCK_MOVE_CREATED, payload);
+  }
+
+  /**
+   * Slice #2 m3-lot-consumption-events — `ConsumptionService.recordConsumption()`
+   * emits a `LotConsumedEvent` with the slice-local inline shape:
+   * `{ aggregateType: 'lot', organizationId, aggregateId, actorUserId,
+   *    actorKind, eventType, payloadBefore: null, payloadAfter, createdAt }`.
+   * The shape already matches `AuditEventEnvelope`; we persist as-is via
+   * `persistEnvelope` (the extra `eventType` + `createdAt` fields are
+   * tolerated — they're not part of the envelope contract but cause no
+   * harm at persistence).
+   */
+  @OnEvent(AuditEventType.LOT_CONSUMED)
+  onLotConsumed(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.LOT_CONSUMED, payload);
+  }
+
+  /**
+   * Slice #3 m3-lot-expiry-alerts — `ExpiryScannerService.scan()` emits
+   * on the shared `audit.event` channel. The payload carries
+   * `payloadAfter.alert_band` to disambiguate from any other future
+   * `audit.event` producer. This handler routes by the producing slice's
+   * inline shape (envelope-compatible) and pins the persisted event_type
+   * to `LOT_EXPIRY_NEAR`.
+   */
+  @OnEvent(LOT_EXPIRY_NEAR_CHANNEL_NAME)
+  onLotExpiryNear(payload: AuditEventEnvelope): Promise<void> {
+    // Direct persistence path that bypasses the channel→eventTypeName
+    // lookup because LOT_EXPIRY_NEAR ships on the shared `audit.event`
+    // channel (slice #3 ADR-EXPIRY-EVENT-CHANNEL). The persisted
+    // event_type is pinned to `LOT_EXPIRY_NEAR`.
+    return this.persistDirect(LOT_EXPIRY_NEAR_EVENT_TYPE_NAME, payload);
+  }
+
+  /** Slice #5 m3-cost-snapshot-persistence — already envelope-shaped. */
+  @OnEvent(AuditEventType.COST_SNAPSHOT_RECORDED)
+  onCostSnapshotRecorded(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.COST_SNAPSHOT_RECORDED, payload);
+  }
+
+  // ---- Slice #6 m3-po-aggregate (emit-side TBD by ops follow-up) ----
+
+  @OnEvent(AuditEventType.PO_CREATED)
+  onPoCreated(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.PO_CREATED, payload);
+  }
+
+  @OnEvent(AuditEventType.PO_SENT)
+  onPoSent(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.PO_SENT, payload);
+  }
+
+  @OnEvent(AuditEventType.PO_RECEIVED_PARTIAL)
+  onPoReceivedPartial(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.PO_RECEIVED_PARTIAL, payload);
+  }
+
+  @OnEvent(AuditEventType.PO_RECEIVED_FULL)
+  onPoReceivedFull(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.PO_RECEIVED_FULL, payload);
+  }
+
+  @OnEvent(AuditEventType.PO_CANCELLED)
+  onPoCancelled(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.PO_CANCELLED, payload);
+  }
+
+  @OnEvent(AuditEventType.PO_CLOSED)
+  onPoClosed(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.PO_CLOSED, payload);
+  }
+
+  // ---- Slice #7 m3-gr-aggregate-reconciliation ----
+
+  /**
+   * Slice #7 emits `GrConfirmedEventPayload` (slice-local shape with
+   * `grId`, `organizationId`, `poId`, `supplierId`, `receivedAt`,
+   * `lines[]`). We translate to the canonical envelope: `aggregate_type
+   * = 'goods_receipt'`, `aggregate_id = grId`, `payload_after` = the
+   * full producing payload.
+   */
+  @OnEvent(AuditEventType.GR_CONFIRMED)
+  onGrConfirmed(payload: unknown): Promise<void> {
+    return this.persistTranslated(AuditEventType.GR_CONFIRMED, () =>
+      this.translateGrPayload(payload, 'goods_receipt'),
+    );
+  }
+
+  @OnEvent(AuditEventType.GR_LINE_QTY_VARIANCE)
+  onGrLineQtyVariance(payload: unknown): Promise<void> {
+    return this.persistTranslated(AuditEventType.GR_LINE_QTY_VARIANCE, () =>
+      this.translateGrPayload(payload, 'goods_receipt_line'),
+    );
+  }
+
+  @OnEvent(AuditEventType.GR_LINE_PRICE_VARIANCE)
+  onGrLinePriceVariance(payload: unknown): Promise<void> {
+    return this.persistTranslated(AuditEventType.GR_LINE_PRICE_VARIANCE, () =>
+      this.translateGrPayload(payload, 'goods_receipt_line'),
+    );
+  }
+
+  // ---- Slice #22 m3-email-dispatch-di — already envelope-shaped ----
+
+  @OnEvent(AuditEventType.EMAIL_DISPATCHED)
+  onEmailDispatched(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.EMAIL_DISPATCHED, payload);
+  }
+
+  @OnEvent(AuditEventType.EMAIL_FAILED)
+  onEmailFailed(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.EMAIL_FAILED, payload);
+  }
+
   // ------------- Internals -------------
+
+  /**
+   * Persist directly by canonical `eventTypeName`, bypassing the
+   * channel→name lookup. Used by handlers whose bus channel name does
+   * NOT map 1:1 to a persisted name (slice #3 `LOT_EXPIRY_NEAR` on the
+   * shared `audit.event` channel).
+   */
+  private async persistDirect(
+    eventTypeName: string,
+    envelope: unknown,
+  ): Promise<void> {
+    const validated = this.validateEnvelope(envelope);
+    if (validated === null) {
+      this.logger.warn(
+        `audit-log.subscriber.skipped: ${eventTypeName} — payload missing envelope shape`,
+      );
+      return;
+    }
+    try {
+      await this.auditLog.record(eventTypeName, validated);
+    } catch (err) {
+      this.logError(eventTypeName, validated.aggregateId, err);
+    }
+  }
 
   private async persistEnvelope(
     channel: AuditEventType,
@@ -134,9 +291,18 @@ export class AuditLogSubscriber {
     }
   }
 
+  /**
+   * `persistTranslated` runs a slice-local translator function that maps
+   * a producer-specific shape into the canonical envelope. The optional
+   * `eventTypeNameOverride` lets handlers like `onLotExpiryNear` pin a
+   * canonical persisted name that differs from `AuditEventTypeName[channel]`
+   * (the channel is the generic bus name; the persisted event_type names
+   * the actual event).
+   */
   private async persistTranslated(
     channel: AuditEventType,
     translate: () => AuditEventEnvelope,
+    eventTypeNameOverride?: string,
   ): Promise<void> {
     let envelope: AuditEventEnvelope;
     try {
@@ -145,11 +311,54 @@ export class AuditLogSubscriber {
       this.logError(channel, '<unknown>', err);
       return;
     }
+    const eventTypeName = eventTypeNameOverride ?? AuditEventTypeName[channel];
     try {
-      await this.auditLog.record(AuditEventTypeName[channel], envelope);
+      await this.auditLog.record(eventTypeName, envelope);
     } catch (err) {
       this.logError(channel, envelope.aggregateId, err);
     }
+  }
+
+  /**
+   * Map slice #7's GR event payload (slice-local shape with `grId`,
+   * `organizationId`, `lines[]`, …) into the canonical `AuditEventEnvelope`.
+   * Per ADR-EVENT-ENVELOPE-SHAPE (design.md), the audit-log BC translates
+   * at the subscriber boundary so the producer can keep emitting its
+   * domain-natural shape.
+   */
+  private translateGrPayload(
+    payload: unknown,
+    aggregateType: 'goods_receipt' | 'goods_receipt_line',
+  ): AuditEventEnvelope {
+    if (!payload || typeof payload !== 'object') {
+      throw new Error('GR event payload is not an object');
+    }
+    const p = payload as Record<string, unknown>;
+    const organizationId = typeof p.organizationId === 'string' ? p.organizationId : '';
+    const aggregateId =
+      aggregateType === 'goods_receipt'
+        ? typeof p.grId === 'string'
+          ? p.grId
+          : ''
+        : typeof p.grLineId === 'string'
+          ? p.grLineId
+          : typeof p.grId === 'string'
+            ? p.grId
+            : '';
+    if (!organizationId || !aggregateId) {
+      throw new Error(
+        `GR event payload missing required fields: organizationId=${organizationId} aggregateId=${aggregateId}`,
+      );
+    }
+    return {
+      organizationId,
+      aggregateType,
+      aggregateId,
+      actorUserId: null,
+      actorKind: 'system',
+      payloadBefore: null,
+      payloadAfter: p,
+    };
   }
 
   private logError(channel: string, aggregateId: string, err: unknown): void {

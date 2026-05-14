@@ -71,4 +71,40 @@ export class AuditLog {
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
+
+  /**
+   * Per ADR-AUDIT-HASH-CHAIN (slice #21 m3-audit-log-hash-chain-hardening,
+   * Wave 2.3), every row carries a SHA-256 hash over
+   * `(prev_hash || canonicaliseRow(row))`. Validation is per-write with a
+   * 100-row lookback per ADR-HASH-CHAIN-VALIDATION-PER-WRITE.
+   *
+   * `rowHash` is non-null on every row created post-migration 0023.
+   * Legacy rows backfilled by migration 0023 receive both columns
+   * populated in tenant-scoped chronological order. The TypeScript field
+   * is `Buffer | null` to permit construction-time fill prior to commit
+   * (the service computes the value before save()).
+   */
+  @Column({ name: 'row_hash', type: 'bytea', nullable: true })
+  rowHash: Buffer | null = null;
+
+  /**
+   * Predecessor row's `row_hash` within the same tenant. `null` for the
+   * first row per `organization_id`. The chain forms a tenant-scoped
+   * linked list ordered by `(created_at, id)`.
+   */
+  @Column({ name: 'prev_hash', type: 'bytea', nullable: true })
+  prevHash: Buffer | null = null;
+
+  /**
+   * Per ADR-AUDIT-RETENTION-CLASS (slice #21), retention metadata pinned
+   * at write time. Migration 0024 backfills the column with the default
+   * `'operational'` plus targeted UPDATEs for `regulatory` + `ephemeral`
+   * classifications. Downstream M3.x cold-storage archival queries on
+   * this column.
+   *
+   * Nullable in the entity to permit construction before the service
+   * computes the value; the DB column is `NOT NULL DEFAULT 'operational'`.
+   */
+  @Column({ name: 'retention_class', type: 'text', nullable: true })
+  retentionClass: string | null = null;
 }
