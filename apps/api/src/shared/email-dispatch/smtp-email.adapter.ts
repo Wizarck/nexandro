@@ -53,7 +53,7 @@ export class SmtpEmailAdapter implements EmailDispatchService {
     this.from = config.from;
     this.transport =
       config.transport ??
-      nodemailer.createTransport({
+      (nodemailer.createTransport({
         host: config.host,
         port: config.port,
         auth:
@@ -67,7 +67,7 @@ export class SmtpEmailAdapter implements EmailDispatchService {
         // at 30s to enforce the per-attempt SLO declared in
         // architecture-m3.md NFR-REL-2.
         socketTimeout: 30_000,
-      });
+      }) as Transporter<SMTPTransport.SentMessageInfo>);
   }
 
   static fromEnv(env: NodeJS.ProcessEnv = process.env): SmtpEmailAdapter {
