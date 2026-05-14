@@ -8,6 +8,7 @@ import { AiSuggestionsModule } from './ai-suggestions/ai-suggestions.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
 import { CostModule } from './cost/cost.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { EmailDispatchModule } from './shared/email-dispatch/email-dispatch.module';
 import { ExternalCatalogModule } from './external-catalog/external-catalog.module';
 import { IamModule } from './iam/iam.module';
 import { IngredientsModule } from './ingredients/ingredients.module';
@@ -86,6 +87,14 @@ import { SharedModule } from './shared/shared.module';
     // Downstream consumers: slice #17a (photo ingest), slice #19 (rollup + budget),
     // slice #20 (dashboard UI).
     AiObservabilityModule,
+
+    // M3 email dispatch infrastructure (m3-email-dispatch-di, Wave 2.1, slice #22):
+    // Provider-agnostic EmailDispatchService DI token + 3 adapters
+    // (SMTP default / SendGrid Enterprise / Postmark lazy-imported)
+    // + 3-retry exponential backoff + failure alerter cascade.
+    // Consumed by slices #13 (recall dossier), #15 (APPCC export),
+    // #19 (AI budget tier alerts) per ADR-039.
+    EmailDispatchModule,
 
     // Future Bounded Contexts:
     // HaccpModule,       // M3 — HACCP / APPCC (slices #9-10)

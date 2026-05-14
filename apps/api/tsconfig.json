@@ -18,8 +18,8 @@
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "@opentrattos/types": ["../../packages/types/src"],
-      "@opentrattos/contracts": ["../../packages/contracts/src"]
+      "@opentrattos/contracts": ["../../packages/contracts/src"],
+      "@opentrattos/types": ["../../packages/types/src"]
     }
   },
   "include": ["src/**/*"],
