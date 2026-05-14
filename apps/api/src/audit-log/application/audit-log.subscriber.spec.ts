@@ -393,5 +393,45 @@ describe('AuditLogSubscriber', () => {
       await expect(subscriber.onGrConfirmed(grPayload)).resolves.toBeUndefined();
       expect(recordSpy).not.toHaveBeenCalled();
     });
+
+    // ---- Slice #18 m3-photo-storage-lifecycle ----
+
+    it('PHOTO_UPLOADED persists with persisted event_type=PHOTO_UPLOADED', async () => {
+      await subscriber.onPhotoUploaded(
+        envelope('photo', 'photo-1', {
+          photo_id: 'photo-1',
+          organization_id: ORG,
+          s3_key: 'org/x/photos/photo-1.jpg',
+          mime_type: 'image/jpeg',
+          byte_size: 1024,
+          retention_class: 'full_res_90d',
+          uploaded_by_user_id: 'user-1',
+        }),
+      );
+      expect(recordSpy).toHaveBeenCalledTimes(1);
+      expect(recordSpy.mock.calls[0][0]).toBe('PHOTO_UPLOADED');
+      const env = recordSpy.mock.calls[0][1];
+      expect(env.aggregateType).toBe('photo');
+      expect(env.aggregateId).toBe('photo-1');
+    });
+
+    it('PHOTO_DELETED persists with persisted event_type=PHOTO_DELETED', async () => {
+      await subscriber.onPhotoDeleted(
+        envelope('photo', 'photo-2', {
+          photo_id: 'photo-2',
+          organization_id: ORG,
+          deleted_at: new Date().toISOString(),
+          reason: 'retention_90d',
+        }),
+      );
+      expect(recordSpy).toHaveBeenCalledTimes(1);
+      expect(recordSpy.mock.calls[0][0]).toBe('PHOTO_DELETED');
+    });
+
+    it('PHOTO_UPLOADED skips persistence when envelope is malformed', async () => {
+      const broken = { foo: 'bar' } as unknown as AuditEventEnvelope;
+      await expect(subscriber.onPhotoUploaded(broken)).resolves.toBeUndefined();
+      expect(recordSpy).not.toHaveBeenCalled();
+    });
   });
 });

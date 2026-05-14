@@ -42,6 +42,9 @@ export const AuditEventType = {
   GR_LINE_PRICE_VARIANCE: 'procurement-gr.line-price-variance',
   EMAIL_DISPATCHED: 'shared.email.dispatched',
   EMAIL_FAILED: 'shared.email.failed',
+  // ---- Slice #18 m3-photo-storage-lifecycle (Wave 2.4) ----
+  PHOTO_UPLOADED: 'm3.photo-storage.photo-uploaded',
+  PHOTO_DELETED: 'm3.photo-storage.photo-deleted',
 } as const;
 
 /**
@@ -79,6 +82,9 @@ export const AuditEventTypeName: Record<AuditEventType, string> = {
   'procurement-gr.line-price-variance': 'GR_LINE_PRICE_VARIANCE',
   'shared.email.dispatched': 'EMAIL_DISPATCHED',
   'shared.email.failed': 'EMAIL_FAILED',
+  // ---- Slice #18 m3-photo-storage-lifecycle ----
+  'm3.photo-storage.photo-uploaded': 'PHOTO_UPLOADED',
+  'm3.photo-storage.photo-deleted': 'PHOTO_DELETED',
 };
 
 /**

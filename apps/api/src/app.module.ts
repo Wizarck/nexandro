@@ -17,6 +17,7 @@ import { InventoryModule } from './inventory/inventory.module';
 import { CostSnapshotModule } from './inventory/cost/snapshot/cost-snapshot.module';
 import { LabelsModule } from './labels/labels.module';
 import { MenusModule } from './menus/menus.module';
+import { PhotoStorageModule } from './photo-storage/photo-storage.module';
 import { ProcurementModule } from './procurement/procurement.module';
 import { RecipesModule } from './recipes/recipes.module';
 import { SuppliersModule } from './suppliers/suppliers.module';
@@ -128,6 +129,15 @@ import { SharedModule } from './shared/shared.module';
     // Operator UI for slice #8 m3-procurement-ui; audit-log emission for
     // slice #21 m3-audit-log-hash-chain-hardening.
     ProcurementModule,
+
+    // M3 photo storage lifecycle (m3-photo-storage-lifecycle, Wave 2.4, slice #18):
+    // S3-compat object storage (MinIO local / S3 production) + inline AWS Sigv4
+    // pre-signed URLs (1h upload, 24h read) + 90-day retention via daily 03:00 UTC
+    // cron (2-phase soft-then-hard delete with 7-day grace) + audit_log linking
+    // via PHOTO_UPLOADED + PHOTO_DELETED events on the slice-#21 subscriber.
+    // Backend-only; downstream UX consumers are slice #17 (photo-ingest HITL),
+    // #13 (recall dossier signed URLs), #15 (APPCC export bundle).
+    PhotoStorageModule,
 
     // Future Bounded Contexts:
     // HaccpModule,       // M3 — HACCP / APPCC (slices #9-10)

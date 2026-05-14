@@ -247,6 +247,30 @@ export class AuditLogSubscriber {
     return this.persistEnvelope(AuditEventType.EMAIL_FAILED, payload);
   }
 
+  // ---- Slice #18 m3-photo-storage-lifecycle (Wave 2.4) ----
+  //
+  // Per ADR-AUDIT-EMIT-EVENTS (slice #18 design.md), the photo-storage BC
+  // extends this subscriber with 2 new envelope-shaped channels:
+  //   - PHOTO_UPLOADED  — emitted by PhotoStorageService.registerUpload
+  //   - PHOTO_DELETED   — emitted by retention cron Phase 1 + future manual
+  //                       deletion. `payload_after.reason` distinguishes
+  //                       'retention_90d' (actor_kind='system') from 'manual'
+  //                       (actor_kind='user').
+  // Retention class for both events defaults to 'operational' via
+  // computeRetentionClass() — photo events are not regulatory themselves;
+  // the upstream event that references the photo URL gets the regulatory
+  // class.
+
+  @OnEvent(AuditEventType.PHOTO_UPLOADED)
+  onPhotoUploaded(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.PHOTO_UPLOADED, payload);
+  }
+
+  @OnEvent(AuditEventType.PHOTO_DELETED)
+  onPhotoDeleted(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.PHOTO_DELETED, payload);
+  }
+
   // ------------- Internals -------------
 
   /**
