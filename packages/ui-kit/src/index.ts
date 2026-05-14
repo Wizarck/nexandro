@@ -95,3 +95,19 @@ export type {
   KnownAuditEventType,
   KnownAuditAggregateType,
 } from './components/AuditLogFilters';
+
+// ---- AI Observability primitives (slice #20 m3-ai-obs-ui, Wave 2.4) ----
+export { Sparkline } from './components/Sparkline';
+export type {
+  SparklineProps,
+  SparklinePoint,
+  SparklinePeak,
+} from './components/Sparkline';
+export { Heatmap, bucketFor as heatmapBucketFor } from './components/Heatmap';
+export type { HeatmapProps } from './components/Heatmap';
+export { BadgeChip } from './components/BadgeChip';
+export type { BadgeChipProps, BadgeChipVariant } from './components/BadgeChip';
+export { MetricCard } from './components/MetricCard';
+export type { MetricCardProps } from './components/MetricCard';
+export { EmptyStateCard } from './components/EmptyStateCard';
+export type { EmptyStateCardProps } from './components/EmptyStateCard';

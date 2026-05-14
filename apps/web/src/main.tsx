@@ -9,6 +9,7 @@ import { OwnerDashboardScreen } from './screens/OwnerDashboardScreen';
 import { OwnerOrgSettingsScreen } from './screens/OwnerOrgSettingsScreen';
 import { RecipeBuilderJ1Screen } from './screens/RecipeBuilderJ1Screen';
 import { CostInvestigationJ2Screen } from './screens/CostInvestigationJ2Screen';
+import { AiObsDashboardScreen } from './m3/ai-obs/AiObsDashboardScreen';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,6 +45,10 @@ const router = createBrowserRouter([
       {
         path: 'poc/cost-investigation-j2',
         element: <CostInvestigationJ2Screen />,
+      },
+      {
+        path: 'ai-obs/dashboard',
+        element: <AiObsDashboardScreen />,
       },
     ],
   },

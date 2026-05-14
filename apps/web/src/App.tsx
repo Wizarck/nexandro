@@ -31,6 +31,11 @@ export function App() {
                 Auditoría
               </Link>
             </RoleGuard>
+            <RoleGuard role={['OWNER', 'MANAGER']} currentRole={currentRole}>
+              <Link to="/ai-obs/dashboard" className="hover:text-ink">
+                AI obs
+              </Link>
+            </RoleGuard>
           </nav>
         </div>
       </header>
