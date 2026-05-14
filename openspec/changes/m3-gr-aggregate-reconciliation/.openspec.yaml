@@ -1,0 +1,8 @@
+schema: spec-driven
+created: 2026-05-14
+change: m3-gr-aggregate-reconciliation
+wave: 2.2
+block: 3
+slice_index: 7
+depends_on: [m3-lot-aggregate, m3-po-aggregate]
+blocks: [m3-procurement-ui, m3-appcc-export-bundle-service]
