@@ -16,7 +16,7 @@ function makeFakeTransporter(
     | { kind: 'always-fail-5xx' }
     | { kind: 'always-fail-535' }
     | { kind: 'always-econnrefused' },
-): Transporter<SMTPTransport.SentMessageInfo> {
+): Transporter<SMTPTransport.SentMessageInfo, SMTPTransport.Options> {
   let attempt = 0;
   const sendMail = jest
     .fn()
@@ -62,7 +62,7 @@ function makeFakeTransporter(
     use: jest.fn(),
     on: jest.fn(),
     set: jest.fn(),
-  } as unknown as Transporter<SMTPTransport.SentMessageInfo>;
+  } as unknown as Transporter<SMTPTransport.SentMessageInfo, SMTPTransport.Options>;
 }
 
 function makeSentInfo(): SMTPTransport.SentMessageInfo {

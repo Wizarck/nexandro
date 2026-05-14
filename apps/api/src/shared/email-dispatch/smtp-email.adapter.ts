@@ -22,7 +22,7 @@ export interface SmtpAdapterConfig {
   poolSize: number;
   from: string;
   /** Test-only transport override; production reads env. */
-  transport?: Transporter<SMTPTransport.SentMessageInfo>;
+  transport?: Transporter<SMTPTransport.SentMessageInfo, SMTPTransport.Options>;
 }
 
 const DEFAULT_SMTP_POOL_SIZE = 5;
@@ -46,14 +46,17 @@ const POOL_ACQUIRE_TIMEOUT_MS = 5000;
 @Injectable()
 export class SmtpEmailAdapter implements EmailDispatchService {
   private readonly logger = new Logger(SmtpEmailAdapter.name);
-  private readonly transport: Transporter<SMTPTransport.SentMessageInfo>;
+  private readonly transport: Transporter<
+    SMTPTransport.SentMessageInfo,
+    SMTPTransport.Options
+  >;
   private readonly from: string;
 
   constructor(config: SmtpAdapterConfig) {
     this.from = config.from;
     this.transport =
       config.transport ??
-      (nodemailer.createTransport({
+      nodemailer.createTransport({
         host: config.host,
         port: config.port,
         auth:
@@ -67,7 +70,7 @@ export class SmtpEmailAdapter implements EmailDispatchService {
         // at 30s to enforce the per-attempt SLO declared in
         // architecture-m3.md NFR-REL-2.
         socketTimeout: 30_000,
-      }) as Transporter<SMTPTransport.SentMessageInfo>);
+      });
   }
 
   static fromEnv(env: NodeJS.ProcessEnv = process.env): SmtpEmailAdapter {
