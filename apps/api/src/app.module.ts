@@ -14,6 +14,7 @@ import { ExternalCatalogModule } from './external-catalog/external-catalog.modul
 import { IamModule } from './iam/iam.module';
 import { IngredientsModule } from './ingredients/ingredients.module';
 import { InventoryModule } from './inventory/inventory.module';
+import { CostSnapshotModule } from './inventory/cost/snapshot/cost-snapshot.module';
 import { LabelsModule } from './labels/labels.module';
 import { MenusModule } from './menus/menus.module';
 import { ProcurementModule } from './procurement/procurement.module';
@@ -89,6 +90,18 @@ import { SharedModule } from './shared/shared.module';
     // FR7 (cost resolver, slice #4), FR8 (expiry alerts, slice #3), recall trace
     // (slices #11-13). Mutation flows reserved for downstream slices.
     InventoryModule,
+
+    // M3 cost snapshot persistence (m3-cost-snapshot-persistence, Wave 2.2, slice #5):
+    // Append-only cost_snapshots ledger + CostSnapshotService write path + the
+    // @OnEvent('inventory.lot-consumed') subscriber that bridges slice #2's
+    // emitter into the slice #4 resolver and persists one snapshot per
+    // consumption (per ADR-SNAPSHOT-IMMUTABLE + REQ-SS-1). The
+    // INVENTORY_COST_RESOLVER DI token is bound inside this module with a
+    // placeholder that throws at runtime; slice #4's merge replaces it with
+    // the FIFO/FEFO implementation. Audit-log subscriber registration for
+    // COST_SNAPSHOT_RECORDED is reserved for slice #21 per
+    // ADR-SNAPSHOT-NO-EMIT-HERE.
+    CostSnapshotModule,
 
     // M3 AI observability (m3-vision-llm-provider-di-otel, Wave 2.1, slice #16):
     // OTel SDK + tracer service + global span-enricher interceptor (opentrattos.tag)
