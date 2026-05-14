@@ -15,6 +15,7 @@ import { IngredientsModule } from './ingredients/ingredients.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { LabelsModule } from './labels/labels.module';
 import { MenusModule } from './menus/menus.module';
+import { ProcurementModule } from './procurement/procurement.module';
 import { RecipesModule } from './recipes/recipes.module';
 import { SuppliersModule } from './suppliers/suppliers.module';
 import { AgentCapabilityGuard } from './shared/guards/agent-capability.guard';
@@ -96,9 +97,18 @@ import { SharedModule } from './shared/shared.module';
     // #19 (AI budget tier alerts) per ADR-039.
     EmailDispatchModule,
 
+    // M3 procurement foundation (m3-po-aggregate, Wave 2.2, slice #6):
+    // PurchaseOrder + PurchaseOrderLine entities, six-state machine,
+    // per-org row-locked PO-number counter, multi-tenant-gated repositories,
+    // PoFactory + PoService. Foundation for FR-PO-1..3 (PO creation, send,
+    // state transitions). GR confirmation (sent -> partially_received ->
+    // received) is reserved for slice #7 m3-gr-aggregate-reconciliation;
+    // operator UI for slice #8 m3-procurement-ui; audit-log emission for
+    // slice #21 m3-audit-log-hash-chain-hardening per ADR-PO-NO-AUDIT-EMIT-HERE.
+    ProcurementModule,
+
     // Future Bounded Contexts:
     // HaccpModule,       // M3 — HACCP / APPCC (slices #9-10)
-    // ProcurementModule, // M3 — PO/GR (slices #6-8)
     // RecallModule,      // M3 — Recall (slices #11-13)
   ],
   providers: [
