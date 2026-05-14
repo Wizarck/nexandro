@@ -29,14 +29,18 @@ export function roundHalfEven(value: number): number {
   const scaled = value * SCALE_MULTIPLIER;
   const floor = Math.floor(scaled);
   const diff = scaled - floor;
+  // Floating-point arithmetic can yield 0.4999999... or 0.5000000001
+  // for what should be an exact half (e.g. 0.00015 * 10000 ≈ 1.4999...).
+  // Treat anything within FLOAT_EPSILON of 0.5 as exactly halfway.
+  const FLOAT_EPSILON = 1e-9;
   let rounded: number;
-  if (diff > 0.5) {
-    rounded = floor + 1;
-  } else if (diff < 0.5) {
-    rounded = floor;
-  } else {
+  if (Math.abs(diff - 0.5) < FLOAT_EPSILON) {
     // Exactly halfway — round to even.
     rounded = floor % 2 === 0 ? floor : floor + 1;
+  } else if (diff > 0.5) {
+    rounded = floor + 1;
+  } else {
+    rounded = floor;
   }
   return rounded / SCALE_MULTIPLIER;
 }

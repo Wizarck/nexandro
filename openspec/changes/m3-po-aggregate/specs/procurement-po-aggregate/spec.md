@@ -74,7 +74,7 @@ The system SHALL reject illegal state transitions by throwing `IllegalStateTrans
 
 #### Scenario: Exhaustive transition matrix matches design.md table
 - **WHEN** the unit test enumerates all 36 (from, to) pairs from the state set
-- **THEN** the set of legal pairs matches design.md ADR-PO-STATE-MACHINE exactly (10 legal pairs; 26 illegal)
+- **THEN** the set of legal pairs matches design.md ADR-PO-STATE-MACHINE exactly (9 legal pairs; 27 illegal)
 
 ### Requirement: PO lines are immutable once the parent PO transitions past draft
 

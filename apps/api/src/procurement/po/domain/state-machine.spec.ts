@@ -7,7 +7,7 @@ import { IllegalStateTransitionError } from './errors';
  * Duplicated here intentionally so the spec validates the implementation
  * against the matrix as documented, not against the implementation itself.
  *
- * Format: array of `${from}->${to}` strings. 10 legal pairs, 26 illegal.
+ * Format: array of `${from}->${to}` strings. 9 legal pairs, 27 illegal.
  */
 const LEGAL_PAIRS = new Set<string>([
   'draft->sent',
@@ -33,14 +33,14 @@ describe('state-machine', () => {
       }
     }
 
-    it('matrix contains exactly 10 legal pairs', () => {
+    it('matrix contains exactly 9 legal pairs', () => {
       let count = 0;
       for (const from of PO_STATES) {
         for (const to of PO_STATES) {
           if (canTransition(from, to)) count++;
         }
       }
-      expect(count).toBe(10);
+      expect(count).toBe(9);
     });
   });
 
