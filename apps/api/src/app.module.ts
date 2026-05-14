@@ -3,6 +3,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AgentChatModule } from './agent-chat/agent-chat.module';
 import { AgentCredentialsModule } from './agent-credentials/agent-credentials.module';
+import { AiObservabilityModule } from './ai-observability/ai-observability.module';
 import { AiSuggestionsModule } from './ai-suggestions/ai-suggestions.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
 import { CostModule } from './cost/cost.module';
@@ -77,6 +78,14 @@ import { SharedModule } from './shared/shared.module';
     // FR7 (cost resolver, slice #4), FR8 (expiry alerts, slice #3), recall trace
     // (slices #11-13). Mutation flows reserved for downstream slices.
     InventoryModule,
+
+    // M3 AI observability (m3-vision-llm-provider-di-otel, Wave 2.1, slice #16):
+    // OTel SDK + tracer service + global span-enricher interceptor (opentrattos.tag)
+    // + vision-LLM provider DI surface (3 adapter stubs throw NotImplementedError;
+    // real implementations land in slice #17a m3-photo-ingest-backend).
+    // Downstream consumers: slice #17a (photo ingest), slice #19 (rollup + budget),
+    // slice #20 (dashboard UI).
+    AiObservabilityModule,
 
     // Future Bounded Contexts:
     // HaccpModule,       // M3 — HACCP / APPCC (slices #9-10)

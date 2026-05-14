@@ -1,3 +1,9 @@
+// OTel SDK MUST initialize before any NestJS import — NestJS startup
+// spans (module-init hooks) are emitted before AppModule resolves and are
+// lost if the SDK initializes inside a provider's onModuleInit.
+// See ADR-VISION-OTEL-PRE-BOOTSTRAP. Do NOT reorder this import.
+import './otel-bootstrap';
+
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
