@@ -1,7 +1,7 @@
 import type {
   EmailDispatchInput,
   EmailDispatchResult,
-} from '@opentrattos/contracts';
+} from './types';
 
 /**
  * Provider-agnostic email dispatch contract per ADR-039.

@@ -1,4 +1,4 @@
-import { EmailDispatchErrorCode } from '@opentrattos/contracts';
+import { EmailDispatchErrorCode } from './types';
 import type { Transporter } from 'nodemailer';
 import type SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { SmtpEmailAdapter } from './smtp-email.adapter';

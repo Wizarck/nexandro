@@ -1,4 +1,4 @@
-import { EmailDispatchErrorCode } from '@opentrattos/contracts';
+import { EmailDispatchErrorCode } from './types';
 import {
   SendGridClientLike,
   SendGridEmailAdapter,

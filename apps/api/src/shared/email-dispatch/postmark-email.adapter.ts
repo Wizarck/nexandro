@@ -5,7 +5,7 @@ import {
   EmailDispatchInputSchema,
   EmailDispatchResult,
   EmailProvider,
-} from '@opentrattos/contracts';
+} from './types';
 
 import { EmailDispatchService } from './email-dispatch.service.interface';
 import { EmailAdapterError } from './errors';

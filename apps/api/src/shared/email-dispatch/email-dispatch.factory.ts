@@ -2,7 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import type {
   EmailDispatchInput,
   EmailDispatchResult,
-} from '@opentrattos/contracts';
+} from './types';
 
 import { EmailDispatchService } from './email-dispatch.service.interface';
 import { UnknownEmailProviderError } from './errors';

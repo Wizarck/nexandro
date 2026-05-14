@@ -9,7 +9,7 @@
  * `result.status === 'failure'`.
  */
 
-import type { EmailDispatchErrorCode } from '@opentrattos/contracts';
+import type { EmailDispatchErrorCode } from './types';
 
 export class UnknownEmailProviderError extends Error {
   readonly providerEnvValue: string;

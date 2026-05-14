@@ -5,7 +5,7 @@ import {
   EmailDispatchInputSchema,
   EmailDispatchResult,
   EmailProvider,
-} from '@opentrattos/contracts';
+} from './types';
 import * as nodemailer from 'nodemailer';
 import type { SendMailOptions, Transporter } from 'nodemailer';
 import type SMTPTransport from 'nodemailer/lib/smtp-transport';

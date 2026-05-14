@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { EmailDispatchErrorCode } from '@opentrattos/contracts';
+import { EmailDispatchErrorCode } from './types';
 import { EmailFailureAlerter } from './email-failure-alerter';
 
 const validInput = {

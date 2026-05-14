@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import type {
   EmailDispatchError,
   EmailDispatchInput,
-} from '@opentrattos/contracts';
+} from './types';
 
 /**
  * Surfaces final email-dispatch failures (3 retries exhausted) to the
