@@ -11,6 +11,7 @@ import { RecipeBuilderJ1Screen } from './screens/RecipeBuilderJ1Screen';
 import { CostInvestigationJ2Screen } from './screens/CostInvestigationJ2Screen';
 import { AiObsDashboardScreen } from './m3/ai-obs/AiObsDashboardScreen';
 import { IncidentSearchFieldScreen } from './screens/j6/IncidentSearchFieldScreen';
+import { RecallInvestigateJ6Route, RecallDossierJ7Route } from './m3/recall/recall-routes';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -55,7 +56,18 @@ const router = createBrowserRouter([
         path: 'recall/investigate',
         element: <IncidentSearchFieldScreen />,
       },
+      // J7 recall dossier surface uses the standard AppLayout per j7.md.
+      {
+        path: 'recall/incidents/:incidentId',
+        element: <RecallDossierJ7Route />,
+      },
     ],
+  },
+  // J6 crisis surface mounts OUTSIDE App per j6.md "The crisis surface is
+  // exempt from the standard top-nav".
+  {
+    path: '/recall/investigate/:incidentId',
+    element: <RecallInvestigateJ6Route />,
   },
 ]);
 

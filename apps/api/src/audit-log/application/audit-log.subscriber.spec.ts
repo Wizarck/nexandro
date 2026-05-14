@@ -442,5 +442,70 @@ describe('AuditLogSubscriber', () => {
       await expect(subscriber.onPhotoUploaded(broken)).resolves.toBeUndefined();
       expect(recordSpy).not.toHaveBeenCalled();
     });
+
+    // ---- Slice #13 m3-recall-86-flag-dispatch (Wave 2.5) ----
+
+    it('RECALL_INVESTIGATION_OPENED persists with the canonical event_type', async () => {
+      await subscriber.onRecallInvestigationOpened(
+        envelope('recall_incident', 'inc-1', {
+          incidentCode: 'IR-2026-0007',
+          lotIds: ['lot-1'],
+          locationIds: ['loc-1'],
+        }),
+      );
+      expect(recordSpy).toHaveBeenCalledTimes(1);
+      expect(recordSpy.mock.calls[0][0]).toBe('RECALL_INVESTIGATION_OPENED');
+      expect(recordSpy.mock.calls[0][1].aggregateType).toBe('recall_incident');
+    });
+
+    it('RECALL_86_FLAG_DISPATCHED persists with the canonical event_type', async () => {
+      await subscriber.onRecall86FlagDispatched(
+        envelope('recall_incident', 'inc-1', {
+          lotIds: ['lot-1'],
+          locationIds: ['loc-1'],
+        }),
+      );
+      expect(recordSpy.mock.calls[0][0]).toBe('RECALL_86_FLAG_DISPATCHED');
+    });
+
+    it('RECALL_DOSSIER_GENERATED persists per-recipient envelope', async () => {
+      await subscriber.onRecallDossierGenerated(
+        envelope('recall_incident', 'inc-1', {
+          recipient: 'aseguradora@example.org',
+          deliveryStatus: 'delivered',
+          providerMessageId: 'msg-1',
+          attempt: 1,
+          dossierHash: 'abc',
+          chainBroken: false,
+        }),
+      );
+      expect(recordSpy.mock.calls[0][0]).toBe('RECALL_DOSSIER_GENERATED');
+    });
+
+    it('RECALL_DOSSIER_REDISPATCHED persists per re-send', async () => {
+      await subscriber.onRecallDossierRedispatched(
+        envelope('recall_incident', 'inc-1', {
+          recipient: 'aseguradora@example.org',
+          deliveryStatus: 'delivered',
+          attempt: 2,
+          dossierHash: 'abc',
+          chainBroken: false,
+          originalDispatchedAt: '2026-05-13T02:21:00Z',
+        }),
+      );
+      expect(recordSpy.mock.calls[0][0]).toBe('RECALL_DOSSIER_REDISPATCHED');
+    });
+
+    it('RECALL_ADDENDUM_ATTACHED persists once per addendum', async () => {
+      await subscriber.onRecallAddendumAttached(
+        envelope('recall_incident', 'inc-1', {
+          addendumId: 'add-1',
+          text: 'Inspector regional visited, no further action requested.',
+          attachmentMetadata: [],
+          attachedAt: new Date().toISOString(),
+        }),
+      );
+      expect(recordSpy.mock.calls[0][0]).toBe('RECALL_ADDENDUM_ATTACHED');
+    });
   });
 });

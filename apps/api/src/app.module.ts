@@ -140,15 +140,15 @@ import { SharedModule } from './shared/shared.module';
     // #13 (recall dossier signed URLs), #15 (APPCC export bundle).
     PhotoStorageModule,
 
-    // M3 recall BC (Wave 2.5, slices #11+#12): canonical Recall BC at
-    // `apps/api/src/recall/` per ADR-028. Slice #11 ships IncidentSearchService
-    // (multi-anchor lot/supplier/ingredient/aggregate search, 8-result cap)
-    // and the GET /m3/recall/search surface. Slice #12 ships TraceService
-    // (forward+reverse consumption traversal via SQL recursive CTE,
-    // depth-capped at RECALL_TRACE_MAX_DEPTH=10 with per-org override) and
-    // the GET /m3/recall/trace/{forward,reverse} surface. Migrations 0035
-    // (search indexes) + 0036 (traversal indexes) provision the index plan.
-    // Downstream: slice #13 (dispatch + dossier).
+    // M3 recall BC (Wave 2.5, slices #11+#12+#13): canonical Recall BC at
+    // `apps/api/src/recall/` per ADR-028. Slice #11 ships incident search
+    // (multi-anchor lot/supplier/ingredient/aggregate, 8-result cap). Slice
+    // #12 ships forward+reverse consumption traversal via SQL recursive CTE
+    // (depth-capped at RECALL_TRACE_MAX_DEPTH=10, per-org override). Slice
+    // #13 ships incident lifecycle (open/dispatch/redispatch/addendum)
+    // anchored to `audit_log` via `aggregate_type='recall_incident'`
+    // (ADR-RECALL-INCIDENT-VIA-AUDIT-LOG — NO new table), dossier PDF, and
+    // 86-flag dispatch via slice #22 email + slice #21 hash chain validation.
     RecallModule,
 
     // Future Bounded Contexts:

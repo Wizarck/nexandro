@@ -123,10 +123,43 @@ export type { MetricCardProps } from './components/MetricCard';
 export { EmptyStateCard } from './components/EmptyStateCard';
 export type { EmptyStateCardProps } from './components/EmptyStateCard';
 
-// ---- Recall primitives (slice #11 m3-incident-search-multi-anchor, Wave 2.5) ----
+// ---- Recall search (slice #11 m3-incident-search-multi-anchor, Wave 2.5) ----
 export { IncidentSearchField } from './components/IncidentSearchField';
 export type {
   IncidentSearchFieldProps,
   IncidentSearchHit,
   IncidentSearchKind,
 } from './components/IncidentSearchField';
+
+// ---- Recall dispatch + dossier (slice #13 m3-recall-86-flag-dispatch, Wave 2.5) ----
+export { RecallActionBar } from './components/RecallActionBar';
+export type { RecallActionBarProps } from './components/RecallActionBar';
+export { RecallConfirmationStrip } from './components/RecallConfirmationStrip';
+export type {
+  RecallConfirmationStripMode,
+  RecallConfirmationStripProps,
+} from './components/RecallConfirmationStrip';
+export { DispatchReceiptCard } from './components/DispatchReceiptCard';
+export type {
+  DispatchReceiptCardProps,
+  DispatchReceiptRow,
+  DispatchReceiptStatus,
+} from './components/DispatchReceiptCard';
+export { DossierPreview } from './components/DossierPreview';
+export type { DossierPreviewProps } from './components/DossierPreview';
+export { AddendumComposer } from './components/AddendumComposer';
+export type {
+  AddendumAttachmentInput,
+  AddendumComposerProps,
+  AddendumComposerState,
+} from './components/AddendumComposer';
+export { IncidentChronologyRail } from './components/IncidentChronologyRail';
+export type {
+  ChronologyRailEntry,
+  IncidentChronologyRailProps,
+} from './components/IncidentChronologyRail';
+export { RecipientList } from './components/RecipientList';
+export type {
+  RecipientListEntry,
+  RecipientListProps,
+} from './components/RecipientList';

@@ -50,3 +50,35 @@ export const ALL_INCIDENT_SEARCH_KINDS: readonly IncidentSearchKind[] = [
   'ingredient',
   'aggregate',
 ];
+
+export interface ChronologyEntry {
+  readonly id: string;
+  readonly eventType: string;
+  readonly actorUserId: string | null;
+  readonly actorKind: 'user' | 'agent' | 'system';
+  readonly createdAt: string;
+  readonly payloadAfter: unknown;
+  readonly reason: string | null;
+}
+
+export interface DispatchRecipient {
+  readonly address: string;
+  readonly status: 'pending' | 'delivered' | 'retrying' | 'failed';
+  readonly providerMessageId?: string | null;
+  readonly errorCode?: string | null;
+  readonly errorMessage?: string | null;
+  readonly attempt: number;
+  readonly deliveredAt?: string | null;
+}
+
+export interface IncidentAddendum {
+  readonly id: string;
+  readonly attachedByUserId: string | null;
+  readonly attachedAt: string;
+  readonly text: string;
+  readonly attachmentMetadata: ReadonlyArray<{
+    readonly filename: string;
+    readonly contentType: string;
+    readonly byteSize: number;
+  }>;
+}

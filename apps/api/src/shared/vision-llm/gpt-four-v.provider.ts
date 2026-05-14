@@ -17,7 +17,6 @@ export class GptFourVProvider implements VisionLlmProvider {
   readonly modelName = 'gpt-4o';
   readonly modelVersion = 'v0-stub';
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async extract(_input: VisionLlmInputValue): Promise<VisionLlmOutputValue | null> {
     throw new NotImplementedError(
       'Vision LLM extraction not yet wired; slice #17a delivers',

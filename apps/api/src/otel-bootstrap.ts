@@ -84,7 +84,6 @@ export function startOtelSdk(): NodeSDK | null {
     try {
       await sdk.shutdown();
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.error('OTel SDK shutdown error:', err);
     }
   };

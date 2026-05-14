@@ -44,3 +44,15 @@ export { PrintAdapterRegistry } from './print/registry';
 export type { PrintAdapterFactory } from './print/registry';
 export { IppPrintAdapter } from './print/ipp-adapter';
 export type { IppAdapterConfig } from './print/ipp-adapter';
+
+// Recall dossier renderer per ADR-028 (architecture-m3.md) — reuses the
+// dynamic-import discipline of `renderLabelToPdf` so importing the
+// barrel does NOT pull `@react-pdf/renderer` into the consumer's module
+// graph at import time.
+export { renderRecallDossierToPdf } from './dossier';
+export type {
+  RecallDossierData,
+  RecallDossierChronologyEntry,
+  RecallDossierTraceNode,
+  RecallDossierSignatureBlock,
+} from './dossier';
