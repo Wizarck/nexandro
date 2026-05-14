@@ -73,8 +73,12 @@ describe('ConsumptionService', () => {
       emitter as unknown as EventEmitter2,
     );
 
-    // append() echoes its arg back, simulating TypeORM `save()` behaviour
-    stockMoveRepo.append.mockImplementation(async (move: StockMove) => move);
+    // append() echoes its arg back, simulating TypeORM `save()` behaviour;
+    // also simulates @CreateDateColumn populating createdAt on insert.
+    stockMoveRepo.append.mockImplementation(async (move: StockMove) => {
+      (move as { createdAt: Date }).createdAt = new Date();
+      return move;
+    });
   });
 
   describe('happy path', () => {
