@@ -64,8 +64,6 @@ function Inner({ orgId }: { orgId: string }) {
   };
   const onSelect = (hit: IncidentSearchHit) => {
     setLastSelected(hit);
-    // eslint-disable-next-line no-console
-    console.log('[j6] incident search hit selected', hit);
   };
 
   return (
