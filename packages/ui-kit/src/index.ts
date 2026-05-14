@@ -96,6 +96,17 @@ export type {
   KnownAuditAggregateType,
 } from './components/AuditLogFilters';
 
+// ---- Recall primitives (slice #12 m3-trace-tree-forward-reverse, Wave 2.5) ----
+export { RecallTraceTree } from './components/RecallTraceTree';
+export type {
+  RecallTraceTreeProps,
+  TraceMode,
+  TraceNode,
+  TraceNodeKind,
+  ReverseAnchor,
+  ReverseAnchorKind,
+} from './components/RecallTraceTree';
+
 // ---- AI Observability primitives (slice #20 m3-ai-obs-ui, Wave 2.4) ----
 export { Sparkline } from './components/Sparkline';
 export type {
