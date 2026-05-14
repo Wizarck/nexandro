@@ -53,7 +53,7 @@ function makeFakeRepo<T extends ObjectLiteral>(): Repository<T> & {
   const rows = new Map<string, T>();
   const repo = {
     save: jest.fn(async (entity: T) => {
-      rows.set((entity as { id: string }).id, { ...entity });
+      rows.set((entity as unknown as { id: string }).id, { ...entity });
       return entity;
     }),
     update: jest.fn(async (id: string, patch: Partial<T>) => {

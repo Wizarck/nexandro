@@ -1,6 +1,6 @@
 import { createHmac } from 'node:crypto';
 import { promises as fs } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { Injectable, Logger } from '@nestjs/common';
 import type { BundleAsset, BundleStorage } from './bundle-storage';
 
