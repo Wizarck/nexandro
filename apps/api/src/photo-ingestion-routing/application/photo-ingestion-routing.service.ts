@@ -120,7 +120,7 @@ export class PhotoIngestionRoutingService {
     organizationId: string,
     ingestionItemId: string,
     payloadAfter: SignedEnvelopePayloadAfter,
-    signerUserId: string | null,
+    _signerUserId: string | null,
   ): Promise<PhotoIngestionRoutingResult> {
     const existing = await this.lotRepo.findBySourcePhotoIngestionId(
       organizationId,
