@@ -120,4 +120,40 @@ describe('ExtractedFieldList', () => {
     fireEvent.pointerLeave(row);
     expect(onFieldHover).toHaveBeenCalledWith(null);
   });
+
+  // m3.x-photo-ingest-retroactive-correction-ui — readOnly variant for the
+  // j12 retro surface. Renders signed-item operator values without inputs
+  // so the operator must explicitly opt into editable retro mode.
+  it('readOnly hides <input> and renders values in a static aria-readonly element', () => {
+    render(
+      <ExtractedFieldList
+        fields={SAMPLE_FIELDS}
+        onFieldChange={vi.fn()}
+        readOnly
+      />,
+    );
+    expect(document.querySelectorAll('input').length).toBe(0);
+    const supplier = screen.getByLabelText('Proveedor');
+    expect(supplier.tagName).toBe('DIV');
+    expect(supplier.getAttribute('aria-readonly')).toBe('true');
+    expect(supplier).toHaveTextContent('Mercabarna');
+    expect(
+      document
+        .querySelector('ul[aria-label="Campos extraídos"]')
+        ?.getAttribute('aria-disabled'),
+    ).toBe('true');
+  });
+
+  it('readOnly preserves the highlight state forwarded from the parent', () => {
+    render(
+      <ExtractedFieldList
+        fields={SAMPLE_FIELDS}
+        onFieldChange={vi.fn()}
+        highlightedField="supplier"
+        readOnly
+      />,
+    );
+    const row = document.querySelector('li[data-field-name="supplier"]');
+    expect(row?.getAttribute('data-highlighted')).toBe('true');
+  });
 });

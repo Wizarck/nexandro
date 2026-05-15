@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   AiProvenanceChip,
+  CorrectionsHistoryList,
   ExtractedFieldList,
   HitlQueueList,
   PhotoViewer,
   TransparencyBanner,
+  type CorrectionsHistoryEntry,
   type ExtractedField,
   type HitlQueueRow,
 } from '@opentrattos/ui-kit';
@@ -13,9 +15,11 @@ import {
   useHitlQueue,
   useIngestionItem,
   useReclassifyIngestion,
+  useRetroactiveCorrection,
   useSignIngestion,
 } from '../../hooks/usePhotoIngest';
 import type {
+  CorrectionsHistoryEntryDto,
   IngestionField,
   IngestionItem,
   SignIngestionResponse,
@@ -40,7 +44,7 @@ import type {
 const DRAFT_TTL_MS = 30 * 60_000;
 const DRAFT_KEY_PREFIX = 'opentrattos.photoIngest.draft.v1';
 
-type ScopeChip = 'mine' | 'all' | 'rejected';
+type ScopeChip = 'mine' | 'all' | 'rejected' | 'signed';
 
 interface PhotoIngestDraftV1 {
   fieldValues: Record<string, string>;
@@ -228,6 +232,7 @@ function BulkReviewChips({
       <ScopeChipBtn label="Mis revisiones" selected={scope === 'mine'} onClick={() => onChange('mine')} />
       <ScopeChipBtn label="Todas" selected={scope === 'all'} onClick={() => onChange('all')} />
       <ScopeChipBtn label="Rechazadas" selected={scope === 'rejected'} onClick={() => onChange('rejected')} />
+      <ScopeChipBtn label="Firmadas" selected={scope === 'signed'} onClick={() => onChange('signed')} />
     </div>
   );
 }
@@ -430,6 +435,20 @@ function DetailPane({
     );
   }
 
+  // m3.x-photo-ingest-retroactive-correction-ui — signed items use a
+  // separate retro-correction surface composed in `SignedItemPane`.
+  if (itemQuery.data.status === 'signed') {
+    return (
+      <SignedItemPane
+        item={itemQuery.data}
+        orgId={orgId}
+        itemId={itemId}
+        actorUserId={actorUserId}
+        onAdvance={onAdvance}
+      />
+    );
+  }
+
   const item = itemQuery.data;
 
   return (
@@ -510,6 +529,305 @@ function DetailPane({
       </section>
     </div>
   );
+}
+
+/**
+ * j12 retro-correction surface (slice
+ * `m3.x-photo-ingest-retroactive-correction-ui`). Composes
+ * `PhotoViewer` + `ExtractedFieldList` (readOnly OR editable) +
+ * `CorrectionsHistoryList` with a 2-state machine: read → retroEditing.
+ */
+function SignedItemPane({
+  item,
+  orgId,
+  itemId,
+  actorUserId,
+  onAdvance,
+}: {
+  item: IngestionItem;
+  orgId: string;
+  itemId: string;
+  actorUserId: string;
+  onAdvance: () => void;
+}) {
+  const retro = useRetroactiveCorrection();
+  const [retroEditing, setRetroEditing] = useState(false);
+  const [retroFieldValues, setRetroFieldValues] = useState<
+    Record<string, string>
+  >({});
+  const [reason, setReason] = useState<string>('');
+  const [idempotentNotice, setIdempotentNotice] = useState(false);
+  const [highlightedField, setHighlightedField] = useState<string | null>(null);
+
+  // Reset retro state on item change.
+  useEffect(() => {
+    setRetroEditing(false);
+    setRetroFieldValues({});
+    setReason('');
+    setIdempotentNotice(false);
+  }, [itemId]);
+
+  const fields = useMemo<ReadonlyArray<ExtractedField>>(
+    () =>
+      item.fields.map((f) =>
+        toExtractedField(f, retroFieldValues[f.fieldName]),
+      ),
+    [item.fields, retroFieldValues],
+  );
+
+  const historyEntries = useMemo<ReadonlyArray<CorrectionsHistoryEntry>>(
+    () => deriveHistoryEntries(item.correctionsHistory, item.fields),
+    [item.correctionsHistory, item.fields],
+  );
+
+  const submitDisabled = retro.isPending;
+
+  const handleFieldChange = useCallback((fieldName: string, value: string) => {
+    setRetroFieldValues((prev) => ({ ...prev, [fieldName]: value }));
+    setIdempotentNotice(false);
+  }, []);
+
+  const handleStartRetro = useCallback(() => {
+    setRetroEditing(true);
+    setIdempotentNotice(false);
+  }, []);
+
+  const handleCancel = useCallback(() => {
+    setRetroEditing(false);
+    setRetroFieldValues({});
+    setReason('');
+    setIdempotentNotice(false);
+  }, []);
+
+  const handleSubmit = useCallback(async () => {
+    if (submitDisabled) return;
+    try {
+      const response = await retro.mutateAsync({
+        organizationId: orgId,
+        itemId,
+        fieldCorrections: fields.map((f) => ({
+          fieldName: f.fieldName,
+          operatorValue: f.operatorValue,
+        })),
+        reason: reason.trim() === '' ? undefined : reason.trim(),
+      });
+      if (response.idempotent) {
+        setIdempotentNotice(true);
+        return;
+      }
+      // Real write — exit retro mode; the invalidation in the hook will
+      // refetch and surface the new history entry.
+      setRetroEditing(false);
+      setRetroFieldValues({});
+      setReason('');
+      setIdempotentNotice(false);
+    } catch {
+      // Error surfaced via retro.error below.
+    }
+  }, [submitDisabled, retro, orgId, itemId, fields, reason]);
+
+  // Suppress unused-param lint until keyboard shortcuts are added for the
+  // retro flow; the parent passes `onAdvance` for symmetry with DetailPane.
+  void actorUserId;
+  void onAdvance;
+
+  return (
+    <div className="grid gap-6 md:grid-cols-2">
+      <section aria-label="Visor de foto" className="flex flex-col gap-3">
+        <PhotoViewer
+          photoUrl={item.photoUrl}
+          boundingBoxes={item.boundingBoxes}
+          highlightedField={highlightedField}
+          onBoxHover={setHighlightedField}
+        />
+      </section>
+
+      <section
+        aria-label="Campos firmados"
+        className="flex flex-col gap-3"
+        data-retro-editing={retroEditing ? 'true' : 'false'}
+      >
+        <p
+          className="text-xs uppercase tracking-[0.04em]"
+          style={{ color: 'var(--color-mute)' }}
+        >
+          Firmada · {item.signedByUserId ? 'por operador' : ''}
+        </p>
+        <ExtractedFieldList
+          fields={fields}
+          onFieldChange={handleFieldChange}
+          highlightedField={highlightedField}
+          onFieldHover={setHighlightedField}
+          readOnly={!retroEditing}
+        />
+
+        {retroEditing && (
+          <div className="flex flex-col gap-2">
+            <label
+              htmlFor="retro-reason"
+              className="text-sm font-medium"
+              style={{ color: 'var(--color-mute)' }}
+            >
+              Motivo (opcional, ≤500 caracteres)
+            </label>
+            <textarea
+              id="retro-reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value.slice(0, 500))}
+              maxLength={500}
+              rows={3}
+              className="rounded-md border px-2 py-2 text-sm"
+              style={{
+                color: 'var(--color-ink)',
+                backgroundColor: 'var(--color-bg)',
+                borderColor: 'var(--color-border)',
+              }}
+            />
+          </div>
+        )}
+
+        <div
+          className="flex flex-wrap items-center justify-between gap-2 border-t pt-3"
+          style={{ borderColor: 'var(--color-border)' }}
+        >
+          {!retroEditing ? (
+            <button
+              type="button"
+              name="iniciar-retro"
+              onClick={handleStartRetro}
+              className="rounded-md px-6 text-sm font-semibold"
+              style={{
+                height: '48px',
+                backgroundColor: 'var(--color-accent)',
+                color: 'var(--color-accent-fg)',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Corregir retroactivamente
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="rounded-md border bg-transparent px-3 py-2 text-sm"
+                style={{
+                  color: 'var(--color-mute)',
+                  borderColor: 'var(--color-border-strong)',
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                name="reenviar-retro"
+                onClick={handleSubmit}
+                disabled={submitDisabled}
+                className="rounded-md px-6 text-sm font-semibold"
+                style={{
+                  height: '48px',
+                  backgroundColor: submitDisabled
+                    ? 'var(--color-surface-2)'
+                    : 'var(--color-accent)',
+                  color: submitDisabled
+                    ? 'var(--color-mute)'
+                    : 'var(--color-accent-fg)',
+                  border: 'none',
+                  cursor: submitDisabled ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {retro.isPending ? 'Enviando…' : 'Reenviar firma'}
+              </button>
+            </>
+          )}
+        </div>
+
+        {idempotentNotice && (
+          <p
+            role="status"
+            aria-live="polite"
+            className="rounded-md p-2 text-sm"
+            style={{
+              backgroundColor: 'var(--color-surface-2)',
+              color: 'var(--color-mute)',
+              borderColor: 'var(--color-border)',
+              borderWidth: '1px',
+              borderStyle: 'solid',
+            }}
+            data-testid="retro-idempotent-banner"
+          >
+            Sin cambios — la última corrección es idéntica.
+          </p>
+        )}
+
+        {retro.error && (
+          <p
+            role="alert"
+            className="text-sm"
+            style={{ color: 'var(--color-destructive)' }}
+          >
+            No se pudo aplicar la corrección retroactiva ({retro.error.status}).
+          </p>
+        )}
+
+        <div className="mt-2">
+          <h3
+            className="text-xs uppercase tracking-[0.04em]"
+            style={{ color: 'var(--color-mute)' }}
+          >
+            Historial de correcciones
+          </h3>
+          <div className="mt-2">
+            <CorrectionsHistoryList entries={historyEntries} />
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+/**
+ * Derive `fieldsChanged` per history entry by comparing each entry's
+ * `previousCorrection.fields` against the next-newer entry's snapshot
+ * (or the current item state for the most recent entry).
+ *
+ * Backend stores entries oldest-first; the comparison walks the array
+ * pairwise without re-ordering.
+ */
+function deriveHistoryEntries(
+  entries: ReadonlyArray<CorrectionsHistoryEntryDto>,
+  currentFields: ReadonlyArray<IngestionField>,
+): ReadonlyArray<CorrectionsHistoryEntry> {
+  const currentByName = new Map(
+    currentFields.map((f) => [f.fieldName, f.operatorValue]),
+  );
+  return entries.map((entry, idx) => {
+    const next = entries[idx + 1];
+    const baselineByName = next
+      ? new Map(
+          next.previousCorrection.fields.map(
+            (f) => [f.fieldName, f.operatorValue] as const,
+          ),
+        )
+      : currentByName;
+    const prevByName = new Map(
+      entry.previousCorrection.fields.map(
+        (f) => [f.fieldName, f.operatorValue] as const,
+      ),
+    );
+    let changed = 0;
+    for (const [name, value] of baselineByName) {
+      if (prevByName.get(name) !== value) changed++;
+    }
+    return {
+      correctionId: entry.correctionId,
+      correctedAt: entry.correctedAt,
+      correctedByUserId: entry.correctedByUserId,
+      reason: entry.reason,
+      fieldsChanged: changed,
+    };
+  });
 }
 
 function SuccessStrip({

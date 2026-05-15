@@ -278,3 +278,8 @@ export type {
 } from './components/ExtractedFieldList';
 export { AiProvenanceChip } from './components/AiProvenanceChip';
 export type { AiProvenanceChipProps } from './components/AiProvenanceChip';
+export { CorrectionsHistoryList } from './components/CorrectionsHistoryList';
+export type {
+  CorrectionsHistoryEntry,
+  CorrectionsHistoryListProps,
+} from './components/CorrectionsHistoryList';

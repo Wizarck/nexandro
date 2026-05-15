@@ -36,11 +36,14 @@ export function ExtractedFieldList({
   onFieldChange,
   highlightedField,
   onFieldHover,
+  readOnly = false,
   className,
 }: ExtractedFieldListProps) {
   return (
     <ul
       aria-label="Campos extraídos"
+      aria-disabled={readOnly ? true : undefined}
+      data-readonly={readOnly ? 'true' : 'false'}
       className={cn('flex flex-col gap-3', className)}
     >
       {fields.map((field) => (
@@ -48,6 +51,7 @@ export function ExtractedFieldList({
           key={field.fieldName}
           field={field}
           highlighted={field.fieldName === highlightedField}
+          readOnly={readOnly}
           onChange={(v) => onFieldChange(field.fieldName, v)}
           onHover={() => onFieldHover?.(field.fieldName)}
           onLeave={() => onFieldHover?.(null)}
@@ -60,12 +64,14 @@ export function ExtractedFieldList({
 function FieldRow({
   field,
   highlighted,
+  readOnly,
   onChange,
   onHover,
   onLeave,
 }: {
   field: ExtractedField;
   highlighted: boolean;
+  readOnly: boolean;
   onChange: (value: string) => void;
   onHover: () => void;
   onLeave: () => void;
@@ -128,22 +134,41 @@ function FieldRow({
           <ConfidenceBandBadge confidence={field.confidence} />
         )}
       </div>
-      <input
-        id={`field-${field.fieldName}`}
-        type="text"
-        value={field.operatorValue}
-        onChange={(e) => onChange(e.target.value)}
-        aria-label={field.label}
-        aria-required={isReject ? true : undefined}
-        className="mt-2 w-full rounded-md border px-2 py-2 text-sm"
-        style={{
-          color: 'var(--color-ink)',
-          backgroundColor: 'var(--color-bg)',
-          borderColor: isReject
-            ? 'var(--color-destructive)'
-            : 'var(--color-border)',
-        }}
-      />
+      {readOnly ? (
+        <div
+          id={`field-${field.fieldName}`}
+          role="textbox"
+          aria-readonly="true"
+          aria-label={field.label}
+          className="mt-2 w-full rounded-md border px-2 py-2 text-sm"
+          style={{
+            color: 'var(--color-ink)',
+            backgroundColor: 'var(--color-surface-2)',
+            borderColor: 'var(--color-border)',
+          }}
+        >
+          {field.operatorValue || (
+            <span style={{ color: 'var(--color-mute)' }}>—</span>
+          )}
+        </div>
+      ) : (
+        <input
+          id={`field-${field.fieldName}`}
+          type="text"
+          value={field.operatorValue}
+          onChange={(e) => onChange(e.target.value)}
+          aria-label={field.label}
+          aria-required={isReject ? true : undefined}
+          className="mt-2 w-full rounded-md border px-2 py-2 text-sm"
+          style={{
+            color: 'var(--color-ink)',
+            backgroundColor: 'var(--color-bg)',
+            borderColor: isReject
+              ? 'var(--color-destructive)'
+              : 'var(--color-border)',
+          }}
+        />
+      )}
     </li>
   );
 }

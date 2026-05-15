@@ -164,6 +164,63 @@ describe('IngestionController', () => {
     ).rejects.toBeInstanceOf(NotFoundException);
   });
 
+  it('getItem — projects correctionsHistory from the entity (j12 retro-UI surface)', async () => {
+    const { ctrl, repo } = buildCtrl();
+    const now = new Date('2026-05-15T12:00:00.000Z');
+    const correctionsHistory = [
+      {
+        correctionId: '11111111-1111-4111-8111-111111111111',
+        correctedAt: '2026-05-14T10:00:00.000Z',
+        correctedByUserId: 'u-mgr-1',
+        reason: 'recount',
+        previousCorrection: {
+          fields: [{ name: 'qty', value: 12, confidence: 0.99 }],
+          overallConfidence: 0.99,
+          modelVersion: 'v1',
+          promptVersion: 'p1',
+        },
+        contentHash: 'abc123',
+      },
+      {
+        correctionId: '22222222-2222-4222-8222-222222222222',
+        correctedAt: '2026-05-15T09:00:00.000Z',
+        correctedByUserId: 'u-mgr-2',
+        reason: null,
+        previousCorrection: {
+          fields: [{ name: 'qty', value: 15, confidence: 0.99 }],
+          overallConfidence: 0.99,
+          modelVersion: 'v1',
+          promptVersion: 'p1',
+        },
+        contentHash: 'def456',
+      },
+    ];
+    (repo.findById as jest.Mock).mockResolvedValue({
+      id: ITEM,
+      organizationId: ORG,
+      kind: 'product',
+      status: 'signed',
+      photoId: 'photo-1',
+      overallConfidence: 0.95,
+      createdAt: now,
+      modelVersion: 'gpt-4o-2026-03',
+      promptVersion: 'v3',
+      llmExtraction: { fields: [], overallConfidence: 0.95, modelVersion: 'gpt-4o-2026-03', promptVersion: 'v3' },
+      operatorCorrection: { fields: [{ name: 'qty', value: 18, confidence: 1 }], overallConfidence: 1, modelVersion: 'gpt-4o-2026-03', promptVersion: 'v3' },
+      signedAt: now,
+      signedByUserId: 'u-mgr-2',
+      correctionsHistory,
+    });
+
+    const result = await ctrl.getItem(
+      ITEM,
+      { organizationId: ORG },
+      fakeReq({ userId: 'u', organizationId: ORG, role: 'OWNER' }),
+    );
+
+    expect(result.item.correctionsHistory).toEqual(correctionsHistory);
+  });
+
   it('retroactiveCorrection — forwards orgId/itemId/fieldCorrections + signer userId to service', async () => {
     const { ctrl, retroactive } = buildCtrl();
     (retroactive.apply as jest.Mock).mockResolvedValue({

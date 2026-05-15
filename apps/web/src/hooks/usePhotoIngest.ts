@@ -4,12 +4,15 @@ import {
   getIngestionItem,
   listHitlQueue,
   reclassifyIngestion,
+  retroactiveCorrectIngestion,
   signIngestion,
   uploadPhoto,
   type IngestionItem,
   type ListHitlQueueResponse,
   type ReclassifyIngestionRequest,
   type ReclassifyIngestionResponse,
+  type RetroactiveCorrectionRequest,
+  type RetroactiveCorrectionResponse,
   type SignIngestionRequest,
   type SignIngestionResponse,
   type UploadPhotoRequest,
@@ -30,23 +33,22 @@ const QUEUE_STALE_MS = 30_000;
 
 export function useHitlQueue(
   organizationId: string | undefined,
-  opts: { scope?: 'mine' | 'all' | 'rejected'; limit?: number } = {},
+  opts: { scope?: 'mine' | 'all' | 'rejected' | 'signed'; limit?: number } = {},
 ) {
+  const scope = opts.scope ?? 'mine';
+  // Map UI scope → backend status filter. The default queue is the HITL
+  // pending-review set; the `signed` scope opens the retro-correction
+  // surface per `m3.x-photo-ingest-retroactive-correction-ui`.
+  const status = scope === 'signed' ? 'signed' : 'pending_review';
   return useQuery<ListHitlQueueResponse, ApiError>({
-    queryKey: [
-      'photoIngest',
-      'queue',
-      organizationId,
-      opts.scope ?? 'mine',
-      opts.limit ?? 20,
-    ],
+    queryKey: ['photoIngest', 'queue', organizationId, scope, opts.limit ?? 20],
     enabled: typeof organizationId === 'string',
     queryFn: () =>
       listHitlQueue({
         organizationId: organizationId!,
-        scope: opts.scope ?? 'mine',
+        scope,
         limit: opts.limit ?? 20,
-        status: 'pending_review',
+        status,
       }),
     staleTime: QUEUE_STALE_MS,
   });
@@ -115,6 +117,40 @@ export function useUploadPhoto() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ['photoIngest', 'queue', variables.organizationId],
+      });
+    },
+  });
+}
+
+/**
+ * Retroactive correction for already-signed items (slice
+ * `m3.x-photo-ingest-retroactive-correction-ui`). Server returns
+ * `idempotent: true` when the input content hash matches the latest
+ * history entry; callers should branch on that flag rather than treating
+ * every 200 as a write.
+ */
+export function useRetroactiveCorrection() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    RetroactiveCorrectionResponse,
+    ApiError,
+    RetroactiveCorrectionRequest
+  >({
+    mutationFn: (input) => retroactiveCorrectIngestion(input),
+    onSuccess: (data, variables) => {
+      // Idempotent retries write nothing, so cache need not change. Skip
+      // the invalidation to avoid a needless refetch flicker.
+      if (data.idempotent) return;
+      queryClient.invalidateQueries({
+        queryKey: ['photoIngest', 'queue', variables.organizationId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [
+          'photoIngest',
+          'item',
+          variables.organizationId,
+          variables.itemId,
+        ],
       });
     },
   });

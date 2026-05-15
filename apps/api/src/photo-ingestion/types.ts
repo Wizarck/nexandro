@@ -138,6 +138,13 @@ export interface IngestionItemDetail extends IngestionQueueRow {
   operatorCorrection: PhotoIngestionExtraction | null;
   signedAt: string | null;
   signedByUserId: string | null;
+  /**
+   * Append-only history of retroactive corrections (newest last). Empty
+   * `[]` for rows never retro-corrected. Exposed for the j12
+   * `CorrectionsHistoryList` sidebar — slice
+   * `m3.x-photo-ingest-retroactive-correction-ui`.
+   */
+  correctionsHistory: CorrectionsHistoryEntry[];
 }
 
 /**

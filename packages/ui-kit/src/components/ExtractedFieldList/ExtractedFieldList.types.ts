@@ -19,5 +19,15 @@ export interface ExtractedFieldListProps {
    */
   highlightedField?: string | null;
   onFieldHover?: (fieldName: string | null) => void;
+  /**
+   * When `true`, render values as static `<span>` instead of `<input>`
+   * and set `aria-disabled` on the list. The reciprocal-hover wiring +
+   * highlight ring are preserved so the link from a `PhotoViewer`
+   * bounding box still works. Used by the j12 retro-correction surface
+   * (slice `m3.x-photo-ingest-retroactive-correction-ui`) when showing
+   * a signed item before the operator clicks "Corregir
+   * retroactivamente".
+   */
+  readOnly?: boolean;
   className?: string;
 }

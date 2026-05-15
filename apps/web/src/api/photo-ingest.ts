@@ -40,6 +40,36 @@ export interface IngestionExtraction {
   auditLogId: string | null;
 }
 
+/**
+ * Append-only retro-correction history entry — mirrors backend
+ * `CorrectionsHistoryEntry`. The audit-trail surfaced by
+ * `CorrectionsHistoryList` in j12 (slice
+ * `m3.x-photo-ingest-retroactive-correction-ui`).
+ *
+ * `previousCorrection.fields` is the verbatim snapshot of the operator's
+ * fields BEFORE this entry was written; the UI derives the "fields
+ * changed" count by comparing each entry against either the next entry
+ * (or the current `IngestionItem.fields` for the most recent entry).
+ */
+export interface CorrectionsHistoryPreviousFieldDto {
+  fieldName: string;
+  operatorValue: string;
+}
+
+export interface CorrectionsHistoryEntryDto {
+  correctionId: string;
+  /** ISO-8601 UTC timestamp. */
+  correctedAt: string;
+  correctedByUserId: string;
+  /** Optional operator-supplied rationale, ≤500 chars. */
+  reason: string | null;
+  /** Snapshot of the operatorCorrection fields BEFORE this entry. */
+  previousCorrection: {
+    fields: ReadonlyArray<CorrectionsHistoryPreviousFieldDto>;
+  };
+  contentHash: string;
+}
+
 export interface IngestionItem {
   itemId: string;
   organizationId: string;
@@ -52,6 +82,15 @@ export interface IngestionItem {
   extraction: IngestionExtraction;
   fields: ReadonlyArray<IngestionField>;
   boundingBoxes: ReadonlyArray<BoundingBox>;
+  /** ISO-8601 UTC. `null` for items not yet signed. */
+  signedAt: string | null;
+  /** UUID of the signer (OWNER or MANAGER). `null` until signed. */
+  signedByUserId: string | null;
+  /**
+   * Append-only history of retroactive corrections (newest last). Empty
+   * `[]` for items never retro-corrected.
+   */
+  correctionsHistory: ReadonlyArray<CorrectionsHistoryEntryDto>;
 }
 
 export interface ListHitlQueueParams {
@@ -59,7 +98,7 @@ export interface ListHitlQueueParams {
   status?: IngestionStatus | 'all';
   kind?: IngestionKind | 'all';
   limit?: number;
-  scope?: 'mine' | 'all' | 'rejected';
+  scope?: 'mine' | 'all' | 'rejected' | 'signed';
 }
 
 export interface ListHitlQueueResponse {
@@ -97,6 +136,29 @@ export interface ReclassifyIngestionResponse {
   itemId: string;
   kind: IngestionKind;
   auditLogId: string;
+}
+
+/**
+ * Body for `POST /m3/photo-ingest/items/:itemId/retroactive-correction`.
+ * Mirrors `RetroactiveCorrectionDto` in `apps/api`. `correctedByUserId` is
+ * inferred server-side from the auth context — NOT in the body.
+ */
+export interface RetroactiveCorrectionRequest {
+  organizationId: string;
+  itemId: string;
+  fieldCorrections: ReadonlyArray<{
+    fieldName: string;
+    operatorValue: string;
+  }>;
+  reason?: string;
+}
+
+/** Mirrors `RetroactiveCorrectionResult`. `idempotent: true` means no write happened. */
+export interface RetroactiveCorrectionResponse {
+  itemId: string;
+  status: 'signed';
+  correctionsHistoryLength: number;
+  idempotent: boolean;
 }
 
 export interface UploadPhotoRequest {
@@ -167,4 +229,25 @@ export async function uploadPhoto(
     method: 'POST',
     body: JSON.stringify(input),
   });
+}
+
+export async function retroactiveCorrectIngestion(
+  input: RetroactiveCorrectionRequest,
+): Promise<RetroactiveCorrectionResponse> {
+  // Backend expects `fieldCorrections` with shape `{ name, value }` per
+  // `FieldCorrectionDto` (apps/api). The UI layer carries the more
+  // descriptive `{ fieldName, operatorValue }` shape internally; remap on
+  // the wire so the DTO validation passes.
+  const body = {
+    organizationId: input.organizationId,
+    fieldCorrections: input.fieldCorrections.map((f) => ({
+      name: f.fieldName,
+      value: f.operatorValue,
+    })),
+    ...(input.reason !== undefined ? { reason: input.reason } : {}),
+  };
+  return api<RetroactiveCorrectionResponse>(
+    `/m3/photo-ingest/items/${input.itemId}/retroactive-correction`,
+    { method: 'POST', body: JSON.stringify(body) },
+  );
 }

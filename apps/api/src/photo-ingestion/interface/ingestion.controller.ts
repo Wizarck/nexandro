@@ -310,6 +310,7 @@ export class IngestionController {
       operatorCorrection: r.operatorCorrection,
       signedAt: r.signedAt ? r.signedAt.toISOString() : null,
       signedByUserId: r.signedByUserId,
+      correctionsHistory: r.correctionsHistory ?? [],
     };
   }
 }

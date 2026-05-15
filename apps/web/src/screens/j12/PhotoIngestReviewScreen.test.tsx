@@ -56,6 +56,9 @@ const ITEM_1_QUEUE = {
   },
   fields: [],
   boundingBoxes: [],
+  signedAt: null,
+  signedByUserId: null,
+  correctionsHistory: [],
 };
 
 const ITEM_1_DETAIL = {
@@ -307,5 +310,161 @@ describe('PhotoIngestReviewScreen', () => {
       .getAllByRole('button')
       .find((b) => b.getAttribute('data-selected') === 'true');
     expect(selected?.textContent).toContain('Mercabarna');
+  });
+
+  // m3.x-photo-ingest-retroactive-correction-ui — signed scope + retro
+  // flow. The Firmadas chip switches the queue + status filter. A signed
+  // item renders read-only with a history sidebar; clicking the retro
+  // button opens the editable form; idempotent submits show a banner.
+  describe('signed scope + retro flow', () => {
+    const SIGNED_ITEM = {
+      ...ITEM_1_QUEUE,
+      itemId: 'itm-signed',
+      status: 'signed' as const,
+      hint: 'Mercabarna · Firmada',
+      signedAt: '2026-05-14T10:00:00Z',
+      signedByUserId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      fields: [
+        {
+          fieldName: 'qty',
+          label: 'Cantidad',
+          extractedValue: '18',
+          operatorValue: '18',
+          confidence: 0.99,
+          boundingBox: null,
+        },
+      ],
+      boundingBoxes: [],
+      correctionsHistory: [
+        {
+          correctionId: '11111111-1111-4111-8111-111111111111',
+          correctedAt: '2026-05-14T10:00:00.000Z',
+          correctedByUserId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          reason: 'Recount tras inventario',
+          previousCorrection: {
+            fields: [{ fieldName: 'qty', operatorValue: '12' }],
+          },
+          contentHash: 'abc',
+        },
+      ],
+    };
+
+    function signedRouteMock(
+      url: string,
+      init?: RequestInit,
+      retroResponse?: { idempotent: boolean; correctionsHistoryLength: number },
+    ): Response {
+      if (
+        init?.method === 'POST' &&
+        url.includes('/retroactive-correction')
+      ) {
+        return jsonResponse({
+          itemId: 'itm-signed',
+          status: 'signed',
+          correctionsHistoryLength:
+            retroResponse?.correctionsHistoryLength ?? 2,
+          idempotent: retroResponse?.idempotent ?? false,
+        });
+      }
+      if (url.includes('/m3/photo-ingest/items/itm-signed?')) {
+        return jsonResponse(SIGNED_ITEM);
+      }
+      if (
+        url.includes('/m3/photo-ingest/items?') &&
+        url.includes('status=signed')
+      ) {
+        return jsonResponse({ items: [SIGNED_ITEM] });
+      }
+      return jsonResponse({});
+    }
+
+    it('Firmadas chip shows signed items with the corrections-history sidebar', async () => {
+      vi.mocked(useCurrentRole).mockReturnValue('MANAGER');
+      vi.mocked(useCurrentOrgId).mockReturnValue('org-demo');
+      fetchMock.mockImplementation((input: RequestInfo | URL, init?: RequestInit) =>
+        Promise.resolve(signedRouteMock(String(input), init)),
+      );
+
+      renderWithClient();
+
+      // Pick the Firmadas chip.
+      const chip = await screen.findByRole('button', { name: 'Firmadas' });
+      fireEvent.click(chip);
+
+      // Signed item auto-selected; the history sidebar mounts.
+      await waitFor(() =>
+        expect(screen.getByText('Historial de correcciones')).toBeInTheDocument(),
+      );
+      const entry = screen.getByTestId('corrections-history-entry');
+      expect(entry).toHaveTextContent('Recount tras inventario');
+      // Read-only fields render as aria-readonly elements (no inputs).
+      const qty = screen.getByLabelText('Cantidad');
+      expect(qty.tagName).toBe('DIV');
+      expect(qty.getAttribute('aria-readonly')).toBe('true');
+    });
+
+    it('clicking "Corregir retroactivamente" switches the right column to editable retro mode', async () => {
+      vi.mocked(useCurrentRole).mockReturnValue('MANAGER');
+      vi.mocked(useCurrentOrgId).mockReturnValue('org-demo');
+      fetchMock.mockImplementation((input: RequestInfo | URL, init?: RequestInit) =>
+        Promise.resolve(signedRouteMock(String(input), init)),
+      );
+
+      renderWithClient();
+
+      // Switch to Firmadas scope so a signed item is auto-selected.
+      fireEvent.click(await screen.findByRole('button', { name: 'Firmadas' }));
+
+      await waitFor(() =>
+        expect(screen.getByText('Historial de correcciones')).toBeInTheDocument(),
+      );
+
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Corregir retroactivamente' }),
+      );
+
+      // Field becomes an <input>; reason textarea appears; Reenviar firma button shown.
+      const qty = await screen.findByLabelText('Cantidad');
+      expect(qty.tagName).toBe('INPUT');
+      expect(screen.getByLabelText(/Motivo/)).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Reenviar firma' }),
+      ).toBeInTheDocument();
+    });
+
+    it('submitting a retro correction with no changes shows the idempotent banner', async () => {
+      vi.mocked(useCurrentRole).mockReturnValue('MANAGER');
+      vi.mocked(useCurrentOrgId).mockReturnValue('org-demo');
+      fetchMock.mockImplementation((input: RequestInfo | URL, init?: RequestInit) =>
+        Promise.resolve(
+          signedRouteMock(String(input), init, {
+            idempotent: true,
+            correctionsHistoryLength: 1,
+          }),
+        ),
+      );
+
+      renderWithClient();
+
+      fireEvent.click(await screen.findByRole('button', { name: 'Firmadas' }));
+      await waitFor(() =>
+        expect(screen.getByText('Historial de correcciones')).toBeInTheDocument(),
+      );
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Corregir retroactivamente' }),
+      );
+      // Don't change the field; submit as-is.
+      fireEvent.click(await screen.findByRole('button', { name: 'Reenviar firma' }));
+
+      await waitFor(() =>
+        expect(screen.getByTestId('retro-idempotent-banner')).toHaveTextContent(
+          'Sin cambios — la última corrección es idéntica.',
+        ),
+      );
+      // Retro mode stays open (input is still editable).
+      expect(
+        (screen.getByLabelText('Cantidad') as HTMLElement).tagName,
+      ).toBe('INPUT');
+    });
   });
 });
