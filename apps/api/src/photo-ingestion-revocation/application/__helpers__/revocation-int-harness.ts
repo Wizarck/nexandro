@@ -157,7 +157,14 @@ export async function createRevocationIntHarness(): Promise<RevocationIntHarness
     },
 
     async emitAndWait(channel: string, payload: unknown): Promise<void> {
+      // The downstream-revocation subscriber re-enters the bus to emit
+      // LOT_FLAGGED_FOR_REVIEW / GR_FLAGGED_FOR_REVIEW from INSIDE its
+      // own @OnEvent handler. Empirically, `await emitter.emitAsync()`
+      // alone resolves before the nested handlers' persists settle.
+      // Drain the microtask + setImmediate queue once to let those
+      // resolve before the test asserts on audit_log rows.
       await emitter.emitAsync(channel, payload);
+      await new Promise<void>((resolve) => setImmediate(resolve));
     },
 
     async fetchAuditRows(orgId: string): Promise<AuditLog[]> {
