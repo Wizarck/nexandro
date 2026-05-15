@@ -171,12 +171,7 @@ export async function createAuditLogIntHarness(): Promise<AuditLogIntHarness> {
     },
 
     clearCache(): void {
-      // The cache stores entries in a private `entries` Map. Reset by
-      // re-emitting via a TTL-expired key would be brittle; clear the Map
-      // directly through the documented test-only surface.
-      const entries = (cache as unknown as { entries: Map<string, unknown> })
-        .entries;
-      entries.clear();
+      cache.clear();
     },
   };
 

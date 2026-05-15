@@ -34,6 +34,7 @@ describe('AuditLog hash chain multi-tenant + per-aggregate (integration)', () =>
   let app: TestingModule;
   let dataSource: DataSource;
   let service: AuditLogService;
+  let cache: AuditLogIdempotencyCache;
 
   const ORG_A = '55555555-5555-4555-8555-555555555555';
   const ORG_B = '66666666-6666-4666-8666-666666666666';
@@ -66,6 +67,7 @@ describe('AuditLog hash chain multi-tenant + per-aggregate (integration)', () =>
 
     dataSource = app.get(DataSource);
     service = app.get(AuditLogService);
+    cache = app.get(AuditLogIdempotencyCache);
     await dataSource.runMigrations();
   });
 
@@ -76,6 +78,8 @@ describe('AuditLog hash chain multi-tenant + per-aggregate (integration)', () =>
 
   beforeEach(async () => {
     await dataSource.query('TRUNCATE TABLE "audit_log" RESTART IDENTITY CASCADE');
+    // Reset the LRU between tests — see audit-log-hash-chain-integrity.int.spec.ts.
+    cache.clear();
   });
 
   describe('AC-CHAIN-5 — multi-tenant chain isolation', () => {

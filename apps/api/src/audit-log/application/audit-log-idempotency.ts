@@ -94,4 +94,14 @@ export class AuditLogIdempotencyCache {
   size(): number {
     return this.entries.size;
   }
+
+  /**
+   * Test-only reset. Drops every entry so each INT spec's `beforeEach`
+   * truncate of `audit_log` is matched by a cache reset. Production has
+   * no reason to call this — the LRU is process-lifetime and bounded by
+   * capacity + TTL.
+   */
+  clear(): void {
+    this.entries.clear();
+  }
 }

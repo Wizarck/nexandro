@@ -38,6 +38,7 @@ describe('AuditLog hash chain integrity (integration)', () => {
   let app: TestingModule;
   let dataSource: DataSource;
   let service: AuditLogService;
+  let cache: AuditLogIdempotencyCache;
 
   const ORG = '11111111-1111-4111-8111-111111111111';
   const AGG_ID = '22222222-2222-4222-8222-222222222222';
@@ -68,6 +69,7 @@ describe('AuditLog hash chain integrity (integration)', () => {
 
     dataSource = app.get(DataSource);
     service = app.get(AuditLogService);
+    cache = app.get(AuditLogIdempotencyCache);
     await dataSource.runMigrations();
   });
 
@@ -78,6 +80,11 @@ describe('AuditLog hash chain integrity (integration)', () => {
 
   beforeEach(async () => {
     await dataSource.query('TRUNCATE TABLE "audit_log" RESTART IDENTITY CASCADE');
+    // Reset the LRU between tests — now that the cache actually injects
+    // (per m3.x-audit-log-idempotency-cache-injection), prior tests'
+    // (eventType, aggregateId, payloadHash) keys would dedup later tests
+    // that reuse the same envelope shape (most do).
+    cache.clear();
   });
 
   describe('AC-CHAIN-1 — rowHash/prevHash wiring', () => {
