@@ -123,18 +123,12 @@ describe('AuditLog hash chain integrity (integration)', () => {
   });
 
   describe('AC-CHAIN-2 — 100-row lookback bound', () => {
-    /**
-     * SKIP (CONFIRMED 2026-05-15): un-skip CI run confirmed HashChainBrokenError
-     * on the ~101st append even though all rows were written by the same
-     * service.record(). Root cause is canonicaliseRow non-determinism — the
-     * write-time hash uses the JS Date (ms precision) but the read-back via
-     * lookback loads a Postgres TIMESTAMP that re-serialises with different
-     * precision/format, so the validator's recomputed row_hash diverges from
-     * the stored value. Production-side fix required (round createdAt to a
-     * fixed precision before hashing). Followup
-     * `m3.x-hash-chain-canonicalise-timestamp-precision`.
-     */
-    it.skip('chain remains valid at length 200; 201st append succeeds', async () => {
+    // Un-skipped by `m3.x-hash-chain-window-prevhash-seed`. The original
+    // skip-comment hypothesised canonicaliseRow timestamp-precision drift; the
+    // real bug was `validateChainIntegrity` seeding `prevHash=null`
+    // unconditionally, which broke at the first append where the 100-row
+    // window slid past the chain root. Fix shipped in audit-log-hash-chain.ts.
+    it('chain remains valid at length 200; 201st append succeeds', async () => {
       for (let i = 0; i < 200; i++) {
         await service.record('LOT_CREATED', envelope(ORG, AGG_ID, { idx: i }));
       }
@@ -160,14 +154,11 @@ describe('AuditLog hash chain integrity (integration)', () => {
       expect(result.ok).toBe(true);
     }, 60_000);
 
-    /**
-     * SKIP (CONFIRMED 2026-05-15): same canonicaliseRow precision-drift root
-     * cause as AC-CHAIN-2 above. The 201st append breaks at a row in the
-     * lookback window (not at row 5), so the tamper-outside-window claim is
-     * untestable until the precision-drift bug is fixed. Followup
-     * `m3.x-hash-chain-canonicalise-timestamp-precision`.
-     */
-    it.skip('AC-CHAIN-2b — tampering a row outside the 100-row window does NOT block the next emit', async () => {
+    // Un-skipped by `m3.x-hash-chain-window-prevhash-seed`. Same root cause
+    // as AC-CHAIN-2 above. With the sliding-window seed fix, the validator
+    // correctly accepts a tamper outside the 100-row window and the next emit
+    // proceeds; the offline full-chain audit (D1) still surfaces row 5.
+    it('AC-CHAIN-2b — tampering a row outside the 100-row window does NOT block the next emit', async () => {
       // Seed 200 rows.
       const ids: string[] = [];
       for (let i = 0; i < 200; i++) {

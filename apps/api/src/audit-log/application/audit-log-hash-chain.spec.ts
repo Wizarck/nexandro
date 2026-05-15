@@ -168,5 +168,31 @@ describe('audit-log-hash-chain', () => {
       const result = validateChainIntegrity([legacy, subsequent]);
       expect(result.ok).toBe(true);
     });
+
+    // Regression — m3.x-hash-chain-window-prevhash-seed. Before the fix,
+    // validateChainIntegrity seeded prevHash=null unconditionally; a sliding
+    // window starting at row N>0 (the production lookback contract from write
+    // 102 onward) saw row N's recomputed hash diverge from the stored value.
+    // After the fix, the seed is rows[0].prevHash, making the validator
+    // self-consistent within the window.
+    it('validates a sliding window starting mid-chain (rows 50..99 of a 100-row chain)', () => {
+      const full = buildValidChain(100);
+      const window = full.slice(50, 100);
+      const result = validateChainIntegrity(window);
+      expect(result.ok).toBe(true);
+    });
+
+    it('detects tampering inside a sliding window starting mid-chain', () => {
+      const full = buildValidChain(100);
+      const window = full.slice(50, 100);
+      // Tamper row at chain position 75 (window index 25) — change payload
+      // without updating row_hash. The validator should detect the mismatch.
+      window[25].payloadAfter = { idx: 999 };
+      const result = validateChainIntegrity(window);
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.firstBrokenRowId).toBe('row-75');
+      }
+    });
   });
 });
