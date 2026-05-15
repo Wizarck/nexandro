@@ -1,10 +1,11 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   AuditEventEnvelope,
   AuditEventType,
 } from '../../audit-log/application/types';
+import { safeAuditEmit } from '../../shared/audit-emit/safe-audit-emit';
 import {
   IngestionCorrectionEmptyError,
   IngestionCrossTenantError,
@@ -41,6 +42,8 @@ import { PHOTO_INGESTION_AGGREGATE_TYPE } from './ingestion.service';
  */
 @Injectable()
 export class RetroactiveCorrectionService {
+  private readonly logger = new Logger(RetroactiveCorrectionService.name);
+
   constructor(
     private readonly repo: IngestionItemRepository,
     private readonly events: EventEmitter2,
@@ -136,9 +139,11 @@ export class RetroactiveCorrectionService {
         reason,
       },
     };
-    await this.events.emitAsync(
+    await safeAuditEmit(
+      this.events,
       AuditEventType.HITL_RETROACTIVE_CORRECTION,
       envelope,
+      this.logger,
     );
 
     return {

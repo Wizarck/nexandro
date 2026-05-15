@@ -8,6 +8,7 @@ import {
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Observable } from 'rxjs';
 import { AuditEventType, AuditEventEnvelope } from '../../audit-log/application/types';
+import { safeAuditEmit } from '../../shared/audit-emit/safe-audit-emit';
 import { OrganizationRepository } from '../../iam/infrastructure/organization.repository';
 import { ChatRequestDto, ChatSseEvent } from '../interface/dto/agent-chat.dto';
 
@@ -220,13 +221,12 @@ export class AgentChatService {
       },
       reason: 'chat.message',
     };
-    try {
-      await this.events.emitAsync(AuditEventType.AGENT_ACTION_FORENSIC, envelope);
-    } catch (err) {
-      this.logger.warn(
-        `agent-chat.audit.emit_failed: ${(err as Error).message ?? 'unknown'}`,
-      );
-    }
+    await safeAuditEmit(
+      this.events,
+      AuditEventType.AGENT_ACTION_FORENSIC,
+      envelope,
+      this.logger,
+    );
   }
 
   /**

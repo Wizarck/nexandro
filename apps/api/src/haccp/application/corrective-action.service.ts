@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -7,6 +7,7 @@ import {
   AuditEventEnvelope,
   AuditEventType,
 } from '../../audit-log/application/types';
+import { safeAuditEmit } from '../../shared/audit-emit/safe-audit-emit';
 import { CorrectiveAction } from '../domain/corrective-action.entity';
 import { CorrectiveActionNotFoundError } from '../domain/errors';
 import {
@@ -28,6 +29,8 @@ import {
  */
 @Injectable()
 export class CorrectiveActionService {
+  private readonly logger = new Logger(CorrectiveActionService.name);
+
   constructor(
     @InjectRepository(CorrectiveAction)
     private readonly repo: Repository<CorrectiveAction>,
@@ -119,9 +122,11 @@ export class CorrectiveActionService {
       payloadBefore: null,
       payloadAfter,
     };
-    await this.events.emitAsync(
+    await safeAuditEmit(
+      this.events,
       AuditEventType.CCP_CORRECTIVE_ACTION_RECORDED,
       envelope,
+      this.logger,
     );
 
     return saved;

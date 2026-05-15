@@ -4,6 +4,7 @@ import {
   AuditEventEnvelope,
   AuditEventType,
 } from '../../audit-log/application/types';
+import { safeAuditEmit } from '../../shared/audit-emit/safe-audit-emit';
 import {
   EMAIL_DISPATCH_SERVICE,
   type EmailDispatchService,
@@ -92,9 +93,11 @@ export class RecallDispatchService {
       payloadBefore: null,
       payloadAfter,
     };
-    await this.events.emitAsync(
+    await safeAuditEmit(
+      this.events,
       AuditEventType.RECALL_86_FLAG_DISPATCHED,
       envelope,
+      this.logger,
     );
   }
 
@@ -258,9 +261,11 @@ export class RecallDispatchService {
       payloadBefore: null,
       payloadAfter,
     };
-    await this.events.emitAsync(
+    await safeAuditEmit(
+      this.events,
       AuditEventType.RECALL_DOSSIER_GENERATED,
       envelope,
+      this.logger,
     );
   }
 
@@ -291,9 +296,11 @@ export class RecallDispatchService {
       payloadBefore: null,
       payloadAfter,
     };
-    await this.events.emitAsync(
+    await safeAuditEmit(
+      this.events,
       AuditEventType.RECALL_DOSSIER_REDISPATCHED,
       envelope,
+      this.logger,
     );
   }
 

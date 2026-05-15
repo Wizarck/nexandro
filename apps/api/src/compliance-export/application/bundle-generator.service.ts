@@ -8,6 +8,7 @@ import {
   AuditEventEnvelope,
   AuditEventType,
 } from '../../audit-log/application/types';
+import { safeAuditEmit } from '../../shared/audit-emit/safe-audit-emit';
 import {
   EMAIL_DISPATCH_SERVICE,
   type EmailDispatchService,
@@ -240,9 +241,11 @@ export class BundleGeneratorService {
       payloadBefore: null,
       payloadAfter: generatedPayload,
     };
-    await this.events.emitAsync(
+    await safeAuditEmit(
+      this.events,
       AuditEventType.EXPORT_BUNDLE_GENERATED,
       generatedEnvelope,
+      this.logger,
     );
 
     const receipts: RecipientReceipt[] = [];
@@ -387,9 +390,11 @@ export class BundleGeneratorService {
       payloadBefore: null,
       payloadAfter,
     };
-    await this.events.emitAsync(
+    await safeAuditEmit(
+      this.events,
       AuditEventType.EXPORT_BUNDLE_DISPATCHED,
       envelope,
+      this.logger,
     );
   }
 

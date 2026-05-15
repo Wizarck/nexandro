@@ -4,6 +4,7 @@ import {
   AuditEventEnvelope,
   AuditEventType,
 } from '../../audit-log/application/types';
+import { safeAuditEmit } from '../../shared/audit-emit/safe-audit-emit';
 import { DownstreamRevocationRepository } from './downstream-revocation.repository';
 
 /**
@@ -113,9 +114,11 @@ export class DownstreamRevocationSubscriber {
         requiresReview: true,
       },
     };
-    await this.events.emitAsync(
+    await safeAuditEmit(
+      this.events,
       AuditEventType.LOT_FLAGGED_FOR_REVIEW,
       envelope,
+      this.logger,
     );
   }
 
@@ -136,9 +139,11 @@ export class DownstreamRevocationSubscriber {
         requiresReview: true,
       },
     };
-    await this.events.emitAsync(
+    await safeAuditEmit(
+      this.events,
       AuditEventType.GR_FLAGGED_FOR_REVIEW,
       envelope,
+      this.logger,
     );
   }
 
@@ -160,9 +165,11 @@ export class DownstreamRevocationSubscriber {
           'apply migration 0041_photo_ingest_retroactive_correction.ts to enable downstream-revocation flagging',
       },
     };
-    await this.events.emitAsync(
+    await safeAuditEmit(
+      this.events,
       AuditEventType.DOWNSTREAM_REVOCATION_DEFERRED,
       envelope,
+      this.logger,
     );
   }
 }

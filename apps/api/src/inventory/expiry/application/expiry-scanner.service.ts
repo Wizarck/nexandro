@@ -9,6 +9,7 @@ import {
   LotExpiryNearPayload,
   LOT_EXPIRY_NEAR_CHANNEL,
 } from '../domain/events';
+import { safeAuditEmit } from '../../../shared/audit-emit/safe-audit-emit';
 import { ExpiryDedupWindowConflictError } from '../domain/errors';
 import { ExpiryAlertsFiredRepository } from './expiry-alerts-fired.repository';
 
@@ -176,7 +177,12 @@ export class ExpiryScannerService {
       lotId: lot.id,
       payload,
     });
-    await this.events.emitAsync(LOT_EXPIRY_NEAR_CHANNEL, envelope);
+    await safeAuditEmit(
+      this.events,
+      LOT_EXPIRY_NEAR_CHANNEL,
+      envelope,
+      this.logger,
+    );
   }
 
   /**

@@ -5,6 +5,7 @@ import {
   AuditEventEnvelope,
   AuditEventType,
 } from '../../audit-log/application/types';
+import { safeAuditEmit } from '../../shared/audit-emit/safe-audit-emit';
 import { Lot, LotUnit } from '../../inventory/lot/domain/lot.entity';
 import { LotRepository } from '../../inventory/lot/application/lot.repository';
 import { GoodsReceipt } from '../../procurement/gr/domain/goods-receipt.entity';
@@ -539,9 +540,11 @@ export class PhotoIngestionRoutingService {
       payloadBefore: null,
       payloadAfter,
     };
-    await this.events.emitAsync(
+    await safeAuditEmit(
+      this.events,
       AuditEventType.PHOTO_INGESTION_DOWNSTREAM_ROUTED,
       envelope,
+      this.logger,
     );
   }
 
@@ -564,9 +567,11 @@ export class PhotoIngestionRoutingService {
         reason: reasons,
       },
     };
-    await this.events.emitAsync(
+    await safeAuditEmit(
+      this.events,
       AuditEventType.PHOTO_INGESTION_ROUTING_SKIPPED,
       envelope,
+      this.logger,
     );
   }
 

@@ -1,11 +1,12 @@
 import { randomUUID } from 'node:crypto';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AuditLogService } from '../../audit-log/application/audit-log.service';
 import {
   AuditEventEnvelope,
   AuditEventType,
 } from '../../audit-log/application/types';
+import { safeAuditEmit } from '../../shared/audit-emit/safe-audit-emit';
 import {
   RECALL_ADDENDUM_ATTACHMENT_MAX_BYTES,
   RECALL_ADDENDUM_TEXT_MAX,
@@ -72,6 +73,8 @@ export class AddendumValidationError extends Error {
  */
 @Injectable()
 export class IncidentService {
+  private readonly logger = new Logger(IncidentService.name);
+
   constructor(
     private readonly auditLog: AuditLogService,
     private readonly codeGenerator: IncidentCodeGenerator,
@@ -111,9 +114,11 @@ export class IncidentService {
 
     // `emitAsync` so subscribers complete inline; per INT spec gotcha
     // (project memory: emitAsync for read-after-write across the bus).
-    await this.events.emitAsync(
+    await safeAuditEmit(
+      this.events,
       AuditEventType.RECALL_INVESTIGATION_OPENED,
       envelope,
+      this.logger,
     );
 
     return {
@@ -306,9 +311,11 @@ export class IncidentService {
       payloadBefore: null,
       payloadAfter,
     };
-    await this.events.emitAsync(
+    await safeAuditEmit(
+      this.events,
       AuditEventType.RECALL_ADDENDUM_ATTACHED,
       envelope,
+      this.logger,
     );
     return { addendumId, attachedAt };
   }

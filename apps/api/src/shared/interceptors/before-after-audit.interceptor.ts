@@ -11,6 +11,7 @@ import type { Request } from 'express';
 import { Observable, from } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
 import { AuditEventType } from '../../audit-log/application/types';
+import { safeAuditEmit } from '../audit-emit/safe-audit-emit';
 import {
   AUDIT_AGGREGATE_KEY,
   AuditAggregateMeta,
@@ -120,17 +121,22 @@ export class BeforeAfterAuditInterceptor implements NestInterceptor {
       this.logger.debug('audit.skipped: no organizationId on req.user');
       return;
     }
-    await this.events.emitAsync(AuditEventType.AGENT_ACTION_FORENSIC, {
-      organizationId,
-      aggregateType: meta.aggregateType,
-      aggregateId,
-      actorUserId: user?.userId ?? null,
-      actorKind: 'agent' as const,
-      agentName: req.agentContext?.agentName,
-      payloadBefore: before,
-      payloadAfter: after,
-      reason: req.agentContext?.capabilityName ?? undefined,
-    });
+    await safeAuditEmit(
+      this.events,
+      AuditEventType.AGENT_ACTION_FORENSIC,
+      {
+        organizationId,
+        aggregateType: meta.aggregateType,
+        aggregateId,
+        actorUserId: user?.userId ?? null,
+        actorKind: 'agent' as const,
+        agentName: req.agentContext?.agentName,
+        payloadBefore: before,
+        payloadAfter: after,
+        reason: req.agentContext?.capabilityName ?? undefined,
+      },
+      this.logger,
+    );
   }
 }
 

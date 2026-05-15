@@ -5,6 +5,7 @@ import {
   AuditEventEnvelope,
   AuditEventType,
 } from '../../audit-log/application/types';
+import { safeAuditEmit } from '../../shared/audit-emit/safe-audit-emit';
 import { PhotoStorageService } from '../../photo-storage/application/photo-storage.service';
 import {
   VISION_LLM_PROVIDER,
@@ -222,7 +223,7 @@ export class IngestionService {
         operatorCorrection: null,
       },
     };
-    await this.events.emitAsync(args.eventType, envelope);
+    await safeAuditEmit(this.events, args.eventType, envelope, this.logger);
 
     return {
       itemId: saved.id,

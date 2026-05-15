@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
@@ -7,6 +7,7 @@ import {
   AuditEventEnvelope,
   AuditEventType,
 } from '../../audit-log/application/types';
+import { safeAuditEmit } from '../../shared/audit-emit/safe-audit-emit';
 import { FsmsStandard } from '../domain/fsms-standard.entity';
 import {
   FsmsStandardConflictError,
@@ -30,6 +31,8 @@ import {
  */
 @Injectable()
 export class FsmsStandardService {
+  private readonly logger = new Logger(FsmsStandardService.name);
+
   constructor(
     @InjectRepository(FsmsStandard)
     private readonly repo: Repository<FsmsStandard>,
@@ -98,9 +101,11 @@ export class FsmsStandardService {
         payloadBefore: null,
         payloadAfter,
       };
-      await this.events.emitAsync(
+      await safeAuditEmit(
+        this.events,
         AuditEventType.FSMS_STANDARD_CONFIGURED,
         envelope,
+        this.logger,
       );
 
       return saved;

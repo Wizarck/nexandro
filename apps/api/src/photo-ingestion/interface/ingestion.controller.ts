@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Logger,
   NotFoundException,
   Param,
   ParseUUIDPipe,
@@ -21,6 +22,7 @@ import {
   AuditEventEnvelope,
   AuditEventType,
 } from '../../audit-log/application/types';
+import { safeAuditEmit } from '../../shared/audit-emit/safe-audit-emit';
 import { Roles } from '../../shared/decorators/roles.decorator';
 import { AuthenticatedUserPayload } from '../../shared/guards/roles.guard';
 import { HitlQueueQuery } from '../application/hitl-queue.query';
@@ -65,6 +67,8 @@ import {
 @ApiTags('m3-photo-ingest')
 @Controller('m3/photo-ingest')
 export class IngestionController {
+  private readonly logger = new Logger(IngestionController.name);
+
   constructor(
     private readonly ingestion: IngestionService,
     private readonly signService: HitlSignService,
@@ -232,9 +236,11 @@ export class IngestionController {
         triggeredByUserId: user.userId,
       },
     };
-    await this.events.emitAsync(
+    await safeAuditEmit(
+      this.events,
       AuditEventType.PHOTO_INGESTION_RECLASSIFIED,
       envelope,
+      this.logger,
     );
     return { itemId: row.id, status: row.status, queued: true };
   }

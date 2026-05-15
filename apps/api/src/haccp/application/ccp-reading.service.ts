@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -7,6 +7,7 @@ import {
   AuditEventEnvelope,
   AuditEventType,
 } from '../../audit-log/application/types';
+import { safeAuditEmit } from '../../shared/audit-emit/safe-audit-emit';
 import { CcpReading } from '../domain/ccp-reading.entity';
 import {
   CcpNotInFsmsStandardError,
@@ -40,6 +41,8 @@ import { FsmsStandardService } from './fsms-standard.service';
  */
 @Injectable()
 export class CcpReadingService {
+  private readonly logger = new Logger(CcpReadingService.name);
+
   constructor(
     @InjectRepository(CcpReading)
     private readonly repo: Repository<CcpReading>,
@@ -127,9 +130,11 @@ export class CcpReadingService {
       payloadBefore: null,
       payloadAfter,
     };
-    await this.events.emitAsync(
+    await safeAuditEmit(
+      this.events,
       AuditEventType.CCP_READING_RECORDED,
       envelope,
+      this.logger,
     );
 
     return saved;

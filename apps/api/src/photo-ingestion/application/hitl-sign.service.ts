@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   AuditEventEnvelope,
   AuditEventType,
 } from '../../audit-log/application/types';
+import { safeAuditEmit } from '../../shared/audit-emit/safe-audit-emit';
 import {
   IngestionAlreadySignedError,
   IngestionCrossTenantError,
@@ -35,6 +36,8 @@ import { PHOTO_INGESTION_AGGREGATE_TYPE } from './ingestion.service';
  */
 @Injectable()
 export class HitlSignService {
+  private readonly logger = new Logger(HitlSignService.name);
+
   constructor(
     private readonly repo: IngestionItemRepository,
     private readonly events: EventEmitter2,
@@ -108,7 +111,12 @@ export class HitlSignService {
         operatorCorrection: saved.operatorCorrection,
       },
     };
-    await this.events.emitAsync(AuditEventType.PHOTO_INGESTION_SIGNED, envelope);
+    await safeAuditEmit(
+      this.events,
+      AuditEventType.PHOTO_INGESTION_SIGNED,
+      envelope,
+      this.logger,
+    );
 
     return { itemId: saved.id, status: 'signed' };
   }

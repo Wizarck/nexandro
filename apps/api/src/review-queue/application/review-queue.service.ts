@@ -4,6 +4,7 @@ import {
   AuditEventEnvelope,
   AuditEventType,
 } from '../../audit-log/application/types';
+import { safeAuditEmit } from '../../shared/audit-emit/safe-audit-emit';
 import { ReviewQueueRepository } from './review-queue.repository';
 import type {
   ClearReviewResult,
@@ -85,7 +86,7 @@ export class ReviewQueueService {
       aggregateType === 'lot'
         ? AuditEventType.LOT_REVIEW_CLEARED
         : AuditEventType.GR_REVIEW_CLEARED;
-    await this.events.emitAsync(eventType, envelope);
+    await safeAuditEmit(this.events, eventType, envelope, this.logger);
     this.logger.debug(
       `review-queue.cleared aggregateType=${aggregateType} aggregateId=${aggregateId}`,
     );
