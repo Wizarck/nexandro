@@ -164,12 +164,98 @@ describe('IngestionController', () => {
     ).rejects.toBeInstanceOf(NotFoundException);
   });
 
+  it('retroactiveCorrection — forwards orgId/itemId/fieldCorrections + signer userId to service', async () => {
+    const { ctrl, retroactive } = buildCtrl();
+    (retroactive.apply as jest.Mock).mockResolvedValue({
+      itemId: ITEM,
+      status: 'signed',
+      correctionsHistoryLength: 1,
+      idempotent: false,
+    });
+
+    const result = await ctrl.retroactiveCorrection(
+      ITEM,
+      {
+        organizationId: ORG,
+        fieldCorrections: [{ name: 'qty', value: 18 }],
+        reason: 'recount',
+      },
+      fakeReq({ userId: 'u-1', organizationId: ORG, role: 'MANAGER' }),
+    );
+
+    expect(result).toEqual({
+      itemId: ITEM,
+      status: 'signed',
+      correctionsHistoryLength: 1,
+      idempotent: false,
+    });
+    expect(retroactive.apply).toHaveBeenCalledWith(ORG, ITEM, {
+      fieldCorrections: [{ name: 'qty', value: 18 }],
+      correctedByUserId: 'u-1',
+      reason: 'recount',
+    });
+  });
+
+  it('retroactiveCorrection — cross-org body rejects with 403 ForbiddenException (no service call)', async () => {
+    const { ctrl, retroactive } = buildCtrl();
+    await expect(
+      ctrl.retroactiveCorrection(
+        ITEM,
+        {
+          organizationId: OTHER_ORG,
+          fieldCorrections: [{ name: 'qty', value: 18 }],
+        },
+        fakeReq({ userId: 'u-1', organizationId: ORG, role: 'MANAGER' }),
+      ),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+    expect(retroactive.apply).not.toHaveBeenCalled();
+  });
+
+  it('retroactiveCorrection — maps service errors: cross-tenant→404, not-correctable→422, empty-field→422', async () => {
+    const { ctrl, retroactive } = buildCtrl();
+    const { IngestionCrossTenantError, IngestionItemNotCorrectableError, IngestionCorrectionEmptyError } = await import('../domain/errors');
+
+    (retroactive.apply as jest.Mock).mockRejectedValueOnce(
+      new IngestionCrossTenantError(ITEM),
+    );
+    await expect(
+      ctrl.retroactiveCorrection(
+        ITEM,
+        { organizationId: ORG, fieldCorrections: [{ name: 'qty', value: 1 }] },
+        fakeReq({ userId: 'u-1', organizationId: ORG, role: 'MANAGER' }),
+      ),
+    ).rejects.toBeInstanceOf(NotFoundException);
+
+    (retroactive.apply as jest.Mock).mockRejectedValueOnce(
+      new IngestionItemNotCorrectableError(ITEM, 'awaiting_review'),
+    );
+    await expect(
+      ctrl.retroactiveCorrection(
+        ITEM,
+        { organizationId: ORG, fieldCorrections: [{ name: 'qty', value: 1 }] },
+        fakeReq({ userId: 'u-1', organizationId: ORG, role: 'MANAGER' }),
+      ),
+    ).rejects.toBeInstanceOf(UnprocessableEntityException);
+
+    (retroactive.apply as jest.Mock).mockRejectedValueOnce(
+      new IngestionCorrectionEmptyError('qty'),
+    );
+    await expect(
+      ctrl.retroactiveCorrection(
+        ITEM,
+        { organizationId: ORG, fieldCorrections: [{ name: 'qty', value: 1 }] },
+        fakeReq({ userId: 'u-1', organizationId: ORG, role: 'MANAGER' }),
+      ),
+    ).rejects.toBeInstanceOf(UnprocessableEntityException);
+  });
+
   it.each([
     'ingest',
     'list',
     'getItem',
     'sign',
     'reclassify',
+    'retroactiveCorrection',
   ])('%s method carries @Roles("OWNER", "MANAGER") metadata', (method) => {
     const proto = IngestionController.prototype as unknown as Record<
       string,

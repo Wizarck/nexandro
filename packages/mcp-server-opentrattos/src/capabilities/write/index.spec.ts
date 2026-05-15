@@ -25,8 +25,8 @@ import {
 const NAME_REGEX = /^[a-z][a-zA-Z0-9-]*(\.[a-z][a-zA-Z0-9-]*)+$/;
 
 describe('WRITE_CAPABILITIES registry', () => {
-  it('contains exactly 52 entries', () => {
-    expect(WRITE_CAPABILITIES).toHaveLength(52);
+  it('contains exactly 53 entries', () => {
+    expect(WRITE_CAPABILITIES).toHaveLength(53);
   });
 
   it('has unique capability names', () => {

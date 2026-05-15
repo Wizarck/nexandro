@@ -1,8 +1,8 @@
 import { INVENTORY_WRITE_CAPABILITIES } from './inventory.js';
 
-describe('INVENTORY_WRITE_CAPABILITIES (slice #17a m3-photo-ingest-backend)', () => {
-  it('contains exactly 3 entries', () => {
-    expect(INVENTORY_WRITE_CAPABILITIES).toHaveLength(3);
+describe('INVENTORY_WRITE_CAPABILITIES (slice #17a m3-photo-ingest-backend + H1b retroactive followup)', () => {
+  it('contains exactly 4 entries', () => {
+    expect(INVENTORY_WRITE_CAPABILITIES).toHaveLength(4);
   });
 
   it('every entry names the inventory namespace', () => {
@@ -66,6 +66,33 @@ describe('INVENTORY_WRITE_CAPABILITIES (slice #17a m3-photo-ingest-backend)', ()
     expect(body.idempotencyKey).toBeUndefined();
     expect(body.fieldCorrections).toEqual([
       { name: 'supplier_name', value: 'ACME', confidence: 1 },
+    ]);
+  });
+
+  it('retroactive-correct-photo-ingestion routes :itemId + strips itemId + idempotencyKey, preserves reason', () => {
+    const cap = INVENTORY_WRITE_CAPABILITIES.find(
+      (c) => c.name === 'inventory.retroactive-correct-photo-ingestion',
+    );
+    expect(cap).toBeDefined();
+    expect(cap!.restPathTemplate).toBe(
+      '/m3/photo-ingest/items/:itemId/retroactive-correction',
+    );
+    expect(typeof cap!.restPathParams).toBe('function');
+    const params = cap!.restPathParams!({ itemId: 'item-1' });
+    expect(params).toEqual({ itemId: 'item-1' });
+    const body = cap!.restBodyExtractor!({
+      itemId: 'item-1',
+      organizationId: 'org-1',
+      fieldCorrections: [{ name: 'qty', value: 12, confidence: 1 }],
+      reason: 'Corrected qty after manual count',
+      idempotencyKey: 'idem-1',
+    }) as Record<string, unknown>;
+    expect(body.itemId).toBeUndefined();
+    expect(body.idempotencyKey).toBeUndefined();
+    expect(body.organizationId).toBe('org-1');
+    expect(body.reason).toBe('Corrected qty after manual count');
+    expect(body.fieldCorrections).toEqual([
+      { name: 'qty', value: 12, confidence: 1 },
     ]);
   });
 });

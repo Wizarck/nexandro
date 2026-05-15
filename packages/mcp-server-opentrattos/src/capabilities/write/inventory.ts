@@ -48,6 +48,14 @@ const signPhotoSchema = {
   idempotencyKey,
 } as const;
 
+const retroactiveCorrectionSchema = {
+  itemId: z.string().uuid(),
+  organizationId: z.string().uuid(),
+  fieldCorrections: z.array(fieldCorrectionSchema).max(200),
+  reason: z.string().min(1).max(500).optional(),
+  idempotencyKey,
+} as const;
+
 export const INVENTORY_WRITE_CAPABILITIES: WriteCapability[] = [
   {
     name: 'inventory.ingest-invoice-photo',
@@ -89,6 +97,25 @@ export const INVENTORY_WRITE_CAPABILITIES: WriteCapability[] = [
     schema: signPhotoSchema,
     restMethod: 'POST',
     restPathTemplate: '/m3/photo-ingest/items/:itemId/sign',
+    restPathParams: (input) => ({
+      itemId: (input as { itemId: string }).itemId,
+    }),
+    restBodyExtractor: (input) => {
+      const i = (input ?? {}) as Record<string, unknown>;
+      const { idempotencyKey: _ik, itemId: _id, ...body } = i;
+      return body;
+    },
+  },
+  {
+    name: 'inventory.retroactive-correct-photo-ingestion',
+    title:
+      'Apply a retroactive correction to a signed photo-ingestion item',
+    description:
+      'Appends a new operator correction to an already-signed HITL ingestion item. The prior operatorCorrection is preserved verbatim in corrections_history per the EU AI Act Article 13 forensic foundation. Reject-band fields from the original LLM extraction MUST be non-empty (same iron-rule as sign). MANAGER + OWNER only. Idempotent via SHA-256 content hash over {fieldCorrections, correctedByUserId} — duplicate retries are no-ops. Proxies POST /m3/photo-ingest/items/:itemId/retroactive-correction.',
+    schema: retroactiveCorrectionSchema,
+    restMethod: 'POST',
+    restPathTemplate:
+      '/m3/photo-ingest/items/:itemId/retroactive-correction',
     restPathParams: (input) => ({
       itemId: (input as { itemId: string }).itemId,
     }),

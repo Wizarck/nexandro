@@ -62,8 +62,9 @@ describe('m2-mcp-server smoke', () => {
     // + 2 m3 recall dispatch+dossier (Wave 2.5 slice #13)
     // + 3 m3 haccp writes (Wave 2.6 slice #9)
     // + 1 m3 compliance.generate-export (Wave 2.7 slice #14)
-    // + 3 m3 inventory photo-ingest writes (Wave 2.8 slice #17a) = 59.
-    expect(registeredKeys).toHaveLength(59);
+    // + 3 m3 inventory photo-ingest writes (Wave 2.8 slice #17a)
+    // + 1 m3.x inventory.retroactive-correct-photo-ingestion (H1b followup) = 60.
+    expect(registeredKeys).toHaveLength(60);
     // Spot-check that the read surface is present alongside the writes.
     for (const expected of [
       'ingredients.read',
@@ -76,6 +77,7 @@ describe('m2-mcp-server smoke', () => {
       'recipes.update',
       'iam.users.create',
       'external-catalog.sync',
+      'inventory.retroactive-correct-photo-ingestion',
     ]) {
       expect(registeredKeys).toContain(expected);
     }
