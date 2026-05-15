@@ -24,6 +24,13 @@ describe('computeRetentionClass', () => {
     'FSMS_STANDARD_CONFIGURED',
     'EXPORT_BUNDLE_GENERATED',
     'EXPORT_BUNDLE_DISPATCHED',
+    'PHOTO_INGESTION_AUTO_FILLED',
+    'PHOTO_INGESTION_AWAITING_REVIEW',
+    'PHOTO_INGESTION_REJECTED_LOW_CONFIDENCE',
+    'PHOTO_EXTRACTION_FAILED',
+    'PHOTO_INGESTION_SIGNED',
+    'PHOTO_INGESTION_RECLASSIFIED',
+    'HITL_RETROACTIVE_CORRECTION',
   ])('classifies %s as regulatory (HACCP / EU 178/2002 footprint)', (eventType) => {
     expect(computeRetentionClass(eventType)).toBe('regulatory');
   });

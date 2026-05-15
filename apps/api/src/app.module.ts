@@ -19,6 +19,7 @@ import { CostSnapshotModule } from './inventory/cost/snapshot/cost-snapshot.modu
 import { LabelsModule } from './labels/labels.module';
 import { MenusModule } from './menus/menus.module';
 import { PhotoStorageModule } from './photo-storage/photo-storage.module';
+import { PhotoIngestionModule } from './photo-ingestion/photo-ingestion.module';
 import { ProcurementModule } from './procurement/procurement.module';
 import { HaccpModule } from './haccp/haccp.module';
 import { I18nM3ExportModule } from './i18n/m3-export/i18n.module';
@@ -142,6 +143,22 @@ import { SharedModule } from './shared/shared.module';
     // Backend-only; downstream UX consumers are slice #17 (photo-ingest HITL),
     // #13 (recall dossier signed URLs), #15 (APPCC export bundle).
     PhotoStorageModule,
+
+    // M3 photo-ingestion BC (m3-photo-ingest-backend, Wave 2.8, slice #17a):
+    // vision-LLM extraction (slice #16 VISION_LLM_PROVIDER) + ADR-034
+    // confidence-band classifier (0.85/0.60 inclusive thresholds, code-level
+    // locked) + HITL queue persistence on `photo_ingestion_items`. Seven
+    // new audit envelopes (PHOTO_INGESTION_AUTO_FILLED,
+    // PHOTO_INGESTION_AWAITING_REVIEW, PHOTO_INGESTION_REJECTED_LOW_CONFIDENCE,
+    // PHOTO_EXTRACTION_FAILED, PHOTO_INGESTION_SIGNED,
+    // PHOTO_INGESTION_RECLASSIFIED, HITL_RETROACTIVE_CORRECTION) all
+    // `retention_class='regulatory'`. Three MCP write capabilities (ingest-
+    // invoice-photo, ingest-product-photo, sign-photo-ingestion). Consumes
+    // slice #18 PhotoStorageService for signed read URLs. The j12 UI surface
+    // (PhotoViewer, HitlReviewQueue, BoundingBoxOverlay) lives in slice #17b
+    // (m3-photo-review-ui, parallel sibling). Downstream routing chain
+    // (GR-draft / Lot creation) deferred to followup per tasks.md §Deferred.
+    PhotoIngestionModule,
 
     // M3 recall BC (Wave 2.5, slices #11+#12+#13): canonical Recall BC at
     // `apps/api/src/recall/` per ADR-028. Slice #11 ships incident search

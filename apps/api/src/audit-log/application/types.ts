@@ -60,6 +60,14 @@ export const AuditEventType = {
   // ---- Slice #14 m3-appcc-export-bundle-service (Wave 2.7) ----
   EXPORT_BUNDLE_GENERATED: 'compliance.export-bundle-generated',
   EXPORT_BUNDLE_DISPATCHED: 'compliance.export-bundle-dispatched',
+  // ---- Slice #17a m3-photo-ingest-backend (Wave 2.8) ----
+  PHOTO_INGESTION_AUTO_FILLED: 'm3.photo-ingestion.auto-filled',
+  PHOTO_INGESTION_AWAITING_REVIEW: 'm3.photo-ingestion.awaiting-review',
+  PHOTO_INGESTION_REJECTED_LOW_CONFIDENCE: 'm3.photo-ingestion.rejected-low-confidence',
+  PHOTO_EXTRACTION_FAILED: 'm3.photo-ingestion.extraction-failed',
+  PHOTO_INGESTION_SIGNED: 'm3.photo-ingestion.signed',
+  PHOTO_INGESTION_RECLASSIFIED: 'm3.photo-ingestion.reclassified',
+  HITL_RETROACTIVE_CORRECTION: 'm3.photo-ingestion.hitl-retroactive-correction',
 } as const;
 
 /**
@@ -115,6 +123,14 @@ export const AuditEventTypeName: Record<AuditEventType, string> = {
   // ---- Slice #14 m3-appcc-export-bundle-service ----
   'compliance.export-bundle-generated': 'EXPORT_BUNDLE_GENERATED',
   'compliance.export-bundle-dispatched': 'EXPORT_BUNDLE_DISPATCHED',
+  // ---- Slice #17a m3-photo-ingest-backend ----
+  'm3.photo-ingestion.auto-filled': 'PHOTO_INGESTION_AUTO_FILLED',
+  'm3.photo-ingestion.awaiting-review': 'PHOTO_INGESTION_AWAITING_REVIEW',
+  'm3.photo-ingestion.rejected-low-confidence': 'PHOTO_INGESTION_REJECTED_LOW_CONFIDENCE',
+  'm3.photo-ingestion.extraction-failed': 'PHOTO_EXTRACTION_FAILED',
+  'm3.photo-ingestion.signed': 'PHOTO_INGESTION_SIGNED',
+  'm3.photo-ingestion.reclassified': 'PHOTO_INGESTION_RECLASSIFIED',
+  'm3.photo-ingestion.hitl-retroactive-correction': 'HITL_RETROACTIVE_CORRECTION',
 };
 
 /**
@@ -179,6 +195,16 @@ const RETENTION_BY_EVENT_NAME: Record<string, RetentionClass> = {
   // APPCC export envelopes — regulator-facing dossier of the chain of custody.
   EXPORT_BUNDLE_GENERATED: 'regulatory',
   EXPORT_BUNDLE_DISPATCHED: 'regulatory',
+  // Photo-ingestion envelopes — EU AI Act forensic chain of custody +
+  // FR28-FR31 HITL audit trail. Both llmExtraction + operatorCorrection
+  // are carried in `payload_after`.
+  PHOTO_INGESTION_AUTO_FILLED: 'regulatory',
+  PHOTO_INGESTION_AWAITING_REVIEW: 'regulatory',
+  PHOTO_INGESTION_REJECTED_LOW_CONFIDENCE: 'regulatory',
+  PHOTO_EXTRACTION_FAILED: 'regulatory',
+  PHOTO_INGESTION_SIGNED: 'regulatory',
+  PHOTO_INGESTION_RECLASSIFIED: 'regulatory',
+  HITL_RETROACTIVE_CORRECTION: 'regulatory',
   // Ephemeral — lean per-request log; 90-day rolling
   AGENT_ACTION_EXECUTED: 'ephemeral',
 };

@@ -28,7 +28,7 @@ describe('m2-mcp-server smoke', () => {
     }
   });
 
-  it('boots, lists 56 capabilities, and round-trips a recipes.read against a mocked REST API', async () => {
+  it('boots, lists 59 capabilities, and round-trips a recipes.read against a mocked REST API', async () => {
     originalFetch = globalThis.fetch;
     const fetchSpy = jest
       .fn<
@@ -61,8 +61,9 @@ describe('m2-mcp-server smoke', () => {
     // + 1 m3 recall search (Wave 2.5 slice #11)
     // + 2 m3 recall dispatch+dossier (Wave 2.5 slice #13)
     // + 3 m3 haccp writes (Wave 2.6 slice #9)
-    // + 1 m3 compliance.generate-export (Wave 2.7 slice #14) = 56.
-    expect(registeredKeys).toHaveLength(56);
+    // + 1 m3 compliance.generate-export (Wave 2.7 slice #14)
+    // + 3 m3 inventory photo-ingest writes (Wave 2.8 slice #17a) = 59.
+    expect(registeredKeys).toHaveLength(59);
     // Spot-check that the read surface is present alongside the writes.
     for (const expected of [
       'ingredients.read',

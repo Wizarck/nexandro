@@ -365,6 +365,70 @@ export class AuditLogSubscriber {
     return this.persistEnvelope(AuditEventType.EXPORT_BUNDLE_DISPATCHED, payload);
   }
 
+  // ---- Slice #17a m3-photo-ingest-backend (Wave 2.8) ----
+  //
+  // Seven envelope-shaped channels covering the FR28-FR31 + FR44 photo
+  // ingest HITL surface. All carry
+  // `aggregate_type='photo_ingestion_item'` +
+  // `aggregate_id=<ingestionItemUuid>`. Retention class is `regulatory` —
+  // ALL llmExtraction + operatorCorrection co-stored on `payload_after`
+  // per the EU AI Act forensic foundation (j12 §Decisions).
+
+  @OnEvent(AuditEventType.PHOTO_INGESTION_AUTO_FILLED)
+  onPhotoIngestionAutoFilled(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(
+      AuditEventType.PHOTO_INGESTION_AUTO_FILLED,
+      payload,
+    );
+  }
+
+  @OnEvent(AuditEventType.PHOTO_INGESTION_AWAITING_REVIEW)
+  onPhotoIngestionAwaitingReview(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(
+      AuditEventType.PHOTO_INGESTION_AWAITING_REVIEW,
+      payload,
+    );
+  }
+
+  @OnEvent(AuditEventType.PHOTO_INGESTION_REJECTED_LOW_CONFIDENCE)
+  onPhotoIngestionRejectedLowConfidence(
+    payload: AuditEventEnvelope,
+  ): Promise<void> {
+    return this.persistEnvelope(
+      AuditEventType.PHOTO_INGESTION_REJECTED_LOW_CONFIDENCE,
+      payload,
+    );
+  }
+
+  @OnEvent(AuditEventType.PHOTO_EXTRACTION_FAILED)
+  onPhotoExtractionFailed(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(
+      AuditEventType.PHOTO_EXTRACTION_FAILED,
+      payload,
+    );
+  }
+
+  @OnEvent(AuditEventType.PHOTO_INGESTION_SIGNED)
+  onPhotoIngestionSigned(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.PHOTO_INGESTION_SIGNED, payload);
+  }
+
+  @OnEvent(AuditEventType.PHOTO_INGESTION_RECLASSIFIED)
+  onPhotoIngestionReclassified(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(
+      AuditEventType.PHOTO_INGESTION_RECLASSIFIED,
+      payload,
+    );
+  }
+
+  @OnEvent(AuditEventType.HITL_RETROACTIVE_CORRECTION)
+  onHitlRetroactiveCorrection(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(
+      AuditEventType.HITL_RETROACTIVE_CORRECTION,
+      payload,
+    );
+  }
+
   // ------------- Internals -------------
 
   /**
