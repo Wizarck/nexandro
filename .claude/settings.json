@@ -1,5 +1,5 @@
 {
-  "_comment": "Project-level Claude Code settings. SessionStart hook auto-recalls Hindsight context per specs/memory-hierarchy.md §4. Wired 2026-04-24.",
+  "_comment": "Project-level Claude Code settings. SessionStart hook auto-recalls Hindsight context per specs/memory-hierarchy.md §4. PreToolUse hook enforces apply-skill orchestration per specs/apply-skill-enforcement.md §2 (ai-playbook v0.14.0).",
   "hooks": {
     "SessionStart": [
       {
@@ -8,6 +8,18 @@
             "type": "command",
             "command": "sops exec-env ../eligia-core/secrets/secrets.env -- python .ai-playbook/scripts/inject_context.py --bank-id opentrattos 2>/dev/null || true",
             "timeout": 60
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/openspec-apply-enforce.py",
+            "timeout": 10
           }
         ]
       }

@@ -89,6 +89,7 @@ These extend (do not duplicate) universal norms in `.ai-playbook/specs/*`.
 **Process:**
 - **TDD per layer (ADR-TBD)**: `domain/` TDD mandatory; `application/` recommended; `infrastructure/` integration > unit; `interface/` E2E. Every `Scenario: WHEN/THEN` in a spec has ≥1 test.
 - **Never edit `openspec/specs/*.md` manually** — changes only land via `openspec archive` of a completed change.
+- **Apply phase goes through `openspec-apply-change` skill.** Manual `Edit`/`Write`/`MultiEdit` on a slice's declared `write_paths` is blocked by the PreToolUse hook at [`.claude/hooks/openspec-apply-enforce.py`](.claude/hooks/openspec-apply-enforce.py). Contract: [`.ai-playbook/specs/apply-skill-enforcement.md`](.ai-playbook/specs/apply-skill-enforcement.md). Break-glass: `AIPLAYBOOK_APPLY_ENFORCE_OVERRIDE="<≥10-char reason>"` (audited).
 - **Conventional commits** (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`).
 - **Dual repo strategy (ADR-010).** GitHub Issues = community (this AGPL-3.0 repo, `@opentrattos/*` npm packages). Jira (private) = enterprise (TrattOS closed-source, consumes via `npm update`). No ticket mirroring.
 
