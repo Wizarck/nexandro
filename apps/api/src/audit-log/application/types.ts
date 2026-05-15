@@ -75,6 +75,9 @@ export const AuditEventType = {
   LOT_FLAGGED_FOR_REVIEW: 'm3.inventory.lot-flagged-for-review',
   GR_FLAGGED_FOR_REVIEW: 'm3.procurement.gr-flagged-for-review',
   DOWNSTREAM_REVOCATION_DEFERRED: 'm3.photo-ingestion.downstream-revocation-deferred',
+  // ---- m3.x-review-queue-backend (manual operator clear) ----
+  LOT_REVIEW_CLEARED: 'm3.inventory.lot-review-cleared',
+  GR_REVIEW_CLEARED: 'm3.procurement.gr-review-cleared',
 } as const;
 
 /**
@@ -145,6 +148,9 @@ export const AuditEventTypeName: Record<AuditEventType, string> = {
   'm3.inventory.lot-flagged-for-review': 'LOT_FLAGGED_FOR_REVIEW',
   'm3.procurement.gr-flagged-for-review': 'GR_FLAGGED_FOR_REVIEW',
   'm3.photo-ingestion.downstream-revocation-deferred': 'DOWNSTREAM_REVOCATION_DEFERRED',
+  // ---- m3.x-review-queue-backend (manual operator clear) ----
+  'm3.inventory.lot-review-cleared': 'LOT_REVIEW_CLEARED',
+  'm3.procurement.gr-review-cleared': 'GR_REVIEW_CLEARED',
 };
 
 /**
@@ -232,6 +238,12 @@ const RETENTION_BY_EVENT_NAME: Record<string, RetentionClass> = {
   LOT_FLAGGED_FOR_REVIEW: 'regulatory',
   GR_FLAGGED_FOR_REVIEW: 'regulatory',
   DOWNSTREAM_REVOCATION_DEFERRED: 'regulatory',
+  // Review-queue clear envelopes — operator marked a flagged Lot / GR
+  // as reviewed (m3.x-review-queue-backend). Regulatory per EU AI Act
+  // chain-of-custody: the clear is itself an attested operator decision
+  // that closes the loop on the prior FLAGGED_FOR_REVIEW envelope.
+  LOT_REVIEW_CLEARED: 'regulatory',
+  GR_REVIEW_CLEARED: 'regulatory',
   // Ephemeral — lean per-request log; 90-day rolling
   AGENT_ACTION_EXECUTED: 'ephemeral',
 };

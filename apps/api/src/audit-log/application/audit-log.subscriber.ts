@@ -488,6 +488,22 @@ export class AuditLogSubscriber {
     );
   }
 
+  // Review-queue clear envelopes (m3.x-review-queue-backend):
+  //  - LOT_REVIEW_CLEARED: aggregateType='lot', aggregateId=<lotId>
+  //  - GR_REVIEW_CLEARED:  aggregateType='goods_receipt',
+  //                         aggregateId=<grId>
+  // Operator-triggered; payloadAfter carries `reviewedByUserId`,
+  // `reviewedAt`, `sourcePhotoIngestionId`.
+  @OnEvent(AuditEventType.LOT_REVIEW_CLEARED)
+  onLotReviewCleared(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.LOT_REVIEW_CLEARED, payload);
+  }
+
+  @OnEvent(AuditEventType.GR_REVIEW_CLEARED)
+  onGrReviewCleared(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.GR_REVIEW_CLEARED, payload);
+  }
+
   // ------------- Internals -------------
 
   /**

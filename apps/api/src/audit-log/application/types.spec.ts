@@ -36,6 +36,8 @@ describe('computeRetentionClass', () => {
     'LOT_FLAGGED_FOR_REVIEW',
     'GR_FLAGGED_FOR_REVIEW',
     'DOWNSTREAM_REVOCATION_DEFERRED',
+    'LOT_REVIEW_CLEARED',
+    'GR_REVIEW_CLEARED',
   ])('classifies %s as regulatory (HACCP / EU 178/2002 footprint)', (eventType) => {
     expect(computeRetentionClass(eventType)).toBe('regulatory');
   });

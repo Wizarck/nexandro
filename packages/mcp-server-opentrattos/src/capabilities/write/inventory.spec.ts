@@ -1,8 +1,8 @@
 import { INVENTORY_WRITE_CAPABILITIES } from './inventory.js';
 
-describe('INVENTORY_WRITE_CAPABILITIES (slice #17a m3-photo-ingest-backend + H1b retroactive followup)', () => {
-  it('contains exactly 4 entries', () => {
-    expect(INVENTORY_WRITE_CAPABILITIES).toHaveLength(4);
+describe('INVENTORY_WRITE_CAPABILITIES (slice #17a m3-photo-ingest-backend + H1b retroactive + review-queue clear)', () => {
+  it('contains exactly 5 entries', () => {
+    expect(INVENTORY_WRITE_CAPABILITIES).toHaveLength(5);
   });
 
   it('every entry names the inventory namespace', () => {
@@ -94,5 +94,31 @@ describe('INVENTORY_WRITE_CAPABILITIES (slice #17a m3-photo-ingest-backend + H1b
     expect(body.fieldCorrections).toEqual([
       { name: 'qty', value: 12, confidence: 1 },
     ]);
+  });
+
+  it('clear-review-flag routes :aggregateType + :aggregateId + strips them from body', () => {
+    const cap = INVENTORY_WRITE_CAPABILITIES.find(
+      (c) => c.name === 'inventory.clear-review-flag',
+    );
+    expect(cap).toBeDefined();
+    expect(cap!.restPathTemplate).toBe(
+      '/m3/review-queue/:aggregateType/:aggregateId/clear',
+    );
+    expect(typeof cap!.restPathParams).toBe('function');
+    const params = cap!.restPathParams!({
+      aggregateType: 'lot',
+      aggregateId: 'lot-1',
+    });
+    expect(params).toEqual({ aggregateType: 'lot', aggregateId: 'lot-1' });
+    const body = cap!.restBodyExtractor!({
+      organizationId: 'org-1',
+      aggregateType: 'lot',
+      aggregateId: 'lot-1',
+      idempotencyKey: 'idem-1',
+    }) as Record<string, unknown>;
+    expect(body.organizationId).toBe('org-1');
+    expect(body.aggregateType).toBeUndefined();
+    expect(body.aggregateId).toBeUndefined();
+    expect(body.idempotencyKey).toBeUndefined();
   });
 });

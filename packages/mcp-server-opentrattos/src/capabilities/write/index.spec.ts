@@ -25,8 +25,8 @@ import {
 const NAME_REGEX = /^[a-z][a-zA-Z0-9-]*(\.[a-z][a-zA-Z0-9-]*)+$/;
 
 describe('WRITE_CAPABILITIES registry', () => {
-  it('contains exactly 53 entries', () => {
-    expect(WRITE_CAPABILITIES).toHaveLength(53);
+  it('contains exactly 54 entries', () => {
+    expect(WRITE_CAPABILITIES).toHaveLength(54);
   });
 
   it('has unique capability names', () => {
@@ -122,7 +122,7 @@ describe('WRITE_CAPABILITIES registry', () => {
       COMPLIANCE_WRITE_CAPABILITIES.length +
       INVENTORY_WRITE_CAPABILITIES.length;
     expect(sum).toBe(WRITE_CAPABILITIES.length);
-    expect(sum).toBe(53);
+    expect(sum).toBe(54);
   });
 
   it('every capability with :param tokens defines restPathParams', () => {

@@ -56,6 +56,13 @@ const retroactiveCorrectionSchema = {
   idempotencyKey,
 } as const;
 
+const clearReviewFlagSchema = {
+  organizationId: z.string().uuid(),
+  aggregateType: z.enum(['lot', 'goods_receipt']),
+  aggregateId: z.string().uuid(),
+  idempotencyKey,
+} as const;
+
 export const INVENTORY_WRITE_CAPABILITIES: WriteCapability[] = [
   {
     name: 'inventory.ingest-invoice-photo',
@@ -122,6 +129,37 @@ export const INVENTORY_WRITE_CAPABILITIES: WriteCapability[] = [
     restBodyExtractor: (input) => {
       const i = (input ?? {}) as Record<string, unknown>;
       const { idempotencyKey: _ik, itemId: _id, ...body } = i;
+      return body;
+    },
+  },
+  {
+    name: 'inventory.clear-review-flag',
+    title:
+      'Clear the requires_review flag on a Lot or GR draft after manual reconciliation',
+    description:
+      'Marks a previously-flagged Lot or GR row as reviewed (`requires_review = false`). Idempotent: clearing a row that is already false (or does not exist for the caller\'s tenant) returns the same shape with `alreadyClear: true` and emits NO audit envelope. Real clears emit LOT_REVIEW_CLEARED or GR_REVIEW_CLEARED (regulatory) per ADR-AUDIT-WRITER. MANAGER + OWNER only. Proxies POST /m3/review-queue/:aggregateType/:aggregateId/clear.',
+    schema: clearReviewFlagSchema,
+    restMethod: 'POST',
+    restPathTemplate:
+      '/m3/review-queue/:aggregateType/:aggregateId/clear',
+    restPathParams: (input) => {
+      const i = (input ?? {}) as {
+        aggregateType: string;
+        aggregateId: string;
+      };
+      return {
+        aggregateType: i.aggregateType,
+        aggregateId: i.aggregateId,
+      };
+    },
+    restBodyExtractor: (input) => {
+      const i = (input ?? {}) as Record<string, unknown>;
+      const {
+        idempotencyKey: _ik,
+        aggregateType: _at,
+        aggregateId: _aid,
+        ...body
+      } = i;
       return body;
     },
   },
