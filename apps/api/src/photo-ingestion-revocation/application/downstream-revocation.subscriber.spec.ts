@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { AuditLogService } from '../../audit-log/application/audit-log.service';
 import {
   AuditEventEnvelope,
   AuditEventType,
@@ -23,13 +23,14 @@ function buildSubscriber() {
       'flagLotsBySourcePhotoIngestion' | 'flagGoodsReceiptsBySourcePhotoIngestion'
     >
   >;
-  const events = new EventEmitter2();
-  const emitSpy = jest.spyOn(events, 'emitAsync');
+  const auditLog = {
+    record: jest.fn().mockResolvedValue(undefined),
+  } as unknown as jest.Mocked<Pick<AuditLogService, 'record'>>;
   const subscriber = new DownstreamRevocationSubscriber(
     repo as unknown as DownstreamRevocationRepository,
-    events,
+    auditLog as unknown as AuditLogService,
   );
-  return { subscriber, repo, events, emitSpy };
+  return { subscriber, repo, auditLog };
 }
 
 function envelope(overrides: Partial<AuditEventEnvelope> = {}): AuditEventEnvelope {
@@ -45,8 +46,8 @@ function envelope(overrides: Partial<AuditEventEnvelope> = {}): AuditEventEnvelo
 }
 
 describe('DownstreamRevocationSubscriber.onHitlRetroactiveCorrection', () => {
-  it('1 lot match: emits one LOT_FLAGGED_FOR_REVIEW envelope with aggregateType=lot', async () => {
-    const { subscriber, repo, emitSpy } = buildSubscriber();
+  it('1 lot match: records one LOT_FLAGGED_FOR_REVIEW envelope with aggregateType=lot', async () => {
+    const { subscriber, repo, auditLog } = buildSubscriber();
     repo.flagLotsBySourcePhotoIngestion.mockResolvedValue({
       columnExists: true,
       flaggedRowIds: [LOT_A],
@@ -64,7 +65,7 @@ describe('DownstreamRevocationSubscriber.onHitlRetroactiveCorrection', () => {
       ITEM,
     );
 
-    const flaggedCalls = emitSpy.mock.calls.filter(
+    const flaggedCalls = auditLog.record.mock.calls.filter(
       ([ch]) => ch === AuditEventType.LOT_FLAGGED_FOR_REVIEW,
     );
     expect(flaggedCalls).toHaveLength(1);
@@ -78,19 +79,19 @@ describe('DownstreamRevocationSubscriber.onHitlRetroactiveCorrection', () => {
     ).toBe(ITEM);
 
     expect(
-      emitSpy.mock.calls.some(
+      auditLog.record.mock.calls.some(
         ([ch]) => ch === AuditEventType.GR_FLAGGED_FOR_REVIEW,
       ),
     ).toBe(false);
     expect(
-      emitSpy.mock.calls.some(
+      auditLog.record.mock.calls.some(
         ([ch]) => ch === AuditEventType.DOWNSTREAM_REVOCATION_DEFERRED,
       ),
     ).toBe(false);
   });
 
-  it('1 GR match: emits one GR_FLAGGED_FOR_REVIEW with aggregateType=goods_receipt', async () => {
-    const { subscriber, repo, emitSpy } = buildSubscriber();
+  it('1 GR match: records one GR_FLAGGED_FOR_REVIEW with aggregateType=goods_receipt', async () => {
+    const { subscriber, repo, auditLog } = buildSubscriber();
     repo.flagLotsBySourcePhotoIngestion.mockResolvedValue({
       columnExists: true,
       flaggedRowIds: [],
@@ -102,7 +103,7 @@ describe('DownstreamRevocationSubscriber.onHitlRetroactiveCorrection', () => {
 
     await subscriber.onHitlRetroactiveCorrection(envelope());
 
-    const grCalls = emitSpy.mock.calls.filter(
+    const grCalls = auditLog.record.mock.calls.filter(
       ([ch]) => ch === AuditEventType.GR_FLAGGED_FOR_REVIEW,
     );
     expect(grCalls).toHaveLength(1);
@@ -111,8 +112,8 @@ describe('DownstreamRevocationSubscriber.onHitlRetroactiveCorrection', () => {
     expect(env.aggregateId).toBe(GR_A);
   });
 
-  it('both lots AND GR match: emits one envelope per matched row across both kinds', async () => {
-    const { subscriber, repo, emitSpy } = buildSubscriber();
+  it('both lots AND GR match: records one envelope per matched row across both kinds', async () => {
+    const { subscriber, repo, auditLog } = buildSubscriber();
     repo.flagLotsBySourcePhotoIngestion.mockResolvedValue({
       columnExists: true,
       flaggedRowIds: [LOT_A, LOT_B],
@@ -125,19 +126,19 @@ describe('DownstreamRevocationSubscriber.onHitlRetroactiveCorrection', () => {
     await subscriber.onHitlRetroactiveCorrection(envelope());
 
     expect(
-      emitSpy.mock.calls.filter(
+      auditLog.record.mock.calls.filter(
         ([ch]) => ch === AuditEventType.LOT_FLAGGED_FOR_REVIEW,
       ),
     ).toHaveLength(2);
     expect(
-      emitSpy.mock.calls.filter(
+      auditLog.record.mock.calls.filter(
         ([ch]) => ch === AuditEventType.GR_FLAGGED_FOR_REVIEW,
       ),
     ).toHaveLength(1);
   });
 
-  it('no matches: no envelopes emitted (both probes return empty)', async () => {
-    const { subscriber, repo, emitSpy } = buildSubscriber();
+  it('no matches: no envelopes recorded (both probes return empty)', async () => {
+    const { subscriber, repo, auditLog } = buildSubscriber();
     repo.flagLotsBySourcePhotoIngestion.mockResolvedValue({
       columnExists: true,
       flaggedRowIds: [],
@@ -149,11 +150,11 @@ describe('DownstreamRevocationSubscriber.onHitlRetroactiveCorrection', () => {
 
     await subscriber.onHitlRetroactiveCorrection(envelope());
 
-    expect(emitSpy).not.toHaveBeenCalled();
+    expect(auditLog.record).not.toHaveBeenCalled();
   });
 
   it('lots column missing: short-circuits with DOWNSTREAM_REVOCATION_DEFERRED, never probes GR', async () => {
-    const { subscriber, repo, emitSpy } = buildSubscriber();
+    const { subscriber, repo, auditLog } = buildSubscriber();
     repo.flagLotsBySourcePhotoIngestion.mockResolvedValue({
       columnExists: false,
     });
@@ -161,7 +162,7 @@ describe('DownstreamRevocationSubscriber.onHitlRetroactiveCorrection', () => {
     await subscriber.onHitlRetroactiveCorrection(envelope());
 
     expect(repo.flagGoodsReceiptsBySourcePhotoIngestion).not.toHaveBeenCalled();
-    const deferredCalls = emitSpy.mock.calls.filter(
+    const deferredCalls = auditLog.record.mock.calls.filter(
       ([ch]) => ch === AuditEventType.DOWNSTREAM_REVOCATION_DEFERRED,
     );
     expect(deferredCalls).toHaveLength(1);
@@ -173,8 +174,8 @@ describe('DownstreamRevocationSubscriber.onHitlRetroactiveCorrection', () => {
     );
   });
 
-  it('GR column missing (after lots OK): emits DOWNSTREAM_REVOCATION_DEFERRED with goods_receipts reason', async () => {
-    const { subscriber, repo, emitSpy } = buildSubscriber();
+  it('GR column missing (after lots OK): records DOWNSTREAM_REVOCATION_DEFERRED with goods_receipts reason', async () => {
+    const { subscriber, repo, auditLog } = buildSubscriber();
     repo.flagLotsBySourcePhotoIngestion.mockResolvedValue({
       columnExists: true,
       flaggedRowIds: [],
@@ -185,7 +186,7 @@ describe('DownstreamRevocationSubscriber.onHitlRetroactiveCorrection', () => {
 
     await subscriber.onHitlRetroactiveCorrection(envelope());
 
-    const deferredCalls = emitSpy.mock.calls.filter(
+    const deferredCalls = auditLog.record.mock.calls.filter(
       ([ch]) => ch === AuditEventType.DOWNSTREAM_REVOCATION_DEFERRED,
     );
     expect(deferredCalls).toHaveLength(1);
@@ -195,7 +196,7 @@ describe('DownstreamRevocationSubscriber.onHitlRetroactiveCorrection', () => {
   });
 
   it('invalid envelope shape: skipped without probing the repo', async () => {
-    const { subscriber, repo, emitSpy } = buildSubscriber();
+    const { subscriber, repo, auditLog } = buildSubscriber();
     await subscriber.onHitlRetroactiveCorrection(
       undefined as unknown as AuditEventEnvelope,
     );
@@ -207,7 +208,7 @@ describe('DownstreamRevocationSubscriber.onHitlRetroactiveCorrection', () => {
       actorKind: 'system',
     });
     expect(repo.flagLotsBySourcePhotoIngestion).not.toHaveBeenCalled();
-    expect(emitSpy).not.toHaveBeenCalled();
+    expect(auditLog.record).not.toHaveBeenCalled();
   });
 
   it('repository throw: error logged, never propagates', async () => {
@@ -216,5 +217,53 @@ describe('DownstreamRevocationSubscriber.onHitlRetroactiveCorrection', () => {
     await expect(
       subscriber.onHitlRetroactiveCorrection(envelope()),
     ).resolves.toBeUndefined();
+  });
+
+  it('audit-log record throw: error is logged, handler continues, no propagation', async () => {
+    // Simulates a regulatory strict-mode rethrow inside AuditLogService.record
+    // (cf. m3.x-audit-log-subscriber-strict-mode, PR #169). The
+    // DownstreamRevocationSubscriber must catch + log + continue so a single
+    // audit-write failure cannot abort the wider downstream-revocation flow.
+    const { subscriber, repo, auditLog } = buildSubscriber();
+    repo.flagLotsBySourcePhotoIngestion.mockResolvedValue({
+      columnExists: true,
+      flaggedRowIds: [LOT_A, LOT_B],
+    });
+    repo.flagGoodsReceiptsBySourcePhotoIngestion.mockResolvedValue({
+      columnExists: true,
+      flaggedRowIds: [GR_A],
+    });
+    auditLog.record.mockImplementation(async (eventType: string) => {
+      if (eventType === AuditEventType.LOT_FLAGGED_FOR_REVIEW) {
+        throw new Error('hash-chain-broken');
+      }
+      return undefined as never;
+    });
+    const errorSpy = jest
+      .spyOn(
+        (subscriber as unknown as { logger: { error: (m: string) => void } })
+          .logger,
+        'error',
+      )
+      .mockImplementation(() => undefined);
+
+    await expect(
+      subscriber.onHitlRetroactiveCorrection(envelope()),
+    ).resolves.toBeUndefined();
+
+    // The handler progressed: GR was still recorded after the lot failures.
+    expect(
+      auditLog.record.mock.calls.filter(
+        ([ch]) => ch === AuditEventType.GR_FLAGGED_FOR_REVIEW,
+      ),
+    ).toHaveLength(1);
+    // Each failing lot call surfaced an ERROR log.
+    const lotErrorLogs = errorSpy.mock.calls.filter(([msg]) =>
+      typeof msg === 'string'
+        ? msg.includes('audit-record.failed:') &&
+          msg.includes(AuditEventType.LOT_FLAGGED_FOR_REVIEW)
+        : false,
+    );
+    expect(lotErrorLogs.length).toBe(2);
   });
 });

@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { OnEvent } from '@nestjs/event-emitter';
+import { AuditLogService } from '../../audit-log/application/audit-log.service';
 import {
   AuditEventEnvelope,
   AuditEventType,
 } from '../../audit-log/application/types';
-import { safeAuditEmit } from '../../shared/audit-emit/safe-audit-emit';
 import { DownstreamRevocationRepository } from './downstream-revocation.repository';
 
 /**
@@ -26,6 +26,19 @@ import { DownstreamRevocationRepository } from './downstream-revocation.reposito
  * logs + drops; the producer's own envelope (`HITL_RETROACTIVE_CORRECTION`)
  * has already been persisted by the audit-log subscriber so the chain of
  * custody is not lost.
+ *
+ * Per `m3.x-nested-emitasync-direct-call`: the three downstream audit
+ * events (LOT_FLAGGED_FOR_REVIEW, GR_FLAGGED_FOR_REVIEW,
+ * DOWNSTREAM_REVOCATION_DEFERRED) are persisted via direct
+ * `AuditLogService.record(...)` calls rather than re-entering the bus
+ * with `safeAuditEmit`. Rationale: this subscriber runs inside an
+ * `@OnEvent(HITL_RETROACTIVE_CORRECTION)` handler — the Nest event
+ * subscriber loader wraps listeners with `suppressErrors=true`, which
+ * decouples nested `emitAsync` rejections from the outer awaiter and
+ * produced the race documented in `feedback_nested_emitasync_race`. The
+ * local try/catch around each `record()` preserves the swallow semantics
+ * `safeAuditEmit` provided so a regulatory strict-mode rethrow inside
+ * `record()` does NOT break the downstream-revocation handler.
  */
 @Injectable()
 export class DownstreamRevocationSubscriber {
@@ -33,7 +46,7 @@ export class DownstreamRevocationSubscriber {
 
   constructor(
     private readonly repo: DownstreamRevocationRepository,
-    private readonly events: EventEmitter2,
+    private readonly auditLog: AuditLogService,
   ) {}
 
   @OnEvent(AuditEventType.HITL_RETROACTIVE_CORRECTION)
@@ -114,12 +127,7 @@ export class DownstreamRevocationSubscriber {
         requiresReview: true,
       },
     };
-    await safeAuditEmit(
-      this.events,
-      AuditEventType.LOT_FLAGGED_FOR_REVIEW,
-      envelope,
-      this.logger,
-    );
+    await this.recordSafely(AuditEventType.LOT_FLAGGED_FOR_REVIEW, envelope);
   }
 
   private async emitGrFlagged(
@@ -139,12 +147,7 @@ export class DownstreamRevocationSubscriber {
         requiresReview: true,
       },
     };
-    await safeAuditEmit(
-      this.events,
-      AuditEventType.GR_FLAGGED_FOR_REVIEW,
-      envelope,
-      this.logger,
-    );
+    await this.recordSafely(AuditEventType.GR_FLAGGED_FOR_REVIEW, envelope);
   }
 
   private async emitDeferred(
@@ -165,11 +168,34 @@ export class DownstreamRevocationSubscriber {
           'apply migration 0041_photo_ingest_retroactive_correction.ts to enable downstream-revocation flagging',
       },
     };
-    await safeAuditEmit(
-      this.events,
+    await this.recordSafely(
       AuditEventType.DOWNSTREAM_REVOCATION_DEFERRED,
       envelope,
-      this.logger,
     );
+  }
+
+  /**
+   * Direct `AuditLogService.record(...)` call wrapped in a local
+   * try/catch that preserves the swallow semantics `safeAuditEmit`
+   * provided: a regulatory strict-mode rethrow inside `record()` (cf.
+   * `m3.x-audit-log-subscriber-strict-mode`, PR #169) is logged at ERROR
+   * level and NOT propagated, so a single audit-write failure does not
+   * abort the wider downstream-revocation flow. Logged with the same
+   * shape as `safeAuditEmit` so observability tooling keyed off
+   * `audit-record.failed:` continues to fire.
+   */
+  private async recordSafely(
+    eventType: string,
+    envelope: AuditEventEnvelope,
+  ): Promise<void> {
+    try {
+      await this.auditLog.record(eventType, envelope);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.error(
+        `audit-record.failed: ${eventType} aggregate=${envelope.aggregateId} ` +
+          `org=${envelope.organizationId} ${message}`,
+      );
+    }
   }
 }
