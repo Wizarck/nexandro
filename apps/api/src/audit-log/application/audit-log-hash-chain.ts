@@ -114,11 +114,19 @@ export function computeRowHash(
  * Caller is responsible for ordering the input by `(created_at ASC, id
  * ASC)`. The function does NOT sort internally — sorting bytea hashes
  * post-hoc would mask tampering that changed the timestamp.
+ *
+ * The chain is validated **within** the supplied window. The seed
+ * `prevHash` is taken from the first row's stored `prev_hash` column so
+ * that callers passing a sliding lookback (e.g. the per-write 100-row
+ * window from `AuditLogService.loadChainLookback`) get self-consistent
+ * validation when the window does NOT begin at the chain root. Older
+ * tampers outside the window are caught by the offline full-chain D1
+ * audit per ADR-HASH-CHAIN-VALIDATION-PER-WRITE.
  */
 export function validateChainIntegrity(
   rows: ReadonlyArray<AuditLog>,
 ): { ok: true } | { ok: false; firstBrokenRowId: string } {
-  let prevHash: Buffer | null = null;
+  let prevHash: Buffer | null = rows.length > 0 ? rows[0].prevHash : null;
   for (const row of rows) {
     if (row.rowHash === null) {
       // Legacy unbackfilled row — treat as chain root continuation.
