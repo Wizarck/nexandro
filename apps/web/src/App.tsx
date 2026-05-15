@@ -44,6 +44,11 @@ export function App() {
             <Link to="/haccp/record" className="hover:text-ink">
               HACCP
             </Link>
+            <RoleGuard role={['OWNER', 'MANAGER']} currentRole={currentRole}>
+              <Link to="/photo-ingest/review" className="hover:text-ink">
+                Foto-ingestión
+              </Link>
+            </RoleGuard>
           </nav>
         </div>
       </header>
