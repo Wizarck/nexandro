@@ -13,6 +13,7 @@ import type { HitlQueueQuery } from '../application/hitl-queue.query';
 import type { HitlSignService } from '../application/hitl-sign.service';
 import type { IngestionItemRepository } from '../application/ingestion-item.repository';
 import type { IngestionService } from '../application/ingestion.service';
+import type { RetroactiveCorrectionService } from '../application/retroactive-correction.service';
 import {
   IngestionAlreadySignedError,
   IngestionPhotoNotFoundError,
@@ -46,14 +47,18 @@ function buildCtrl() {
     Pick<IngestionItemRepository, 'findById' | 'listByStatus'>
   >;
   const events = new EventEmitter2();
+  const retroactive = {
+    apply: jest.fn(),
+  } as unknown as jest.Mocked<Pick<RetroactiveCorrectionService, 'apply'>>;
   const ctrl = new IngestionController(
     ingestion as unknown as IngestionService,
     signService as unknown as HitlSignService,
     queue as unknown as HitlQueueQuery,
     repo as unknown as IngestionItemRepository,
+    retroactive as unknown as RetroactiveCorrectionService,
     events,
   );
-  return { ctrl, ingestion, signService, queue, repo, events };
+  return { ctrl, ingestion, signService, queue, repo, retroactive, events };
 }
 
 describe('IngestionController', () => {
