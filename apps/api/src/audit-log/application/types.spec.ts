@@ -59,6 +59,7 @@ describe('computeRetentionClass', () => {
     'GR_LINE_PRICE_VARIANCE',
     'EMAIL_DISPATCHED',
     'EMAIL_FAILED',
+    'AUDIT_LOG_ARCHIVAL_BATCH',
   ])('classifies %s as operational (default 7-year hot)', (eventType) => {
     expect(computeRetentionClass(eventType)).toBe('operational');
   });

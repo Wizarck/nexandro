@@ -538,6 +538,22 @@ export class AuditLogSubscriber {
     );
   }
 
+  // ---- m3.x-audit-log-archival (daily cold-storage batch) ----
+  // AUDIT_LOG_ARCHIVAL_BATCH is `operational` retention (audit-of-the-audit
+  // notification surface, not chain-of-custody). The aggregate is the
+  // ORGANIZATION (aggregateType='organization', aggregateId=organizationId);
+  // payloadAfter carries `{ rowCount, bytes, path, retentionClass, yearMonth }`
+  // so a single bucket = one row keyed by org but tagged with class+month
+  // in the payload. This keeps `aggregate_id` a valid uuid (DB column type)
+  // without needing a deterministic v5 over the synthetic bucket id.
+  @OnEvent(AuditEventType.AUDIT_LOG_ARCHIVAL_BATCH)
+  onAuditLogArchivalBatch(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(
+      AuditEventType.AUDIT_LOG_ARCHIVAL_BATCH,
+      payload,
+    );
+  }
+
   // ------------- Internals -------------
 
   /**

@@ -34,6 +34,7 @@
     "@opentrattos/contracts": "*",
     "@opentrattos/label-renderer": "*",
     "@opentrattos/types": "*",
+    "@aws-sdk/client-s3": "^3.1048.0",
     "@sendgrid/mail": "^8.1.4",
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",

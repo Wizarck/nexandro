@@ -80,6 +80,8 @@ export const AuditEventType = {
   GR_REVIEW_CLEARED: 'm3.procurement.gr-review-cleared',
   // ---- m3.x-requires-review-clear-cron (stale-notifier; no auto-clear) ----
   REVIEW_QUEUE_STALE_AGGREGATES: 'm3.review-queue.stale-aggregates',
+  // ---- m3.x-audit-log-archival (daily cold-storage batch) ----
+  AUDIT_LOG_ARCHIVAL_BATCH: 'm3.audit-log.archival-batch',
 } as const;
 
 /**
@@ -155,6 +157,8 @@ export const AuditEventTypeName: Record<AuditEventType, string> = {
   'm3.procurement.gr-review-cleared': 'GR_REVIEW_CLEARED',
   // ---- m3.x-requires-review-clear-cron (stale-notifier) ----
   'm3.review-queue.stale-aggregates': 'REVIEW_QUEUE_STALE_AGGREGATES',
+  // ---- m3.x-audit-log-archival (daily cold-storage batch) ----
+  'm3.audit-log.archival-batch': 'AUDIT_LOG_ARCHIVAL_BATCH',
 };
 
 /**
@@ -183,6 +187,24 @@ export const RETENTION_CLASSES: readonly RetentionClass[] = [
   'operational',
   'ephemeral',
 ];
+
+/**
+ * Retention windows in days, keyed by retention class. Consumed by the
+ * `AuditLogArchivalScanner` (m3.x-audit-log-archival) to decide which
+ * rows have aged past their hot-retention window and are eligible for
+ * cold-storage archival on each daily tick.
+ *
+ *  - `regulatory` — 7 years (HACCP / EU 178/2002 + traceability chain of
+ *    custody). 2555 days = 7 × 365.
+ *  - `operational` — 1 year (default for everything else). Hot only;
+ *    older rows go to cold storage.
+ *  - `ephemeral` — 90 days rolling (lean per-request agent action log).
+ */
+export const AUDIT_RETENTION_DAYS: Record<RetentionClass, number> = {
+  regulatory: 2555,
+  operational: 365,
+  ephemeral: 90,
+};
 
 /**
  * Lookup table from canonical event-type name to retention class. Events
@@ -250,6 +272,11 @@ const RETENTION_BY_EVENT_NAME: Record<string, RetentionClass> = {
   GR_REVIEW_CLEARED: 'regulatory',
   // Ephemeral — lean per-request log; 90-day rolling
   AGENT_ACTION_EXECUTED: 'ephemeral',
+  // Operational — daily archival batch summary; 1-year hot retention.
+  // The envelope is itself written to audit_log with retention_class
+  // = 'operational' so the archival run is observable via the same
+  // query surface as every other operational event.
+  AUDIT_LOG_ARCHIVAL_BATCH: 'operational',
 };
 
 /**
