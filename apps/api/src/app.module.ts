@@ -20,6 +20,7 @@ import { LabelsModule } from './labels/labels.module';
 import { MenusModule } from './menus/menus.module';
 import { PhotoStorageModule } from './photo-storage/photo-storage.module';
 import { PhotoIngestionModule } from './photo-ingestion/photo-ingestion.module';
+import { PhotoIngestionRoutingModule } from './photo-ingestion-routing/photo-ingestion-routing.module';
 import { ProcurementModule } from './procurement/procurement.module';
 import { HaccpModule } from './haccp/haccp.module';
 import { I18nM3ExportModule } from './i18n/m3-export/i18n.module';
@@ -157,8 +158,22 @@ import { SharedModule } from './shared/shared.module';
     // slice #18 PhotoStorageService for signed read URLs. The j12 UI surface
     // (PhotoViewer, HitlReviewQueue, BoundingBoxOverlay) lives in slice #17b
     // (m3-photo-review-ui, parallel sibling). Downstream routing chain
-    // (GR-draft / Lot creation) deferred to followup per tasks.md §Deferred.
+    // (GR-draft / Lot creation) materialized by `PhotoIngestionRoutingModule`
+    // (M3 hardening H1a, immediately below).
     PhotoIngestionModule,
+
+    // M3 hardening H1a photo-ingestion-routing BC
+    // (m3-photo-ingest-downstream-routing): backend wire that subscribes
+    // to PHOTO_INGESTION_SIGNED and materializes the downstream aggregate
+    // — Lot row for `kind='product'` (inventory BC), GoodsReceipt draft
+    // for `kind='invoice'` (procurement BC). Idempotent via two new
+    // `source_photo_ingestion_id` columns + UNIQUE partial indexes
+    // (migration 0040) per ADR-DOWNSTREAM-ROUTING-IDEMPOTENCY. Two new
+    // audit envelopes (PHOTO_INGESTION_DOWNSTREAM_ROUTED,
+    // PHOTO_INGESTION_ROUTING_SKIPPED) both `retention_class='regulatory'`
+    // per ADR-ROUTING-AUDIT-EVENT-NAMING. Missing critical fields fail
+    // open: emit SKIPPED + halt (no throw) per ADR-FIELD-MAPPING-FAIL-OPEN.
+    PhotoIngestionRoutingModule,
 
     // M3 recall BC (Wave 2.5, slices #11+#12+#13): canonical Recall BC at
     // `apps/api/src/recall/` per ADR-028. Slice #11 ships incident search

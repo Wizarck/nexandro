@@ -33,6 +33,24 @@ export class GoodsReceiptRepository {
     });
   }
 
+  /**
+   * Find a GR by its photo-ingestion provenance link, gated on
+   * organizationId. Used by the photo-ingestion-routing BC (M3 hardening
+   * H1a) for idempotency lookup. The DB enforces 1:1 mapping via
+   * `uq_goods_receipts_source_photo_ingestion` (migration 0040, UNIQUE
+   * partial WHERE source_photo_ingestion_id IS NOT NULL); this method is
+   * the application-layer short-circuit per
+   * ADR-DOWNSTREAM-ROUTING-IDEMPOTENCY.
+   */
+  async findBySourcePhotoIngestionId(
+    organizationId: string,
+    sourcePhotoIngestionId: string,
+  ): Promise<GoodsReceipt | null> {
+    return this.typeormRepo.findOne({
+      where: { organizationId, sourcePhotoIngestionId },
+    });
+  }
+
   /** Most-recent GRs for an org (ops dashboard). Uses `idx_gr_org_received`. */
   async findRecent(
     organizationId: string,

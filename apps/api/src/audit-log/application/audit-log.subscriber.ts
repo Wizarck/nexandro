@@ -429,6 +429,35 @@ export class AuditLogSubscriber {
     );
   }
 
+  // ---- M3 hardening H1a m3-photo-ingest-downstream-routing ----
+  //
+  // Two new envelope-shaped channels emitted by `PhotoIngestionRoutingService`:
+  //  - PHOTO_INGESTION_DOWNSTREAM_ROUTED — one envelope per successful route
+  //    (including idempotent re-fires that return the existing aggregate;
+  //    `payload_after.alreadyRouted = true` in that case).
+  //  - PHOTO_INGESTION_ROUTING_SKIPPED — one envelope per skipped route
+  //    (missing critical field OR Lot/GR factory invariant violation).
+  // Both carry `aggregate_type='photo_ingestion_item'` (the envelope describes
+  // a decision ABOUT the ingestion item, not a state change on the downstream
+  // aggregate). Retention class is `regulatory` per
+  // ADR-ROUTING-AUDIT-EVENT-NAMING.
+
+  @OnEvent(AuditEventType.PHOTO_INGESTION_DOWNSTREAM_ROUTED)
+  onPhotoIngestionDownstreamRouted(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(
+      AuditEventType.PHOTO_INGESTION_DOWNSTREAM_ROUTED,
+      payload,
+    );
+  }
+
+  @OnEvent(AuditEventType.PHOTO_INGESTION_ROUTING_SKIPPED)
+  onPhotoIngestionRoutingSkipped(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(
+      AuditEventType.PHOTO_INGESTION_ROUTING_SKIPPED,
+      payload,
+    );
+  }
+
   // ------------- Internals -------------
 
   /**

@@ -44,6 +44,15 @@ export interface LotCreateProps {
   quantityReceived: number;
   unit: LotUnit;
   metadata?: Record<string, unknown> | null;
+  /**
+   * Optional provenance link to the `photo_ingestion_items` row that
+   * materialized this Lot. Populated only by the photo-ingestion-routing
+   * BC (M3 hardening H1a, slice `m3-photo-ingest-downstream-routing`).
+   * Routes from GR confirmation + manual creation leave this `null`.
+   * The DB enforces 1:1 mapping via a UNIQUE partial index per
+   * ADR-DOWNSTREAM-ROUTING-IDEMPOTENCY.
+   */
+  sourcePhotoIngestionId?: string | null;
 }
 
 /**
@@ -108,6 +117,15 @@ export class Lot {
   @Column({ type: 'jsonb', nullable: true, default: () => "'{}'::jsonb" })
   metadata: Record<string, unknown> | null = {};
 
+  /**
+   * Provenance — `photo_ingestion_items.id` that materialized this Lot
+   * via the photo-ingestion-routing BC (M3 hardening H1a). UNIQUE partial
+   * index `uq_lots_source_photo_ingestion` enforces 1:1 mapping at DB
+   * level per ADR-DOWNSTREAM-ROUTING-IDEMPOTENCY (migration 0040).
+   */
+  @Column({ name: 'source_photo_ingestion_id', type: 'uuid', nullable: true })
+  sourcePhotoIngestionId: string | null = null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 
@@ -149,6 +167,7 @@ export class Lot {
     lot.quantityRemaining = props.quantityReceived;
     lot.unit = props.unit;
     lot.metadata = props.metadata ?? {};
+    lot.sourcePhotoIngestionId = props.sourcePhotoIngestionId ?? null;
     return lot;
   }
 

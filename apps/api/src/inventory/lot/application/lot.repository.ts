@@ -37,6 +37,27 @@ export class LotRepository {
   }
 
   /**
+   * Find a lot by its photo-ingestion provenance link, gated on
+   * organizationId. Used by the photo-ingestion-routing BC (M3 hardening
+   * H1a) for idempotency lookup: if a Lot already exists with the given
+   * `sourcePhotoIngestionId`, the routing service returns the existing
+   * row instead of inserting a duplicate.
+   *
+   * The DB enforces 1:1 mapping via `uq_lots_source_photo_ingestion`
+   * (migration 0040, UNIQUE partial WHERE source_photo_ingestion_id IS
+   * NOT NULL); this method is the application-layer short-circuit per
+   * ADR-DOWNSTREAM-ROUTING-IDEMPOTENCY.
+   */
+  async findBySourcePhotoIngestionId(
+    organizationId: string,
+    sourcePhotoIngestionId: string,
+  ): Promise<Lot | null> {
+    return this.typeormRepo.findOne({
+      where: { organizationId, sourcePhotoIngestionId },
+    });
+  }
+
+  /**
    * Legacy M2 compatibility — find a lot by the `supplier_lot_code` field
    * inside its `metadata` jsonb. Used by callers that haven't migrated from
    * `ingredient.lot_code text` string lookups yet. Slow path; the recall

@@ -68,6 +68,9 @@ export const AuditEventType = {
   PHOTO_INGESTION_SIGNED: 'm3.photo-ingestion.signed',
   PHOTO_INGESTION_RECLASSIFIED: 'm3.photo-ingestion.reclassified',
   HITL_RETROACTIVE_CORRECTION: 'm3.photo-ingestion.hitl-retroactive-correction',
+  // ---- M3 hardening H1a m3-photo-ingest-downstream-routing ----
+  PHOTO_INGESTION_DOWNSTREAM_ROUTED: 'm3.photo-ingestion.downstream-routed',
+  PHOTO_INGESTION_ROUTING_SKIPPED: 'm3.photo-ingestion.routing-skipped',
 } as const;
 
 /**
@@ -131,6 +134,9 @@ export const AuditEventTypeName: Record<AuditEventType, string> = {
   'm3.photo-ingestion.signed': 'PHOTO_INGESTION_SIGNED',
   'm3.photo-ingestion.reclassified': 'PHOTO_INGESTION_RECLASSIFIED',
   'm3.photo-ingestion.hitl-retroactive-correction': 'HITL_RETROACTIVE_CORRECTION',
+  // ---- M3 hardening H1a m3-photo-ingest-downstream-routing ----
+  'm3.photo-ingestion.downstream-routed': 'PHOTO_INGESTION_DOWNSTREAM_ROUTED',
+  'm3.photo-ingestion.routing-skipped': 'PHOTO_INGESTION_ROUTING_SKIPPED',
 };
 
 /**
@@ -205,6 +211,12 @@ const RETENTION_BY_EVENT_NAME: Record<string, RetentionClass> = {
   PHOTO_INGESTION_SIGNED: 'regulatory',
   PHOTO_INGESTION_RECLASSIFIED: 'regulatory',
   HITL_RETROACTIVE_CORRECTION: 'regulatory',
+  // Photo-ingestion routing envelopes — system-anchored decisions connecting
+  // operator-signed extraction to downstream Lot / GR-draft creation. Both
+  // are part of the EU AI Act chain of custody per
+  // ADR-ROUTING-AUDIT-EVENT-NAMING (M3 hardening H1a).
+  PHOTO_INGESTION_DOWNSTREAM_ROUTED: 'regulatory',
+  PHOTO_INGESTION_ROUTING_SKIPPED: 'regulatory',
   // Ephemeral — lean per-request log; 90-day rolling
   AGENT_ACTION_EXECUTED: 'ephemeral',
 };

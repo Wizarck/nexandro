@@ -65,6 +65,16 @@ export class GoodsReceipt {
   @Column({ type: 'text', default: 'draft' })
   state!: GoodsReceiptState;
 
+  /**
+   * Provenance — `photo_ingestion_items.id` that materialized this GR
+   * draft via the photo-ingestion-routing BC (M3 hardening H1a). UNIQUE
+   * partial index `uq_goods_receipts_source_photo_ingestion` enforces
+   * 1:1 mapping at DB level per ADR-DOWNSTREAM-ROUTING-IDEMPOTENCY
+   * (migration 0040).
+   */
+  @Column({ name: 'source_photo_ingestion_id', type: 'uuid', nullable: true })
+  sourcePhotoIngestionId: string | null = null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 

@@ -31,6 +31,8 @@ describe('computeRetentionClass', () => {
     'PHOTO_INGESTION_SIGNED',
     'PHOTO_INGESTION_RECLASSIFIED',
     'HITL_RETROACTIVE_CORRECTION',
+    'PHOTO_INGESTION_DOWNSTREAM_ROUTED',
+    'PHOTO_INGESTION_ROUTING_SKIPPED',
   ])('classifies %s as regulatory (HACCP / EU 178/2002 footprint)', (eventType) => {
     expect(computeRetentionClass(eventType)).toBe('regulatory');
   });
