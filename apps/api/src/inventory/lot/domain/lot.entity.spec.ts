@@ -54,6 +54,15 @@ describe('Lot.create', () => {
     });
   });
 
+  it('defaults requires_review to false on newly-constructed instances', () => {
+    // The DownstreamRevocationSubscriber (PR #157) flips this column via raw
+    // SQL UPDATE on its own; the default-false invariant is what guarantees
+    // newly-created lots from the regular ingest path are never accidentally
+    // present in the review queue.
+    const lot = Lot.create(baseProps());
+    expect(lot.requiresReview).toBe(false);
+  });
+
   describe('validation boundaries', () => {
     it('rejects quantity_received = 0', () => {
       expect(() =>

@@ -25,6 +25,8 @@ describe('GoodsReceipt entity', () => {
       'receiving_user_id',
       'supplier_invoice_ref',
       'state', // propertyName "state" without explicit name option
+      'source_photo_ingestion_id',
+      'requires_review',
       'created_at',
       'updated_at',
     ];
@@ -41,5 +43,14 @@ describe('GoodsReceipt entity', () => {
     const gr = new GoodsReceipt();
     expect(gr.poId).toBeNull();
     expect(gr.supplierInvoiceRef).toBeNull();
+  });
+
+  it('defaults requires_review to false', () => {
+    // The DownstreamRevocationSubscriber (PR #157) flips this column via raw
+    // SQL UPDATE on its own; the default-false invariant is what guarantees
+    // newly-created GRs from the regular ingest path are never accidentally
+    // present in the review queue.
+    const gr = new GoodsReceipt();
+    expect(gr.requiresReview).toBe(false);
   });
 });

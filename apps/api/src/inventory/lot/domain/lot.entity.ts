@@ -126,6 +126,16 @@ export class Lot {
   @Column({ name: 'source_photo_ingestion_id', type: 'uuid', nullable: true })
   sourcePhotoIngestionId: string | null = null;
 
+  /**
+   * Set to `true` by the `DownstreamRevocationSubscriber` (PR #157) when a
+   * matching `photo_ingestion_items` row is retroactively corrected. Cleared
+   * back to `false` via the review-queue clear endpoint (PR #161). Backed
+   * by the partial index `idx_lots_requires_review` (migration 0041) so the
+   * operator-browse query stays cheap.
+   */
+  @Column({ name: 'requires_review', type: 'boolean', default: false })
+  requiresReview: boolean = false;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 
