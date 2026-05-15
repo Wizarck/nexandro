@@ -124,13 +124,15 @@ describe('AuditLog hash chain integrity (integration)', () => {
 
   describe('AC-CHAIN-2 — 100-row lookback bound', () => {
     /**
-     * SKIP: at slice land time, production rejects the 201st append with
-     * HashChainBrokenError even after 200 successful service.record() calls.
-     * Likely cause: non-deterministic envelope canonicalisation in the test
-     * harness or per-write full-chain scan that's expensive at this scale.
-     * Followup `m3.x-hash-chain-200-append-int` to investigate.
+     * Production has bounded 100-row lookback (AUDIT_LOG_CHAIN_LOOKBACK_ROWS).
+     * The 201st append validator only sees rows 101..200, all of which were
+     * written by the same service.record() so should be self-consistent.
+     * Original skip suspected non-determinism in canonicaliseRow (timestamp
+     * precision drift: JS Date ms vs Postgres TIMESTAMP μs). Un-skipped to
+     * gather CI evidence; if it fails, the precision-drift hypothesis is
+     * confirmed and we file `m3.x-hash-chain-canonicalise-timestamp-precision`.
      */
-    it.skip('chain remains valid at length 200; 201st append succeeds', async () => {
+    it('chain remains valid at length 200; 201st append succeeds', async () => {
       for (let i = 0; i < 200; i++) {
         await service.record('LOT_CREATED', envelope(ORG, AGG_ID, { idx: i }));
       }
@@ -157,13 +159,15 @@ describe('AuditLog hash chain integrity (integration)', () => {
     }, 60_000);
 
     /**
-     * SKIP: the AC was written under the assumption that the chain validator
-     * has a bounded 100-row lookback window. Production validates the FULL
-     * chain on every write, so any tamper anywhere blocks the next emit.
-     * Followup `m3.x-hash-chain-bounded-lookback-decision` to either ship
-     * the bounded lookback or revise this AC to match the unbounded scan.
+     * Re-checked: production DOES bound the lookback to
+     * AUDIT_LOG_CHAIN_LOOKBACK_ROWS=100 (audit-log.service.ts:48). The
+     * original skip-comment guessed wrong (claimed unbounded scan). The
+     * tamper at row 5 should be outside the lookback window of the 201st
+     * append (which sees rows 101..200). Un-skipped to gather CI evidence.
+     * If it still fails, same canonicalisation precision-drift root cause
+     * as the previous case is the most likely culprit.
      */
-    it.skip('AC-CHAIN-2b — tampering a row outside the 100-row window does NOT block the next emit', async () => {
+    it('AC-CHAIN-2b — tampering a row outside the 100-row window does NOT block the next emit', async () => {
       // Seed 200 rows.
       const ids: string[] = [];
       for (let i = 0; i < 200; i++) {
@@ -234,12 +238,18 @@ describe('AuditLog hash chain integrity (integration)', () => {
 
   describe('AC-CHAIN-7 — idempotent re-emit produces exactly one DB row', () => {
     /**
-     * SKIP: production AuditLogService does NOT dedup by correlation_id at
-     * the persistence layer. Idempotency is handled upstream (the producer
-     * BC decides whether to re-emit). Followup
-     * `m3.x-audit-log-correlation-id-dedup` to decide whether to add this.
+     * Re-checked: production AuditLogService DOES dedup by
+     * `correlation_id` (snake_case) on `payload_after` via
+     * AuditLogIdempotencyCache (audit-log.service.ts:88-104 +
+     * audit-log-idempotency.ts:58-85). The harness wires the cache as a
+     * provider. Original skip-comment guessed wrong (claimed no
+     * persistence-layer dedup). Un-skipped to gather CI evidence — if it
+     * passes, the followup `m3.x-audit-log-correlation-id-dedup` collapses
+     * (correlation_id dedup IS shipped). If it still fails: most likely the
+     * cache provider isn't actually injected into AuditLogService under this
+     * harness (Optional() ctor param resolves to null), file that.
      */
-    it.skip('two record() calls with identical (eventType, aggregateId, correlationId) yield one row', async () => {
+    it('two record() calls with identical (eventType, aggregateId, correlationId) yield one row', async () => {
       const correlationId = randomUUID();
       const env: AuditEventEnvelope = {
         organizationId: ORG,
