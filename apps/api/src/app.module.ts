@@ -22,6 +22,7 @@ import { PhotoStorageModule } from './photo-storage/photo-storage.module';
 import { PhotoIngestionModule } from './photo-ingestion/photo-ingestion.module';
 import { PhotoIngestionRoutingModule } from './photo-ingestion-routing/photo-ingestion-routing.module';
 import { PhotoIngestionRevocationModule } from './photo-ingestion-revocation/photo-ingestion-revocation.module';
+import { ReviewQueueModule } from './review-queue/review-queue.module';
 import { ProcurementModule } from './procurement/procurement.module';
 import { HaccpModule } from './haccp/haccp.module';
 import { I18nM3ExportModule } from './i18n/m3-export/i18n.module';
@@ -185,6 +186,14 @@ import { SharedModule } from './shared/shared.module';
     // DOWNSTREAM_REVOCATION_DEFERRED). Per ADR-NEVER-AUTO-CASCADE-DOWNSTREAM
     // the downstream snapshot is NOT mutated — operator review required.
     PhotoIngestionRevocationModule,
+
+    // M3 review-queue BC (m3.x-review-queue-backend): operator-facing
+    // read + clear API for downstream Lot + GR rows the revocation
+    // listener flagged. GET /m3/review-queue + POST
+    // /m3/review-queue/:aggregateType/:aggregateId/clear. Emits
+    // LOT_REVIEW_CLEARED / GR_REVIEW_CLEARED audit envelopes on manual
+    // clears (regulatory; idempotent — no-ops emit nothing).
+    ReviewQueueModule,
 
     // M3 recall BC (Wave 2.5, slices #11+#12+#13): canonical Recall BC at
     // `apps/api/src/recall/` per ADR-028. Slice #11 ships incident search
