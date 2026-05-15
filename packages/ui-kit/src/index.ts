@@ -244,3 +244,37 @@ export type {
   BundleArchiveRow,
   BundleArchiveTableProps,
 } from './components/BundleArchiveTable';
+
+// ---- Photo ingestion HITL review primitives (slice #17b m3-photo-ingest-review-ui, Wave 2.8) ----
+export {
+  ConfidenceBandBadge,
+  AUTO_FILL_THRESHOLD,
+  FLAG_FOR_REVIEW_THRESHOLD,
+  deriveBand,
+} from './components/ConfidenceBandBadge';
+export type {
+  ConfidenceBand,
+  ConfidenceBandBadgeProps,
+} from './components/ConfidenceBandBadge';
+export { M3AggregateTypeChip } from './components/M3AggregateTypeChip';
+export type {
+  M3AggregateKind,
+  M3AggregateTypeChipProps,
+} from './components/M3AggregateTypeChip';
+export { HitlQueueList } from './components/HitlQueueList';
+export type {
+  HitlQueueListProps,
+  HitlQueueRow,
+} from './components/HitlQueueList';
+export { PhotoViewer } from './components/PhotoViewer';
+export type {
+  BoundingBox,
+  PhotoViewerProps,
+} from './components/PhotoViewer';
+export { ExtractedFieldList } from './components/ExtractedFieldList';
+export type {
+  ExtractedField,
+  ExtractedFieldListProps,
+} from './components/ExtractedFieldList';
+export { AiProvenanceChip } from './components/AiProvenanceChip';
+export type { AiProvenanceChipProps } from './components/AiProvenanceChip';
