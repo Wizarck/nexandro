@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getDataSourceToken } from '@nestjs/typeorm';
 import { AuditLog } from '../domain/audit-log.entity';
+import { AuditLogIdempotencyCache } from './audit-log-idempotency';
 import {
   AUDIT_LOG_DEFAULT_LIMIT,
   AUDIT_LOG_EXPORT_BATCH_SIZE,
@@ -503,5 +504,50 @@ describe('AuditLogService', () => {
       rawQueryQueue.push([{ count: '100' }]);
       expect(await service.wouldExceedCap({ organizationId: orgId }, 100)).toBe(false);
     });
+  });
+});
+
+// Regression — m3.x-audit-log-idempotency-cache-injection. Before the fix,
+// the constructor parameter was `idempotencyCache: AuditLogIdempotencyCache |
+// null` without an explicit `@Inject(AuditLogIdempotencyCache)`. TypeScript
+// emits `design:paramtypes` for nullable unions as `Object`, so NestJS's
+// DI looked up the `Object` token, failed, `@Optional()` returned undefined,
+// and the constructor default `= null` applied — even when the provider WAS
+// registered. The two cases below pin both branches so the regression
+// can't ship silently again.
+describe('AuditLogService — idempotency cache DI', () => {
+  const fakeDataSource = { getRepository: () => ({}) } as unknown as object;
+
+  it('falls back to null when no AuditLogIdempotencyCache provider is registered', async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        AuditLogService,
+        { provide: getDataSourceToken(), useValue: fakeDataSource },
+      ],
+    }).compile();
+    const service = module.get(AuditLogService);
+    // Access the private field directly — this regression test is allowed
+    // to peek at the internal state because it is precisely what production
+    // DI must wire correctly.
+    expect((service as unknown as { idempotencyCache: unknown }).idempotencyCache).toBeNull();
+    await module.close();
+  });
+
+  it('injects the registered cache when AuditLogIdempotencyCache is in providers', async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        AuditLogService,
+        { provide: getDataSourceToken(), useValue: fakeDataSource },
+        {
+          provide: AuditLogIdempotencyCache,
+          useFactory: () => new AuditLogIdempotencyCache(),
+        },
+      ],
+    }).compile();
+    const service = module.get(AuditLogService);
+    const cache = (service as unknown as { idempotencyCache: unknown }).idempotencyCache;
+    expect(cache).not.toBeNull();
+    expect(cache).toBeInstanceOf(AuditLogIdempotencyCache);
+    await module.close();
   });
 });

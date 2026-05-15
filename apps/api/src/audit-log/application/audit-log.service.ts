@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { Injectable, Logger, Optional } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { Brackets, DataSource, SelectQueryBuilder } from 'typeorm';
 import { AuditLog } from '../domain/audit-log.entity';
@@ -62,8 +62,17 @@ export class AuditLogService {
      * Optional in tests so the existing service spec (which constructs
      * AuditLogService with only `getDataSourceToken()`) still compiles.
      * Production wires the real cache via AuditLogModule.providers.
+     *
+     * The explicit `@Inject(AuditLogIdempotencyCache)` is required because
+     * the parameter type is a union with `null`; TypeScript emits the
+     * `design:paramtypes` reflection metadata for nullable unions as
+     * `Object`, and without an explicit token NestJS's DI looks up the
+     * `Object` token (not registered) and falls through `@Optional()`
+     * back to the default `= null` even when the provider IS available.
+     * See m3.x-audit-log-idempotency-cache-injection.
      */
     @Optional()
+    @Inject(AuditLogIdempotencyCache)
     private readonly idempotencyCache: AuditLogIdempotencyCache | null = null,
   ) {}
 
