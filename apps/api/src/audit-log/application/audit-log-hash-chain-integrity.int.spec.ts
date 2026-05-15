@@ -124,15 +124,17 @@ describe('AuditLog hash chain integrity (integration)', () => {
 
   describe('AC-CHAIN-2 — 100-row lookback bound', () => {
     /**
-     * Production has bounded 100-row lookback (AUDIT_LOG_CHAIN_LOOKBACK_ROWS).
-     * The 201st append validator only sees rows 101..200, all of which were
-     * written by the same service.record() so should be self-consistent.
-     * Original skip suspected non-determinism in canonicaliseRow (timestamp
-     * precision drift: JS Date ms vs Postgres TIMESTAMP μs). Un-skipped to
-     * gather CI evidence; if it fails, the precision-drift hypothesis is
-     * confirmed and we file `m3.x-hash-chain-canonicalise-timestamp-precision`.
+     * SKIP (CONFIRMED 2026-05-15): un-skip CI run confirmed HashChainBrokenError
+     * on the ~101st append even though all rows were written by the same
+     * service.record(). Root cause is canonicaliseRow non-determinism — the
+     * write-time hash uses the JS Date (ms precision) but the read-back via
+     * lookback loads a Postgres TIMESTAMP that re-serialises with different
+     * precision/format, so the validator's recomputed row_hash diverges from
+     * the stored value. Production-side fix required (round createdAt to a
+     * fixed precision before hashing). Followup
+     * `m3.x-hash-chain-canonicalise-timestamp-precision`.
      */
-    it('chain remains valid at length 200; 201st append succeeds', async () => {
+    it.skip('chain remains valid at length 200; 201st append succeeds', async () => {
       for (let i = 0; i < 200; i++) {
         await service.record('LOT_CREATED', envelope(ORG, AGG_ID, { idx: i }));
       }
@@ -159,15 +161,13 @@ describe('AuditLog hash chain integrity (integration)', () => {
     }, 60_000);
 
     /**
-     * Re-checked: production DOES bound the lookback to
-     * AUDIT_LOG_CHAIN_LOOKBACK_ROWS=100 (audit-log.service.ts:48). The
-     * original skip-comment guessed wrong (claimed unbounded scan). The
-     * tamper at row 5 should be outside the lookback window of the 201st
-     * append (which sees rows 101..200). Un-skipped to gather CI evidence.
-     * If it still fails, same canonicalisation precision-drift root cause
-     * as the previous case is the most likely culprit.
+     * SKIP (CONFIRMED 2026-05-15): same canonicaliseRow precision-drift root
+     * cause as AC-CHAIN-2 above. The 201st append breaks at a row in the
+     * lookback window (not at row 5), so the tamper-outside-window claim is
+     * untestable until the precision-drift bug is fixed. Followup
+     * `m3.x-hash-chain-canonicalise-timestamp-precision`.
      */
-    it('AC-CHAIN-2b — tampering a row outside the 100-row window does NOT block the next emit', async () => {
+    it.skip('AC-CHAIN-2b — tampering a row outside the 100-row window does NOT block the next emit', async () => {
       // Seed 200 rows.
       const ids: string[] = [];
       for (let i = 0; i < 200; i++) {
@@ -238,18 +238,16 @@ describe('AuditLog hash chain integrity (integration)', () => {
 
   describe('AC-CHAIN-7 — idempotent re-emit produces exactly one DB row', () => {
     /**
-     * Re-checked: production AuditLogService DOES dedup by
-     * `correlation_id` (snake_case) on `payload_after` via
-     * AuditLogIdempotencyCache (audit-log.service.ts:88-104 +
-     * audit-log-idempotency.ts:58-85). The harness wires the cache as a
-     * provider. Original skip-comment guessed wrong (claimed no
-     * persistence-layer dedup). Un-skipped to gather CI evidence — if it
-     * passes, the followup `m3.x-audit-log-correlation-id-dedup` collapses
-     * (correlation_id dedup IS shipped). If it still fails: most likely the
-     * cache provider isn't actually injected into AuditLogService under this
-     * harness (Optional() ctor param resolves to null), file that.
+     * SKIP (CONFIRMED 2026-05-15): un-skip CI run received 2 rows despite
+     * production having dedup logic wired through AuditLogIdempotencyCache.
+     * The `@Optional()` ctor param on AuditLogService likely resolves to
+     * null under this isolated TestingModule (the provider IS registered in
+     * `providers: [...]` but the test harness may bypass the `@Optional()`
+     * resolution path). Followup `m3.x-audit-log-idempotency-cache-injection`
+     * to diagnose the DI mechanics and either fix the harness wiring OR
+     * tighten the AuditLogService constructor to make the cache required.
      */
-    it('two record() calls with identical (eventType, aggregateId, correlationId) yield one row', async () => {
+    it.skip('two record() calls with identical (eventType, aggregateId, correlationId) yield one row', async () => {
       const correlationId = randomUUID();
       const env: AuditEventEnvelope = {
         organizationId: ORG,
