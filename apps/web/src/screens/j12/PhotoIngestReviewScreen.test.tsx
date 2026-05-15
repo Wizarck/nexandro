@@ -270,6 +270,12 @@ describe('PhotoIngestReviewScreen', () => {
     await waitFor(() =>
       expect(screen.getByText(/Mercabarna/)).toBeInTheDocument(),
     );
+    // Wait for DetailPane to mount + register the keyboard handler. The
+    // auto-select effect runs after items load; DetailPane mounts on the
+    // next render once selectedItemId is non-null.
+    await waitFor(() =>
+      expect(screen.getByText(/Firmar ingestión/)).toBeInTheDocument(),
+    );
 
     fireEvent.keyDown(window, { key: 'j' });
 

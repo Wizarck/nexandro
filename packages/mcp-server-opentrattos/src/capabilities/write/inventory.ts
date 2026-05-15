@@ -48,12 +48,6 @@ const signPhotoSchema = {
   idempotencyKey,
 } as const;
 
-const stripIdempotencyKey = (input: unknown): unknown => {
-  const i = (input ?? {}) as Record<string, unknown>;
-  const { idempotencyKey: _ik, ...body } = i;
-  return body;
-};
-
 export const INVENTORY_WRITE_CAPABILITIES: WriteCapability[] = [
   {
     name: 'inventory.ingest-invoice-photo',

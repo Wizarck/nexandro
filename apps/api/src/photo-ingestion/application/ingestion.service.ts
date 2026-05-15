@@ -73,7 +73,7 @@ export class IngestionService {
         input.photoId,
       );
       photoUrl = signed.url;
-    } catch (err) {
+    } catch {
       throw new IngestionPhotoNotFoundError(input.photoId);
     }
 
