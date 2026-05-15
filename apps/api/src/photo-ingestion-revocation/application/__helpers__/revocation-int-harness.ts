@@ -197,12 +197,23 @@ export async function createRevocationIntHarness(): Promise<RevocationIntHarness
 
     async seedUser(orgId, opts = {}): Promise<string> {
       const id = opts.id ?? randomUUID();
+      // Bcrypt-shaped placeholder: matches the `ck_users_password_hash_bcrypt`
+      // CHECK constraint `^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$`. Not a real
+      // verifiable hash — INT specs never authenticate.
+      const fakeBcrypt =
+        '$2b$12$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWX012';
       await dataSource.query(
         `INSERT INTO "users"
            ("id", "organization_id", "email", "name", "role", "password_hash")
-         VALUES ($1, $2, $3, $4, 'OWNER', 'x')
+         VALUES ($1, $2, $3, $4, 'OWNER', $5)
          ON CONFLICT ("id") DO NOTHING`,
-        [id, orgId, `int-${id.slice(0, 8)}@x.test`, `int-user-${id.slice(0, 8)}`],
+        [
+          id,
+          orgId,
+          `int-${id.slice(0, 8)}@x.test`,
+          `int-user-${id.slice(0, 8)}`,
+          fakeBcrypt,
+        ],
       );
       return id;
     },
