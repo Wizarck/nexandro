@@ -4,11 +4,13 @@
 
 The 4 INT suites shipped (describe.skip'd) by H2a `m3-audit-log-subscriber-int-coverage` (PR #149) silently failed every test — `fetchRows` returned 0 rows after every `emitAndWait`. The skip-comment hypothesised that `@OnEvent` decorators weren't registering under the TestingModule harness, but the real cause was different.
 
-## Root cause
+## Root cause (TWO defects, the second is the dominant one)
 
-`audit_log.actor_user_id` is a `uuid`-typed Postgres column (`apps/api/src/audit-log/domain/audit-log.entity.ts:48`). The harness test fixtures passed `actorUserId: 'user-1'` (and variants `'user-A'`, `'user-B'`) — non-UUID strings. Postgres rejected the INSERT with `invalid input syntax for type uuid`. The `AuditLogSubscriber.persistEnvelope` wraps `auditLog.record` in try/catch and logs without rethrowing (per ADR-AUDIT-WRITER), so the failure was invisible to the test. Result: 0 rows persisted, every assertion red.
+**Defect A — bootstrap lifecycle never runs (dominant).** `Test.createTestingModule({...}).compile()` returns a compiled module but does NOT execute NestJS bootstrap hooks. The `@OnEvent` decorators on `AuditLogSubscriber` are wired by `@nestjs/event-emitter`'s `EventEmitterReadinessWatcher` during `onApplicationBootstrap`. Without `await app.init()`, the subscriber is silently inert — every emit fires into the void, the test sees 0 persisted rows, and there is no error to log because no handler was ever attached. Fix: add `await app.init()` immediately after `.compile()` in the harness.
 
-`AGENT_ACTION_EXECUTED` is also affected via its translator — `actorUserId: event.executedBy`, so `executedBy: 'user-1'` had the same fate.
+**Defect B — UUID-typed column rejects fixture strings (secondary).** `audit_log.actor_user_id` is `uuid` (entity:48). Fixtures passed `actorUserId: 'user-1'` etc. After fixing Defect A the subscriber DOES fire, but persistence still fails on the UUID rejection — and the `AuditLogSubscriber.persistEnvelope` try/catch swallows it (per ADR-AUDIT-WRITER). Fix: replace non-UUID actor strings with valid UUID literals in the 4 INT specs. Same fix applies to `AGENT_ACTION_EXECUTED.executedBy` (translated to `actorUserId`).
+
+The original PR (#149) hit Defect A first which masked Defect B. Both must be fixed for the suites to surface real ACs.
 
 ## Proposal
 

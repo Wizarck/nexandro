@@ -109,6 +109,14 @@ export async function createAuditLogIntHarness(): Promise<AuditLogIntHarness> {
     ],
   }).compile();
 
+  // CRITICAL: TestingModule.compile() does NOT run NestJS bootstrap lifecycle
+  // hooks. @OnEvent decorators on AuditLogSubscriber are wired by
+  // @nestjs/event-emitter's EventEmitterReadinessWatcher during onApplicationBootstrap,
+  // so the subscriber is silently inert without an explicit init() call.
+  // Without this line, every emit fires into the void; the bug looks like
+  // "0 persisted rows" with no error logged anywhere.
+  await app.init();
+
   const dataSource = app.get(DataSource);
   await dataSource.runMigrations();
 
