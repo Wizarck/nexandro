@@ -8,6 +8,7 @@ import {
   AuditEventTypeName,
   LOT_EXPIRY_NEAR_CHANNEL_NAME,
   LOT_EXPIRY_NEAR_EVENT_TYPE_NAME,
+  computeRetentionClass,
 } from './types';
 
 /**
@@ -21,8 +22,27 @@ import {
  *    recipe cost rebuilt): emitter publishes the canonical
  *    `AuditEventEnvelope` shape directly; subscriber persists as-is.
  *
- * Each handler is wrapped in try/catch — a transient DB failure logs + drops
- * the row but does NOT propagate to the emitter (per ADR-AUDIT-WRITER).
+ * Error contract (m3.x-audit-log-subscriber-strict-mode — supersedes the
+ * blanket-swallow rule that originally shipped under ADR-AUDIT-WRITER):
+ * - **regulatory** envelopes (LOT_CREATED, GR_CONFIRMED, CCP_READING_RECORDED,
+ *   chain-of-custody events per EU 178/2002 + APPCC) RETHROW on persist
+ *   failure. The producer's `await emitter.emitAsync(...)` receives the
+ *   rejection — surfaces fixture errors in CI immediately and prevents
+ *   silent loss of compliance-critical envelopes that hid bugs through the
+ *   H1+H2 hardening wave (cf. F3+F4 retrospective).
+ * - **operational / ephemeral** envelopes (cost rebuilds, AI suggestions,
+ *   non-regulatory infra events) keep the legacy swallow + log behaviour —
+ *   a transient DB hiccup on an operational envelope must NOT take down
+ *   the business write.
+ *
+ * Retention class is computed from the event-type string via
+ * `computeRetentionClass()` in `types.ts`. Unknown event types default to
+ * `operational` (swallow) so this change is strictly additive.
+ *
+ * Producer-side: services that emit regulatory envelopes via
+ * `emitAsync()` MUST wrap the call in try/catch if they want to surface a
+ * 500 vs a partial commit. Producer audit lives at the followup
+ * `m3.x-audit-log-strict-mode-producer-audit`.
  */
 @Injectable()
 export class AuditLogSubscriber {
@@ -526,7 +546,7 @@ export class AuditLogSubscriber {
     try {
       await this.auditLog.record(eventTypeName, validated);
     } catch (err) {
-      this.logError(eventTypeName, validated.aggregateId, err);
+      this.handleRecordError(eventTypeName, validated.aggregateId, err);
     }
   }
 
@@ -541,10 +561,11 @@ export class AuditLogSubscriber {
       );
       return;
     }
+    const eventTypeName = AuditEventTypeName[channel];
     try {
-      await this.auditLog.record(AuditEventTypeName[channel], validated);
+      await this.auditLog.record(eventTypeName, validated);
     } catch (err) {
-      this.logError(channel, validated.aggregateId, err);
+      this.handleRecordError(eventTypeName, validated.aggregateId, err);
     }
   }
 
@@ -572,7 +593,7 @@ export class AuditLogSubscriber {
     try {
       await this.auditLog.record(eventTypeName, envelope);
     } catch (err) {
-      this.logError(channel, envelope.aggregateId, err);
+      this.handleRecordError(eventTypeName, envelope.aggregateId, err);
     }
   }
 
@@ -623,6 +644,34 @@ export class AuditLogSubscriber {
     this.logger.error(
       `audit-log.subscriber.error: ${channel} aggregate=${aggregateId} ${message}`,
     );
+  }
+
+  /**
+   * Common error path for the 3 `persist*` methods. Branches on the
+   * event type's retention class:
+   *
+   * - `regulatory` → log + rethrow. The awaiter on `emitAsync()`
+   *   receives the rejection; CI surfaces fixture bugs immediately;
+   *   production EventEmitter2 fires an 'error' event (or yields an
+   *   unhandled rejection logged by the runtime) — never silent.
+   * - `operational` / `ephemeral` → log + swallow. Preserves the
+   *   legacy ADR-AUDIT-WRITER no-block guarantee for non-compliance
+   *   envelopes.
+   *
+   * Per `computeRetentionClass()` in `types.ts`, unknown event types
+   * map to `operational` so legacy / external producers stay in the
+   * swallow branch by default.
+   */
+  private handleRecordError(
+    eventTypeName: string,
+    aggregateId: string,
+    err: unknown,
+  ): void {
+    this.logError(eventTypeName, aggregateId, err);
+    const retentionClass = computeRetentionClass(eventTypeName);
+    if (retentionClass === 'regulatory') {
+      throw err instanceof Error ? err : new Error(String(err));
+    }
   }
 
   private validateEnvelope(payload: unknown): AuditEventEnvelope | null {

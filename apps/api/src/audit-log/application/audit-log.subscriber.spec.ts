@@ -206,7 +206,14 @@ describe('AuditLogSubscriber', () => {
       expect(recordSpy).not.toHaveBeenCalled();
     });
 
-    it('AGENT_ACTION_FORENSIC swallows record() failure without re-throw', async () => {
+    it('AGENT_ACTION_FORENSIC rethrows record() failure (regulatory per m3.x-audit-log-subscriber-strict-mode)', async () => {
+      // AGENT_ACTION_FORENSIC is classified `regulatory` in
+      // `RETENTION_BY_EVENT_NAME` — chain-of-custody for agent actions.
+      // The strict-mode contract (m3.x-audit-log-subscriber-strict-mode)
+      // rethrows on regulatory persist failures so the producer's
+      // `emitAsync()` awaiter surfaces the error. Previously this test
+      // asserted swallow behaviour; flipped here as part of the strict-
+      // mode rollout.
       recordSpy.mockRejectedValueOnce(new Error('db down'));
       const envelope: AuditEventEnvelope = {
         organizationId: ORG,
@@ -215,7 +222,7 @@ describe('AuditLogSubscriber', () => {
         actorUserId: null,
         actorKind: 'agent',
       };
-      await expect(subscriber.onAgentActionForensic(envelope)).resolves.toBeUndefined();
+      await expect(subscriber.onAgentActionForensic(envelope)).rejects.toThrow('db down');
     });
   });
 
@@ -506,6 +513,86 @@ describe('AuditLogSubscriber', () => {
         }),
       );
       expect(recordSpy.mock.calls[0][0]).toBe('RECALL_ADDENDUM_ATTACHED');
+    });
+  });
+
+  describe('strict-mode error handling (m3.x-audit-log-subscriber-strict-mode)', () => {
+    const REGULATORY_ENVELOPE: AuditEventEnvelope = {
+      organizationId: ORG,
+      aggregateType: 'lot',
+      aggregateId: 'lot-strict-1',
+      actorUserId: null,
+      actorKind: 'system',
+      payloadAfter: { quantityReceived: 18 },
+    };
+
+    const OPERATIONAL_ENVELOPE: AuditEventEnvelope = {
+      organizationId: ORG,
+      aggregateType: 'ingredient',
+      aggregateId: 'ing-strict-1',
+      actorUserId: null,
+      actorKind: 'system',
+      payloadAfter: { field: 'allergens' },
+    };
+
+    it('rethrows when persisting a regulatory envelope (LOT_CREATED) fails', async () => {
+      // LOT_CREATED is in RETENTION_BY_EVENT_NAME → 'regulatory'.
+      recordSpy.mockRejectedValueOnce(new Error('chain broken at lot-strict-1'));
+      // `onLotCreated` calls persistEnvelope under the hood; the
+      // rethrow signals a regulatory failure to the awaiter.
+      await expect(subscriber.onLotCreated(REGULATORY_ENVELOPE)).rejects.toThrow(
+        'chain broken at lot-strict-1',
+      );
+      expect(recordSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('swallows when persisting an operational envelope (INGREDIENT_OVERRIDE_CHANGED) fails', async () => {
+      // INGREDIENT_OVERRIDE_CHANGED defaults to 'operational' via
+      // RETENTION_BY_EVENT_NAME ?? 'operational' — keeps the legacy
+      // no-block guarantee for non-compliance envelopes.
+      recordSpy.mockRejectedValueOnce(new Error('transient DB hiccup'));
+      await expect(
+        subscriber.onIngredientOverrideChanged(OPERATIONAL_ENVELOPE),
+      ).resolves.toBeUndefined();
+      expect(recordSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('wraps a non-Error rejection in Error when rethrowing on a regulatory envelope', async () => {
+      // Producer-side defensiveness: some code paths throw strings. The
+      // strict-mode rethrow wraps in `new Error(String(err))` so callers
+      // get a stable shape.
+      recordSpy.mockRejectedValueOnce('raw-string-error-from-mock');
+      await expect(subscriber.onLotCreated(REGULATORY_ENVELOPE)).rejects.toThrow(
+        'raw-string-error-from-mock',
+      );
+    });
+
+    it('regulatory envelope happy path still resolves (no false rethrow)', async () => {
+      // Guard against a refactor that accidentally rethrows on success.
+      await expect(subscriber.onLotCreated(REGULATORY_ENVELOPE)).resolves.toBeUndefined();
+      expect(recordSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('unknown event-type names default to operational (swallow) — strict-mode is additive', async () => {
+      // `persistDirect` (used by translated channels and recall channels)
+      // routes errors through the same handler. Unknown event types fall
+      // back to 'operational' per `computeRetentionClass` semantics, so
+      // an unrecognised envelope name should NOT rethrow.
+      recordSpy.mockRejectedValueOnce(new Error('test transient'));
+      // Recall envelopes are regulatory — pick a known-operational
+      // channel (cost rebuilds default to operational too unless a slice
+      // upgrades them). Reuse onRecipeCostRebuilt which is operational.
+      const operationalRebuild: AuditEventEnvelope = {
+        organizationId: ORG,
+        aggregateType: 'recipe',
+        aggregateId: 'rec-strict-1',
+        actorUserId: null,
+        actorKind: 'system',
+        payloadAfter: { totalCost: 1.0, components: [] },
+      };
+      await expect(
+        subscriber.onRecipeCostRebuilt(operationalRebuild),
+      ).resolves.toBeUndefined();
     });
   });
 });
