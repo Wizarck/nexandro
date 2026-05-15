@@ -49,6 +49,11 @@ export function App() {
                 Foto-ingestión
               </Link>
             </RoleGuard>
+            <RoleGuard role={['OWNER', 'MANAGER']} currentRole={currentRole}>
+              <Link to="/m3/review-queue" className="hover:text-ink">
+                Cola revisión
+              </Link>
+            </RoleGuard>
           </nav>
         </div>
       </header>

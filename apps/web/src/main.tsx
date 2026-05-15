@@ -15,6 +15,7 @@ import { RecallInvestigateJ6Route, RecallDossierJ7Route } from './m3/recall/reca
 import { HaccpRecordScreen } from './screens/j10/HaccpRecordScreen';
 import { AppccExportScreen } from './screens/j9/AppccExportScreen';
 import { PhotoIngestReviewScreen } from './screens/j12/PhotoIngestReviewScreen';
+import { ReviewQueueScreen } from './screens/ReviewQueueScreen';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -70,6 +71,10 @@ const router = createBrowserRouter([
       {
         path: 'photo-ingest/review',
         element: <PhotoIngestReviewScreen />,
+      },
+      {
+        path: 'm3/review-queue',
+        element: <ReviewQueueScreen />,
       },
       // J7 recall dossier surface uses the standard AppLayout per j7.md.
       {
