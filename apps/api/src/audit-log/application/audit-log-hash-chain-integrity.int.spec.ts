@@ -124,11 +124,15 @@ describe('AuditLog hash chain integrity (integration)', () => {
 
   describe('AC-CHAIN-2 — 100-row lookback bound', () => {
     /**
-     * SKIP: at slice land time, production rejects the 201st append with
-     * HashChainBrokenError even after 200 successful service.record() calls.
-     * Likely cause: non-deterministic envelope canonicalisation in the test
-     * harness or per-write full-chain scan that's expensive at this scale.
-     * Followup `m3.x-hash-chain-200-append-int` to investigate.
+     * SKIP (CONFIRMED 2026-05-15): un-skip CI run confirmed HashChainBrokenError
+     * on the ~101st append even though all rows were written by the same
+     * service.record(). Root cause is canonicaliseRow non-determinism — the
+     * write-time hash uses the JS Date (ms precision) but the read-back via
+     * lookback loads a Postgres TIMESTAMP that re-serialises with different
+     * precision/format, so the validator's recomputed row_hash diverges from
+     * the stored value. Production-side fix required (round createdAt to a
+     * fixed precision before hashing). Followup
+     * `m3.x-hash-chain-canonicalise-timestamp-precision`.
      */
     it.skip('chain remains valid at length 200; 201st append succeeds', async () => {
       for (let i = 0; i < 200; i++) {
@@ -157,11 +161,11 @@ describe('AuditLog hash chain integrity (integration)', () => {
     }, 60_000);
 
     /**
-     * SKIP: the AC was written under the assumption that the chain validator
-     * has a bounded 100-row lookback window. Production validates the FULL
-     * chain on every write, so any tamper anywhere blocks the next emit.
-     * Followup `m3.x-hash-chain-bounded-lookback-decision` to either ship
-     * the bounded lookback or revise this AC to match the unbounded scan.
+     * SKIP (CONFIRMED 2026-05-15): same canonicaliseRow precision-drift root
+     * cause as AC-CHAIN-2 above. The 201st append breaks at a row in the
+     * lookback window (not at row 5), so the tamper-outside-window claim is
+     * untestable until the precision-drift bug is fixed. Followup
+     * `m3.x-hash-chain-canonicalise-timestamp-precision`.
      */
     it.skip('AC-CHAIN-2b — tampering a row outside the 100-row window does NOT block the next emit', async () => {
       // Seed 200 rows.
@@ -234,10 +238,14 @@ describe('AuditLog hash chain integrity (integration)', () => {
 
   describe('AC-CHAIN-7 — idempotent re-emit produces exactly one DB row', () => {
     /**
-     * SKIP: production AuditLogService does NOT dedup by correlation_id at
-     * the persistence layer. Idempotency is handled upstream (the producer
-     * BC decides whether to re-emit). Followup
-     * `m3.x-audit-log-correlation-id-dedup` to decide whether to add this.
+     * SKIP (CONFIRMED 2026-05-15): un-skip CI run received 2 rows despite
+     * production having dedup logic wired through AuditLogIdempotencyCache.
+     * The `@Optional()` ctor param on AuditLogService likely resolves to
+     * null under this isolated TestingModule (the provider IS registered in
+     * `providers: [...]` but the test harness may bypass the `@Optional()`
+     * resolution path). Followup `m3.x-audit-log-idempotency-cache-injection`
+     * to diagnose the DI mechanics and either fix the harness wiring OR
+     * tighten the AuditLogService constructor to make the cache required.
      */
     it.skip('two record() calls with identical (eventType, aggregateId, correlationId) yield one row', async () => {
       const correlationId = randomUUID();
