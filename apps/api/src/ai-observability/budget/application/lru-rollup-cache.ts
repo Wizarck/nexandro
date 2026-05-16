@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 
 /**
  * Snapshot of a rollup aggregate cached for outage fallback. Mirrors the
@@ -41,7 +41,14 @@ export class LruRollupCache {
   private readonly ttlMs: number;
   private readonly store = new Map<string, RollupSnapshot>();
 
-  constructor(capacity: number = DEFAULT_CAPACITY, ttlMs: number = DEFAULT_TTL_MS) {
+  constructor(
+    // Primitive `number` params can't be resolved by NestJS DI (no token).
+    // @Optional() lets the defaults kick in when the container builds the
+    // singleton via DI. INT specs that construct directly (`new
+    // LruRollupCache(10, 1000)`) keep working unchanged.
+    @Optional() capacity: number = DEFAULT_CAPACITY,
+    @Optional() ttlMs: number = DEFAULT_TTL_MS,
+  ) {
     this.capacity = capacity;
     this.ttlMs = ttlMs;
   }
