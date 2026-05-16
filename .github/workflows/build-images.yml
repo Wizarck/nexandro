@@ -58,13 +58,13 @@ jobs:
           file: Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/opentrattos:latest
-            ghcr.io/${{ github.repository_owner }}/opentrattos:sha-${{ steps.sha.outputs.short }}
+            ghcr.io/wizarck/opentrattos:latest
+            ghcr.io/wizarck/opentrattos:sha-${{ steps.sha.outputs.short }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Print published tags
         run: |
           echo "Published:"
-          echo "  ghcr.io/${{ github.repository_owner }}/opentrattos:latest"
-          echo "  ghcr.io/${{ github.repository_owner }}/opentrattos:sha-${{ steps.sha.outputs.short }}"
+          echo "  ghcr.io/wizarck/opentrattos:latest"
+          echo "  ghcr.io/wizarck/opentrattos:sha-${{ steps.sha.outputs.short }}"
