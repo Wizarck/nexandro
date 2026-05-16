@@ -52,6 +52,12 @@ RUN apk add --no-cache wget
 
 WORKDIR /app
 
+# Workspace-root node_modules — turbo + npm hoist most deps here.
+# Node's resolver walks up from /app/api/dist/cli/, so finding
+# reflect-metadata + typeorm + @nestjs/* at /app/node_modules works
+# regardless of which workspace directly required them.
+COPY --from=build /workspace/node_modules ./node_modules
+
 # api runtime artefacts
 COPY --from=build /workspace/apps/api/dist ./api/dist
 COPY --from=build /workspace/apps/api/node_modules ./api/node_modules
