@@ -1,0 +1,53 @@
+# openTrattOS — community quickstart
+# m3.x-app-bootstrap-and-vps-deploy slice §3.1 + ADR-DUAL-COMPOSE-COMMUNITY-VS-OPERATOR.
+#
+# Audience: community self-hoster on a laptop / VPS without an upstream
+# tunnel. Binds the app to 0.0.0.0:3000 so http://localhost:3000 works
+# out of the box.
+#
+# Usage:
+#   cp .env.example .env
+#   # edit .env to set POSTGRES_PASSWORD
+#   docker compose up -d
+#   open http://localhost:3000
+#
+# For deployments behind cloudflared (loopback-only bind), use the
+# operator compose at deploy/docker-compose.prod.yml instead.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?set in .env}
+    volumes:
+      - opentrattos_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  app:
+    image: ghcr.io/wizarck/opentrattos:latest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      PORT: "3001"
+      OTEL_SDK_DISABLED: "true"
+      OPENTRATTOS_EMAIL_PROVIDER: "${OPENTRATTOS_EMAIL_PROVIDER:-smtp}"
+      AUDIT_ARCHIVAL_ENABLED: "false"
+      PHOTO_STORAGE_ENABLED: "false"
+      M3_PO_AGGREGATE_ENABLED: "false"
+      OPENTRATTOS_AGENT_ENABLED: "false"
+    ports:
+      - "0.0.0.0:3000:3001"
+
+volumes:
+  opentrattos_pgdata:

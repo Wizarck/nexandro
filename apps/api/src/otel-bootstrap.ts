@@ -48,7 +48,13 @@ function parseHeaders(raw: string | undefined): Record<string, string> {
 }
 
 function isDisabled(): boolean {
-  return String(process.env.OPENTRATTOS_OTEL_DISABLED ?? '').trim().toLowerCase() === 'true';
+  // Honour both the project-local `OPENTRATTOS_OTEL_DISABLED` and the
+  // OpenTelemetry-canonical `OTEL_SDK_DISABLED` (per opentelemetry.io
+  // SDK config conventions). Either set to "true" disables the exporter.
+  // m3.x-app-bootstrap-and-vps-deploy slice §1.4.
+  const local = String(process.env.OPENTRATTOS_OTEL_DISABLED ?? '').trim().toLowerCase();
+  const canonical = String(process.env.OTEL_SDK_DISABLED ?? '').trim().toLowerCase();
+  return local === 'true' || canonical === 'true';
 }
 
 /**

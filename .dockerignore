@@ -1,0 +1,52 @@
+# Build context exclusions — keep `docker build` upload small + cache-friendly.
+# m3.x-app-bootstrap-and-vps-deploy slice §2.2.
+
+# Workspace artefacts the multi-stage build re-creates inside the image
+**/node_modules
+**/dist
+**/.next
+**/coverage
+
+# VCS + tooling
+.git
+.gitignore
+.github
+.editorconfig
+.npmrc
+.prettierrc*
+.eslintrc*
+eslint.config.*
+
+# Local-only state + Claude Code workspace
+.claude
+.claude-plugin
+.ai-playbook
+.cursor
+.vscode
+.idea
+
+# OpenSpec change tracking — not needed at runtime
+openspec
+_bmad
+_bmad-output
+retros
+skills
+docs
+tools
+
+# Logs / env / secrets — never bake into image
+**/*.log
+**/.env
+**/.env.*
+!**/.env.example
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Dockerfile + the deploy/ helpers don't need to ship inside the image
+Dockerfile
+.dockerignore
+deploy
+docker-compose.yml
+docker-compose.test.yml

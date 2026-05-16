@@ -5,12 +5,24 @@
 import './otel-bootstrap';
 
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // m3.x-app-bootstrap-and-vps-deploy slice §1.11 + ADR-HEALTH-EXCLUDED-FROM-API-PREFIX:
+  // All NestJS controllers are mounted under `/api`. The SPA (served by
+  // ServeStaticModule from app.module.ts) owns `/`. The /health endpoint
+  // is excluded so Docker HEALTHCHECK + load-balancer probes have a
+  // stable, short URL. Web client (apps/web/src/api/client.ts) already
+  // uses `BASE_URL = '/api'` so this is a no-op for the SPA. Vite dev
+  // proxy (apps/web/vite.config.ts) was updated to forward without
+  // stripping `/api/`, aligning dev and prod.
+  app.setGlobalPrefix('api', {
+    exclude: [{ path: 'health', method: RequestMethod.GET }],
+  });
 
   // Global validation pipe — rejects bad input before it reaches any controller
   app.useGlobalPipes(
@@ -40,7 +52,9 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, document);
+  // Swagger is mounted at `docs`; the global `/api` prefix prepends to
+  // produce the canonical `/api/docs` URL the web client + ADR-002 expect.
+  SwaggerModule.setup('docs', app, document);
 
   const port = process.env.PORT || 3001;
   await app.listen(port);

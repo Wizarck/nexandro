@@ -1,7 +1,12 @@
+import { join } from 'path';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { buildDataSourceOptions } from './database-options';
+import { HealthModule } from './health/health.module';
 import { AgentChatModule } from './agent-chat/agent-chat.module';
 import { AgentCredentialsModule } from './agent-credentials/agent-credentials.module';
 import { AiObservabilityModule } from './ai-observability/ai-observability.module';
@@ -40,6 +45,28 @@ import { SharedModule } from './shared/shared.module';
 
 @Module({
   imports: [
+    // m3.x-app-bootstrap-and-vps-deploy slice §1.3 + ADR-BOOTSTRAP-FORROOT-IN-APP-MODULE:
+    // Single shared DataSource resolved at app root from DATABASE_URL. Every BC
+    // module's TypeOrmModule.forFeature([...]) call below depends on this. The
+    // factory is the single source of truth shared with the migrations CLI
+    // (apps/api/src/data-source.ts).
+    TypeOrmModule.forRootAsync({ useFactory: buildDataSourceOptions }),
+
+    // m3.x-app-bootstrap-and-vps-deploy slice §1.12 + ADR-SINGLE-IMAGE-OMNIBUS:
+    // Serve the Vite-built SPA from the same Node process. The relative
+    // join works in both dev (apps/api/dist/... → apps/web/dist) and the
+    // omnibus container (/app/api/dist/... → /app/web/dist). Backend routes
+    // (/api/*) and the health endpoint (/health) are excluded so they reach
+    // their real handlers. Per ADR-028 in docs/architecture-decisions.md.
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', '..', 'web', 'dist'),
+      exclude: ['/api/{*splat}', '/health'],
+    }),
+
+    // m3.x-app-bootstrap-and-vps-deploy slice §1.10: /health endpoint
+    // mounted at root (excluded from /api prefix in main.ts).
+    HealthModule,
+
     EventEmitterModule.forRoot(),
 
     // M3 Wave 2.2 — m3-lot-expiry-alerts (slice #3): registers cron

@@ -61,20 +61,24 @@ openTrattOS is built as a **modular monolith**. Each module is independently use
 
 ## 🚀 Quick Start
 
-> ⚠️ **Coming soon** — The project is currently in the Discovery & Architecture phase.
-> Star the repo and watch for releases!
+openTrattOS ships as a single omnibus Docker image (per [ADR-028](docs/architecture-decisions.md)) that bundles the API, the web SPA, and all required runtimes. Same pattern as GitLab CE, Mattermost, n8n.
 
 ```bash
-# Clone the repository
-git clone https://github.com/YOUR_ORG/openTrattOS.git
+# Clone + configure
+git clone https://github.com/Wizarck/openTrattOS.git
 cd openTrattOS
+cp .env.example .env       # then edit POSTGRES_PASSWORD
 
-# Start all services with Docker
-docker-compose up -d
+# Start
+docker compose up -d
 
 # Open the app
 open http://localhost:3000
 ```
+
+The compose pulls the public image `ghcr.io/wizarck/opentrattos:latest` (no GitHub auth required). Migrations run automatically on first start; the `/health` endpoint reports DB connectivity once ready.
+
+For deployment behind cloudflared / Traefik / nginx with loopback-only bind, see [deploy/README.md](deploy/README.md).
 
 ---
 

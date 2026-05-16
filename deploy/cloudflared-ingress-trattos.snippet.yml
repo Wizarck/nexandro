@@ -1,0 +1,41 @@
+# Cloudflared ingress snippet — trattos.palafitofood.com
+# m3.x-app-bootstrap-and-vps-deploy slice §3.5.
+#
+# WHERE TO INSERT
+# ---------------
+# Edit `/etc/cloudflared/config.yml` on the eligia-prod VPS and insert
+# the entry below INSIDE the existing `ingress:` list, immediately
+# before the final catch-all entry (the one that reads
+# `- service: http_status:404`). Cloudflared matches ingress entries
+# top-down, so the catch-all must remain last.
+#
+# Existing live tunnel ID (verified via SSH on 2026-05-16):
+#   675fa973-4c22-4b1c-9fd4-a52fad422ca4
+#
+# Cloudflare DNS prerequisite (operator creates in dashboard):
+#   Type:   CNAME
+#   Name:   trattos
+#   Target: 675fa973-4c22-4b1c-9fd4-a52fad422ca4.cfargotunnel.com
+#   Proxy:  Proxied (orange cloud)
+
+- hostname: trattos.palafitofood.com
+  service: http://localhost:3201
+
+# RELOAD PROCEDURE
+# ----------------
+# 1. Validate the file before reloading (YAML errors blow up the live
+#    tunnel if you skip this):
+#
+#      cloudflared tunnel ingress validate --config /etc/cloudflared/config.yml
+#
+# 2. If validate passes, restart the systemd unit:
+#
+#      systemctl restart cloudflared
+#
+# 3. Smoke test from anywhere:
+#
+#      curl https://trattos.palafitofood.com/health
+#      # → {"status":"ok","info":{"database":{"status":"up"}, ...}}
+#
+# 4. If validate fails, do NOT restart — the running tunnel is unaffected.
+#    Fix the YAML and re-validate.

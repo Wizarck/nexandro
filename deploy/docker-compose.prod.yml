@@ -1,0 +1,59 @@
+# openTrattOS — operator deployment for trattos.palafitofood.com
+# m3.x-app-bootstrap-and-vps-deploy slice §3.3 + ADR-DUAL-COMPOSE-COMMUNITY-VS-OPERATOR.
+#
+# Audience: operator on a host that already runs cloudflared (eligia-prod
+# VPS, 178.104.140.21). Binds the app to 127.0.0.1:3201 so the port is
+# unreachable from eth0 — defense-in-depth alongside UFW. Cloudflared
+# routes trattos.palafitofood.com → http://localhost:3201 (see
+# deploy/cloudflared-ingress-trattos.snippet.yml).
+#
+# Usage on VPS:
+#   mkdir -p /opt/opentrattos && cd /opt/opentrattos
+#   scp local:deploy/docker-compose.prod.yml ./docker-compose.yml
+#   scp local:deploy/.env.example ./
+#   cp .env.example .env  # then edit POSTGRES_PASSWORD via `pwgen 32 1`
+#   docker compose pull
+#   docker compose up -d
+#
+# For community / laptop quickstart use the repo-root docker-compose.yml.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?set in .env}
+    volumes:
+      - opentrattos_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  app:
+    image: ghcr.io/wizarck/opentrattos:latest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      FRONTEND_URL: ${FRONTEND_URL:?set in .env}
+      PORT: "3001"
+      OTEL_SDK_DISABLED: "${OTEL_SDK_DISABLED:-true}"
+      OPENTRATTOS_EMAIL_PROVIDER: "${OPENTRATTOS_EMAIL_PROVIDER:-smtp}"
+      AUDIT_ARCHIVAL_ENABLED: "${AUDIT_ARCHIVAL_ENABLED:-false}"
+      PHOTO_STORAGE_ENABLED: "${PHOTO_STORAGE_ENABLED:-false}"
+      M3_PO_AGGREGATE_ENABLED: "${M3_PO_AGGREGATE_ENABLED:-false}"
+      OPENTRATTOS_AGENT_ENABLED: "${OPENTRATTOS_AGENT_ENABLED:-false}"
+    # Loopback-only bind matches the modern VPS pattern (actual-server,
+    # palafito-staging-wp, opentrattos-postgres-test). Cloudflared on
+    # the host reaches us via 127.0.0.1:3201.
+    ports:
+      - "127.0.0.1:3201:3001"
+
+volumes:
+  opentrattos_pgdata:

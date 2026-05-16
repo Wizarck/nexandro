@@ -650,3 +650,19 @@ Reference implementation: `apps/api/src/agent-chat/application/agent-chat.servic
 - Use the lean `AGENT_ACTION_EXECUTED` for chat audit — rejected; chat is a multi-turn mutation, not a single REST request, and forensic linkage to the session id matters for compliance.
 - Synchronous `emit()` even in INT specs — rejected; the read-after-write hazard re-emerges every time.
 
+
+---
+
+## ADR-028: Community distribution = single omnibus Docker image
+
+**Decision:** The community AGPL-3.0 distribution ships as a SINGLE Docker image `ghcr.io/wizarck/opentrattos:latest` containing both the NestJS API (`apps/api/dist`) and the Vite SPA (`apps/web/dist`), served by a single Node process via `@nestjs/serve-static`. NestJS sets a global `/api` prefix so the SPA owns `/` and the backend owns `/api/*`. The image is published with `public` visibility so third parties can `docker pull` without GitHub credentials.
+
+**Rationale:** openTrattOS is a modular monolith (ADR-001) targeting self-hosters with single-VPS scale. Single-omnibus is the dominant pattern for this class of product (GitLab CE `gitlab/gitlab-ce`, Mattermost `mattermost-team-edition`, n8n `n8nio/n8n`, Ghost `ghost`, Outline `outlinewiki/outline`). Splitting api/web doubles the GHCR packages, image versions, CI matrix, pull time, and compose complexity for a flexibility (independent scaling, CDN frontend) that has no use case until TrattOS Enterprise SaaS exists. Re-splitting later is a half-day refactor (catalogued in `docs/operations/post-deploy-roadmap.md` as R11).
+
+**Rules enforced:**
+- No second image for the community AGPL surface. The MCP server image (ADR-013, `packages/mcp-server-opentrattos/Dockerfile`) is a separate concern (Enterprise-consumed) and stays separate.
+- TrattOS Enterprise add-ons (Hermes agent, Hindsight memory, WhatsApp/Telegram bot, LangGraph orchestration per AGENTS.md Appendix) consume the community API via MCP tools (ADR-002). They do NOT bundle into the community image. Same model as GitLab EE plugins on top of CE.
+- No license-check code in `apps/api/` or `apps/web/`. Feature flags (`*_DISABLED`, `=noop`) gate external credentials, not paid features. A self-hoster enables S3 archival or real SMTP by providing creds, not by paying.
+- The community quickstart (`docker-compose.yml` at repo root) and the operator deploy (`deploy/docker-compose.prod.yml`) reference the SAME single image with different binds (`0.0.0.0:3000:3001` vs `127.0.0.1:3201:3001`).
+
+**Consequence:** Static-file serving via NestJS+ServeStaticModule is ~10× slower than Caddy/nginx. Negligible at the <100 concurrent users single-VPS scale; revisit per R11 trigger if scale shifts (CDN-served frontend, independent web/api scale curves).

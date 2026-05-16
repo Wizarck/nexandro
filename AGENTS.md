@@ -31,7 +31,8 @@ openTrattOS — open-source **Back-of-House (BOH) and kitchen traceability OS** 
 
 - Business model: **open-core**. Community (this repo) = AGPL-3.0, Docker-self-hosted. Enterprise (separate private repo) = paid SaaS with AI agents, WhatsApp/Telegram bot, managed cloud.
 - Repo: https://github.com/Wizarck/openTrattOS.
-- Tech: Turborepo (npm workspaces) + Next.js 14 + NestJS (DDD modular monolith) + PostgreSQL (TypeORM) + Redis + MinIO.
+- Tech: Turborepo (npm workspaces) + Vite + React 18 SPA + NestJS (DDD modular monolith) + PostgreSQL (TypeORM) + Redis + MinIO.
+- Distribution: single omnibus Docker image `ghcr.io/wizarck/opentrattos` per ADR-028 (GitLab CE / Mattermost / n8n pattern). NestJS serves the SPA via `@nestjs/serve-static` under `/`, API under `/api/*`. Never propose api/web split by default — re-split criteria in `docs/operations/post-deploy-roadmap.md` R11.
 
 Module roadmap:
 
