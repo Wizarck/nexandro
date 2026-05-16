@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { ExternalFoodCatalog } from '../domain/external-food-catalog.entity';
 import { ExternalFoodCatalogRepository } from '../infrastructure/external-food-catalog.repository';
@@ -47,7 +47,10 @@ export class OffSyncService {
 
   constructor(
     private readonly catalog: ExternalFoodCatalogRepository,
-    private readonly fetcher: FetchLike = DEFAULT_OFF_FETCH,
+    // FetchLike is a function-type alias — TS emits `Function` for
+    // design:paramtypes which NestJS DI can't resolve. @Optional()
+    // lets the default kick in. Same pattern as ExternalCatalogService.
+    @Optional() private readonly fetcher: FetchLike = DEFAULT_OFF_FETCH,
   ) {}
 
   /**

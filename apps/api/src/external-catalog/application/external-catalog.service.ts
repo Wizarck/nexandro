@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { ExternalFoodCatalog } from '../domain/external-food-catalog.entity';
 import { ExternalFoodCatalogRepository } from '../infrastructure/external-food-catalog.repository';
 import {
@@ -30,7 +30,11 @@ export class ExternalCatalogService {
 
   constructor(
     private readonly catalog: ExternalFoodCatalogRepository,
-    private readonly fetcher: FetchLike = DEFAULT_OFF_FETCH,
+    // FetchLike is a type alias for a function — TS emits `Function` as
+    // design:paramtypes, which NestJS DI cannot resolve to a registered
+    // provider. @Optional() lets the default kick in. Same class of bug
+    // as memory feedback_di_nullable_union_inject.
+    @Optional() private readonly fetcher: FetchLike = DEFAULT_OFF_FETCH,
   ) {}
 
   /**
