@@ -35,7 +35,7 @@ async function run(): Promise<void> {
           `INSERT INTO organizations (id, name, currency_code, default_locale, timezone, created_at, updated_at)
            VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
            ON CONFLICT (id) DO NOTHING`,
-          [DEMO_ORG_ID, 'Nexandro Demo', 'EUR', 'es-ES', 'Europe/Madrid'],
+          [DEMO_ORG_ID, 'Nexandro Demo', 'EUR', 'es', 'Europe/Madrid'],
         );
         console.log(`seed-demo: created organization ${DEMO_ORG_ID}`);
       } else {
