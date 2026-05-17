@@ -86,7 +86,8 @@ export function LabelFieldsForm({
     'focus:outline-none focus:ring-2 focus:ring-(--color-focus)',
     disabled && 'opacity-60 cursor-not-allowed',
   );
-  const fieldsetCls = 'space-y-3 rounded-lg border border-border-subtle p-4';
+  const fieldsetCls = 'space-y-3 rounded-lg border border-border-subtle p-5';
+  const legendCls = 'ml-2 px-2 text-sm font-semibold text-ink';
   const labelCls = 'block text-xs font-medium uppercase tracking-wide text-mute';
   const errorCls = 'text-xs text-(--color-danger-fg) mt-1';
 
@@ -96,7 +97,7 @@ export function LabelFieldsForm({
     <form onSubmit={handleSubmit} className="space-y-6" aria-label="Configuración de etiquetas">
       {/* 1. Business name */}
       <fieldset className={fieldsetCls} disabled={disabled}>
-        <legend className="px-1 text-sm font-semibold text-ink">Datos del negocio</legend>
+        <legend className={legendCls}>Datos del negocio</legend>
         <div>
           <label className={labelCls} htmlFor="lf-businessName">Nombre del negocio</label>
           <input
@@ -114,7 +115,7 @@ export function LabelFieldsForm({
 
       {/* 2. Contact info */}
       <fieldset className={fieldsetCls} disabled={disabled}>
-        <legend className="px-1 text-sm font-semibold text-ink">Contacto</legend>
+        <legend className={legendCls}>Contacto</legend>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label className={labelCls} htmlFor="lf-contact-email">Email</label>
@@ -146,7 +147,7 @@ export function LabelFieldsForm({
 
       {/* 3. Postal address */}
       <fieldset className={fieldsetCls} disabled={disabled}>
-        <legend className="px-1 text-sm font-semibold text-ink">Dirección postal</legend>
+        <legend className={legendCls}>Dirección postal</legend>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label className={labelCls} htmlFor="lf-addr-street">Calle</label>
@@ -205,7 +206,7 @@ export function LabelFieldsForm({
 
       {/* 4. Brand mark URL */}
       <fieldset className={fieldsetCls} disabled={disabled}>
-        <legend className="px-1 text-sm font-semibold text-ink">Marca</legend>
+        <legend className={legendCls}>Marca</legend>
         <div>
           <label className={labelCls} htmlFor="lf-brandMark">URL del logotipo</label>
           <input
@@ -233,7 +234,7 @@ export function LabelFieldsForm({
 
       {/* 5. Page size */}
       <fieldset className={fieldsetCls} disabled={disabled}>
-        <legend className="px-1 text-sm font-semibold text-ink">Tamaño de página</legend>
+        <legend className={legendCls}>Tamaño de página</legend>
         <div role="radiogroup" aria-label="Tamaño de página" className="space-y-1">
           {LABEL_PAGE_SIZES.map((size) => (
             <label key={size} className="flex items-center gap-2 text-sm text-ink">
@@ -254,7 +255,7 @@ export function LabelFieldsForm({
 
       {/* 6. Print adapter */}
       <fieldset className={fieldsetCls} disabled={disabled}>
-        <legend className="px-1 text-sm font-semibold text-ink">Impresora</legend>
+        <legend className={legendCls}>Impresora</legend>
         <div>
           <label className={labelCls} htmlFor="lf-adapter-id">Tipo de impresora</label>
           <select
@@ -340,12 +341,27 @@ export function LabelFieldsForm({
             type="submit"
             disabled={submitting}
             className={cn(
-              'rounded-md bg-(--color-primary) px-4 py-2 text-sm font-semibold text-(--color-on-primary)',
-              'hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-(--color-focus)',
-              submitting && 'cursor-wait opacity-60',
+              'inline-flex items-center gap-2 rounded-md border border-(--color-primary) bg-(--color-primary)',
+              'px-6 py-2.5 text-sm font-semibold text-(--color-on-primary) shadow-sm',
+              'transition hover:shadow-md hover:brightness-110 active:translate-y-px',
+              'focus:outline-none focus:ring-2 focus:ring-(--color-focus) focus:ring-offset-2 focus:ring-offset-(--color-bg)',
+              submitting && 'cursor-wait opacity-70',
             )}
           >
-            {submitting ? 'Guardando…' : 'Guardar'}
+            {submitting ? (
+              <>
+                <span
+                  aria-hidden="true"
+                  className="h-3 w-3 animate-spin rounded-full border-2 border-(--color-on-primary) border-t-transparent"
+                />
+                Guardando…
+              </>
+            ) : (
+              <>
+                <span aria-hidden="true">💾</span>
+                Guardar cambios
+              </>
+            )}
           </button>
         </div>
       )}

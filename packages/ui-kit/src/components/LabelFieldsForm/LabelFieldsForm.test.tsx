@@ -35,7 +35,7 @@ describe('LabelFieldsForm', () => {
       target: { value: 'New Name' },
     });
     fireEvent.click(screen.getByRole('radio', { name: /Térmica 4×6/i }));
-    fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+    fireEvent.click(screen.getByRole('button', { name: /Guardar cambios/ }));
 
     expect(onSubmit).toHaveBeenCalledTimes(1);
     const submitted = onSubmit.mock.calls[0][0];
