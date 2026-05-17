@@ -21,7 +21,7 @@ capabilities_map: true
 Before responding to ANY task:
 
 1. Read `.ai-playbook/specs/dispatcher-chain.md` — universal norms and override semantics.
-2. Consult `.claude/injected-context.md` — populated by the SessionStart hook from `hindsight.recall(query="nexandro <topic>")` against bank `nexandro`. If absent or showing `DEGRADED_CONTEXT`, announce + proceed without prior recall.
+2. Consult `.claude/injected-context.md` — populated by the SessionStart hook from `hindsight.recall(query="nexandro <topic>")` against bank `nexandro-palafito`. If absent or showing `DEGRADED_CONTEXT`, announce + proceed without prior recall.
 3. Check `openspec/changes/*/` for active work on the topic. If a change is live and open, extend it — don't start parallel work.
 4. Only then respond.
 
@@ -116,7 +116,7 @@ These extend (do not duplicate) universal norms in `.ai-playbook/specs/*`.
 
 Snapshot (≤10 lines):
 
-- `hindsight` — project memory. `bank_id: nexandro`.
+- `hindsight` — project memory. `bank_id: nexandro-palafito`.
 - `atlassian-geeplo` — Jira tenant for enterprise side; this community repo is read-only on that side.
 - Planned: `guardrails-mcp` (T10 + Phase 5 T26), `nexandro-api` (when enterprise MCP lands).
 
