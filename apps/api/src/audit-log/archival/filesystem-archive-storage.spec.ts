@@ -74,10 +74,10 @@ describe('FilesystemArchiveStorage', () => {
     expect(readFileSync(result.path).toString('utf8')).toBe('second-bigger');
   });
 
-  it('falls back to OPENTRATTOS_AUDIT_ARCHIVE_DIR env when no root passed', () => {
-    const prev = process.env.OPENTRATTOS_AUDIT_ARCHIVE_DIR;
+  it('falls back to NEXANDRO_AUDIT_ARCHIVE_DIR env when no root passed', () => {
+    const prev = process.env.NEXANDRO_AUDIT_ARCHIVE_DIR;
     try {
-      process.env.OPENTRATTOS_AUDIT_ARCHIVE_DIR = root;
+      process.env.NEXANDRO_AUDIT_ARCHIVE_DIR = root;
       const storage = new FilesystemArchiveStorage();
       // Implementation detail — read the resolved root via a write to a
       // known location and inspect the result path.
@@ -88,9 +88,9 @@ describe('FilesystemArchiveStorage', () => {
         });
     } finally {
       if (prev === undefined) {
-        delete process.env.OPENTRATTOS_AUDIT_ARCHIVE_DIR;
+        delete process.env.NEXANDRO_AUDIT_ARCHIVE_DIR;
       } else {
-        process.env.OPENTRATTOS_AUDIT_ARCHIVE_DIR = prev;
+        process.env.NEXANDRO_AUDIT_ARCHIVE_DIR = prev;
       }
     }
   });

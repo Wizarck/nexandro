@@ -157,7 +157,7 @@ export interface TraceNode {
 
 **Rationale**: explicit duplication beats fragile cross-package coupling at this slice's maturity level. The shape is stable (a tree of 4 kinds). A future slice can promote the shape to `packages/contracts/` once the rootDir story is resolved.
 
-**Rejected alternative**: `import type { TraceNode } from '@opentrattos/contracts'`. Triggers TS6059 in `apps/api/` per Wave 2.1 cascade. Hard NO.
+**Rejected alternative**: `import type { TraceNode } from '@nexandro/contracts'`. Triggers TS6059 in `apps/api/` per Wave 2.1 cascade. Hard NO.
 
 ### ADR-TRACE-EMPTY-RESULTS — Empty tree returns root with empty children, NOT 404
 

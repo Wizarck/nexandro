@@ -1,6 +1,6 @@
 ## Why
 
-Spain's APPCC (Análisis de Peligros y Puntos de Control Críticos — the national HACCP regime) requires every restaurant to surrender a quarterly audit dossier to the autonomous-community sanitary authority. Marta the inspector arrives quarterly; the call to Iker the Owner is "I need the last 90 days HACCP + lot + corrective actions in the standard format, in Basque, by Friday." Per FR21–FR27 + j9.md, openTrattOS must produce that bundle: a PDF + CSV companion containing the raw `audit_log` as **chapter 0 unedited** (FR25 trust principle), followed by structured derivative chapters (HACCP, Lot, Procurement, optional Photo + AI-cost). The bundle is sealed by a SHA-256 hash over the concatenated PDF + CSV bytes so Marta can verify chain-of-custody at her fingertips.
+Spain's APPCC (Análisis de Peligros y Puntos de Control Críticos — the national HACCP regime) requires every restaurant to surrender a quarterly audit dossier to the autonomous-community sanitary authority. Marta the inspector arrives quarterly; the call to Iker the Owner is "I need the last 90 days HACCP + lot + corrective actions in the standard format, in Basque, by Friday." Per FR21–FR27 + j9.md, nexandro must produce that bundle: a PDF + CSV companion containing the raw `audit_log` as **chapter 0 unedited** (FR25 trust principle), followed by structured derivative chapters (HACCP, Lot, Procurement, optional Photo + AI-cost). The bundle is sealed by a SHA-256 hash over the concatenated PDF + CSV bytes so Marta can verify chain-of-custody at her fingertips.
 
 This slice ships the backend bundle generator. Slice #15 m3-appcc-i18n-ui ships the j9 surface in parallel and consumes the URLs we register; we do not import from #15 and #15 does not import from us — both meet at master.
 
@@ -51,7 +51,7 @@ Each renderer is read-only on its source BC, filters by `(organization_id, creat
 ### Storage abstraction
 
 - **`apps/api/src/compliance-export/storage/bundle-storage.ts`** — `BundleStorage` interface (`putBundle(orgId, bundleId, kind, bytes) → Promise<string>` returning `pdfStoragePath`/`csvStoragePath`; `readBundle(path) → Promise<Buffer>`; `signedReadUrl(path, ttlSeconds) → Promise<string>`).
-- **`apps/api/src/compliance-export/storage/local-bundle-storage.ts`** — filesystem-backed default. Writes under `OPENTRATTOS_BUNDLE_STORAGE_ROOT` (env, default `./var/bundles/`). Signed read URLs proxy through the controller. Future S3 backend swaps via the same interface.
+- **`apps/api/src/compliance-export/storage/local-bundle-storage.ts`** — filesystem-backed default. Writes under `NEXANDRO_BUNDLE_STORAGE_ROOT` (env, default `./var/bundles/`). Signed read URLs proxy through the controller. Future S3 backend swaps via the same interface.
 
 ### REST controller
 
@@ -74,10 +74,10 @@ Each renderer is read-only on its source BC, filters by `(organization_id, creat
 
 ### MCP capability
 
-- **`packages/mcp-server-opentrattos/src/capabilities/write/compliance.ts`** — single capability `compliance.generate-export` proxying `POST /m3/compliance/exports`. Per-capability kill switch: `OPENTRATTOS_AGENT_COMPLIANCE_GENERATE_EXPORT_ENABLED`.
-- **`packages/mcp-server-opentrattos/src/capabilities/write/index.ts`** — spread `COMPLIANCE_WRITE_CAPABILITIES` into `WRITE_CAPABILITIES`.
-- **`packages/mcp-server-opentrattos/src/capabilities/write/index.spec.ts`** — count bumps 48 → 49; namespace `compliance` added.
-- **`packages/mcp-server-opentrattos/test/smoke.spec.ts`** — registered-tools count bumps 55 → 56.
+- **`packages/mcp-server-nexandro/src/capabilities/write/compliance.ts`** — single capability `compliance.generate-export` proxying `POST /m3/compliance/exports`. Per-capability kill switch: `NEXANDRO_AGENT_COMPLIANCE_GENERATE_EXPORT_ENABLED`.
+- **`packages/mcp-server-nexandro/src/capabilities/write/index.ts`** — spread `COMPLIANCE_WRITE_CAPABILITIES` into `WRITE_CAPABILITIES`.
+- **`packages/mcp-server-nexandro/src/capabilities/write/index.spec.ts`** — count bumps 48 → 49; namespace `compliance` added.
+- **`packages/mcp-server-nexandro/test/smoke.spec.ts`** — registered-tools count bumps 55 → 56.
 
 ### Wire into AppModule
 
@@ -150,5 +150,5 @@ Each renderer is read-only on its source BC, filters by `(organization_id, creat
   - Real @react-pdf/renderer byte-level INT test.
   - Long-term `archived` lifecycle (status flagging present; cron mover deferred).
   - Manager location-scoping deeper than `req.user.locationIds` JWT pass-through (full hierarchical scope is M4+).
-- **Parallelism**: file-path scope = `apps/api/src/compliance-export/**` (new BC, no existing files) + `apps/api/src/migrations/0038_create_export_bundles_table.ts` (new) + extends to `apps/api/src/audit-log/application/{types,audit-log.subscriber}.ts` (mechanical 2-entry adds) + `apps/api/src/app.module.ts` (one-line import) + `packages/mcp-server-opentrattos/src/capabilities/write/{compliance.ts,index.ts,index.spec.ts}` + `packages/mcp-server-opentrattos/test/smoke.spec.ts` (count bump). Conflicts with slice #15 are zero (#15 lives in `apps/web` + `packages/ui-kit`).
+- **Parallelism**: file-path scope = `apps/api/src/compliance-export/**` (new BC, no existing files) + `apps/api/src/migrations/0038_create_export_bundles_table.ts` (new) + extends to `apps/api/src/audit-log/application/{types,audit-log.subscriber}.ts` (mechanical 2-entry adds) + `apps/api/src/app.module.ts` (one-line import) + `packages/mcp-server-nexandro/src/capabilities/write/{compliance.ts,index.ts,index.spec.ts}` + `packages/mcp-server-nexandro/test/smoke.spec.ts` (count bump). Conflicts with slice #15 are zero (#15 lives in `apps/web` + `packages/ui-kit`).
 - **Effort estimate**: L (~1700 LOC application + ~1100 LOC tests; matches gate-c "L" sizing for slice #14 at ~12–18 days nominal).

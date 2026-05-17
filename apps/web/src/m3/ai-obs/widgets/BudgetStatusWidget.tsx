@@ -1,4 +1,4 @@
-import { BadgeChip, MetricCard } from '@opentrattos/ui-kit';
+import { BadgeChip, MetricCard } from '@nexandro/ui-kit';
 import type {
   BudgetStatusWidget as BudgetStatusData,
   Tier,

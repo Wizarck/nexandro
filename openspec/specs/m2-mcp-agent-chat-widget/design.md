@@ -16,10 +16,10 @@ Three-tier; the widget is a visual surface, the relay is a forwarding/audit laye
 
 Key boundaries:
 
-- **The browser never talks to Hermes directly.** `OPENTRATTOS_HERMES_AUTH_SECRET` lives only in apps/api. CORS on the apps/api side allowlists apps/web.
-- **The audit row is written by apps/api.** Hermes does its own logging on its side; the apps/api row is the openTrattOS-side forensic anchor (forensic envelope from Wave 1.13's `BeforeAfterAuditInterceptor`).
-- **The Hermes platform is generic.** It takes `bank_id` from the request body and forwards it into Hindsight cascade. Other apps could embed Hermes via the same platform without ever touching openTrattOS code.
-- **`OPENTRATTOS_AGENT_ENABLED=false` zeroes the surface.** Widget renders `null`, endpoint returns 404, no Hindsight initialisation. Per ADR-013 the standalone deployment must be fully usable.
+- **The browser never talks to Hermes directly.** `NEXANDRO_HERMES_AUTH_SECRET` lives only in apps/api. CORS on the apps/api side allowlists apps/web.
+- **The audit row is written by apps/api.** Hermes does its own logging on its side; the apps/api row is the nexandro-side forensic anchor (forensic envelope from Wave 1.13's `BeforeAfterAuditInterceptor`).
+- **The Hermes platform is generic.** It takes `bank_id` from the request body and forwards it into Hindsight cascade. Other apps could embed Hermes via the same platform without ever touching nexandro code.
+- **`NEXANDRO_AGENT_ENABLED=false` zeroes the surface.** Widget renders `null`, endpoint returns 404, no Hindsight initialisation. Per ADR-013 the standalone deployment must be fully usable.
 
 ## Decisions
 
@@ -29,7 +29,7 @@ Key boundaries:
 
 **Decision.** Add a new platform `web_via_http_sse` upstream-PR-able, ~400 LOC, mirroring the WABA pattern. Until upstream merges it, ship via the existing `eligia/hermes-agent:wamba` overlay (the `wamba` tag is already a vendored fork; we add one more file).
 
-**Generic contract** (no openTrattOS leakage):
+**Generic contract** (no nexandro leakage):
 
 ```
 POST /web/{session_id}
@@ -72,7 +72,7 @@ POST /web/{session_id}
 
 - ✅ Reuses Hermes' existing message-handling pipeline (skills, memory cascade, tool calling, MCP client).
 - ✅ PR-friendly upstream — same shape as your prior WABA contribution.
-- ✅ Other web apps can embed the same Hermes container without touching openTrattOS code.
+- ✅ Other web apps can embed the same Hermes container without touching nexandro code.
 - ❌ Adds a network hop (browser → apps/api → Hermes). Mitigation: SSE keeps the connection open for the duration of the response; round-trip cost is one TCP handshake amortised over many tokens.
 
 **Alternatives considered.**
@@ -92,11 +92,11 @@ POST /web/{session_id}
 
 **Service flow:**
 
-1. Read `OPENTRATTOS_AGENT_ENABLED`. If false → throw `NotFoundException` (404). The `IdempotencyMiddleware` and `BeforeAfterAuditInterceptor` from Wave 1.13 are already wired globally; they no-op for 404 paths so no special handling.
-2. Resolve bank id: `opentrattos-${slugify(organization.name)}` (lowercase, ASCII, dash-separated, max 32 chars). Validation = `^[a-z0-9-]{1,32}$`. If slug collision (rare, multi-org with same name), the org id is appended: `opentrattos-${slug}-${shortOrgIdHash}`.
-3. Call Hermes `POST {OPENTRATTOS_HERMES_BASE_URL}/web/{sessionId}` with body `{message, bank_id, user_attribution, metadata}` + header `X-Web-Auth-Secret: {OPENTRATTOS_HERMES_AUTH_SECRET}`. `sessionId` defaults to a stable hash of `userId + browserSessionToken` so a refresh in the same tab continues the same Hermes-side session.
+1. Read `NEXANDRO_AGENT_ENABLED`. If false → throw `NotFoundException` (404). The `IdempotencyMiddleware` and `BeforeAfterAuditInterceptor` from Wave 1.13 are already wired globally; they no-op for 404 paths so no special handling.
+2. Resolve bank id: `nexandro-${slugify(organization.name)}` (lowercase, ASCII, dash-separated, max 32 chars). Validation = `^[a-z0-9-]{1,32}$`. If slug collision (rare, multi-org with same name), the org id is appended: `nexandro-${slug}-${shortOrgIdHash}`.
+3. Call Hermes `POST {NEXANDRO_HERMES_BASE_URL}/web/{sessionId}` with body `{message, bank_id, user_attribution, metadata}` + header `X-Web-Auth-Secret: {NEXANDRO_HERMES_AUTH_SECRET}`. `sessionId` defaults to a stable hash of `userId + browserSessionToken` so a refresh in the same tab continues the same Hermes-side session.
 4. Stream the Hermes SSE response back through to the browser: pipe `event: token / tool-calling / proactive / done` 1:1, plus our own `event: error` for relay-side failures (timeout, 5xx from Hermes, etc.).
-5. Audit emission is automatic — Wave 1.13's interceptor writes one `AGENT_ACTION_EXECUTED` row with `payload_after = { sessionId, messageDigest, modelHint? }`. The interceptor's `agentName` field is set to `hermes-web` by passing it via `req.agentContext.agentName` in a small middleware shim (the existing `AgentAuditMiddleware` only reads from `X-Agent-Name` header — for the chat endpoint we set the agent context server-side, not from request headers, since the user is talking to "openTrattOS's chat", not naming an agent themselves).
+5. Audit emission is automatic — Wave 1.13's interceptor writes one `AGENT_ACTION_EXECUTED` row with `payload_after = { sessionId, messageDigest, modelHint? }`. The interceptor's `agentName` field is set to `hermes-web` by passing it via `req.agentContext.agentName` in a small middleware shim (the existing `AgentAuditMiddleware` only reads from `X-Agent-Name` header — for the chat endpoint we set the agent context server-side, not from request headers, since the user is talking to "nexandro's chat", not naming an agent themselves).
 
 **Idempotency.** Wave 1.13 middleware applies. If the browser retries `POST /agent-chat/stream` with the same `Idempotency-Key` and the same body hash, it gets the cached response back. For a streaming endpoint this means **the cached SSE event sequence is replayed verbatim**. Implementation: cache the **complete final assistant message** + the synthetic SSE wrap (one `event: token` with full text + one `event: done`). We do not cache token-by-token replay — that's only useful for the live response, not retries. Stored in `agent_idempotency_keys.response_body` as `{ kind: 'sse-replay', text: '...', finishReason: 'stop' }`.
 
@@ -114,7 +114,7 @@ POST /web/{session_id}
 
 **Decision.** Implement per the components.md spec. Five files in `packages/ui-kit/src/AgentChatWidget/`:
 
-- `AgentChatWidget.tsx` — the component. Props `{ organizationId, userId, initialContext? }`. Reads `OPENTRATTOS_AGENT_ENABLED` from a runtime config object passed via React context (not direct `process.env` read — apps/web injects via `<RuntimeConfigProvider>`). When false → returns `null`.
+- `AgentChatWidget.tsx` — the component. Props `{ organizationId, userId, initialContext? }`. Reads `NEXANDRO_AGENT_ENABLED` from a runtime config object passed via React context (not direct `process.env` read — apps/web injects via `<RuntimeConfigProvider>`). When false → returns `null`.
 - `AgentChatWidget.stories.tsx` — 7 stories: Closed (FAB-only), OpenEmpty, OpenMidConversation, Streaming, ToolCalling, LongConversation, FlagDisabled.
 - `AgentChatWidget.test.tsx` — unit + smoke. Asserts: FAB renders when flag=true; nothing renders when flag=false; `Esc` closes and restores focus; image drag-drop captures file; streaming bubble appends tokens.
 - `AgentChatWidget.types.ts` — props, message shapes, Hermes event types (1:1 with the SSE wire format).
@@ -141,27 +141,27 @@ streaming ──[proactive event]──► open + new agent bubble injected
 - ✅ Voice deferred cleanly — no speculative API surface.
 - ❌ Mobile keyboard handling is non-trivial when sidesheet is full-width — done with `vh` units + safe-area-insets; `AgentChatWidget.test.tsx` covers basic resize.
 
-### ADR-CHAT-W-BANK — `opentrattos-{tenant}` single bank, generalist (F8)
+### ADR-CHAT-W-BANK — `nexandro-{tenant}` single bank, generalist (F8)
 
-**Context.** PRD-2 §M2 Architecture Pillar #7 reserved `opentrattos-recipes`, `opentrattos-suppliers`, `opentrattos-menus`, `opentrattos-inventory` (M3+) as capability-named banks. The user's pick rejects per-feature granularity ("then we won't know which agent the user wants to talk to") in favour of a single generalist bank per tenant.
+**Context.** PRD-2 §M2 Architecture Pillar #7 reserved `nexandro-recipes`, `nexandro-suppliers`, `nexandro-menus`, `nexandro-inventory` (M3+) as capability-named banks. The user's pick rejects per-feature granularity ("then we won't know which agent the user wants to talk to") in favour of a single generalist bank per tenant.
 
-**Decision.** Bank id pattern: `opentrattos-{tenant_slug}`.
+**Decision.** Bank id pattern: `nexandro-{tenant_slug}`.
 
 - `tenant_slug` = `slugify(organization.name)` (lowercase ASCII, dash, ≤32 chars).
 - On collision: append short hash of `organization.id` (8 hex chars).
 - Single bank per tenant — Hermes uses the same bank for cooking questions, supplier negotiations, and dashboard analysis. Hermes' system prompt (SOUL.md) is the personality differentiator.
-- Bank is created lazily by Hermes on first message; openTrattOS does NOT pre-provision.
+- Bank is created lazily by Hermes on first message; nexandro does NOT pre-provision.
 
 **Consequences.**
 
-- ✅ One concept for the user: "talk to your openTrattOS assistant".
+- ✅ One concept for the user: "talk to your nexandro assistant".
 - ✅ Cross-domain context survives in one place (chef notes a supplier change → mentions it later when planning a menu — same conversation history).
 - ❌ Multi-personality split impossible without migration. Mitigation: revisit in M3 if user-research signals demand.
 
 **Alternatives considered.**
 
-- Multi-bank `opentrattos-chef`, `opentrattos-purchasing`, `opentrattos-finance` — rejected per F8 user pick.
-- `opentrattos-{orgId}` (raw UUID) — rejected: not human-readable, breaks "name yourself something memorable" Hindsight ergonomics.
+- Multi-bank `nexandro-chef`, `nexandro-purchasing`, `nexandro-finance` — rejected per F8 user pick.
+- `nexandro-{orgId}` (raw UUID) — rejected: not human-readable, breaks "name yourself something memorable" Hindsight ergonomics.
 
 ### ADR-CHAT-W-CI — flag matrix via 2 INT specs + Storybook smoke (F4=c)
 
@@ -169,8 +169,8 @@ streaming ──[proactive event]──► open + new agent bubble injected
 
 **Decision.** Three tests:
 
-- `apps/api/src/agent-chat/agent-chat.flag-enabled.int.spec.ts` — `OPENTRATTOS_AGENT_ENABLED=true`, mock Hermes endpoint → assert 200 + SSE stream + audit row.
-- `apps/api/src/agent-chat/agent-chat.flag-disabled.int.spec.ts` — `OPENTRATTOS_AGENT_ENABLED=false` → assert 404 + zero audit rows.
+- `apps/api/src/agent-chat/agent-chat.flag-enabled.int.spec.ts` — `NEXANDRO_AGENT_ENABLED=true`, mock Hermes endpoint → assert 200 + SSE stream + audit row.
+- `apps/api/src/agent-chat/agent-chat.flag-disabled.int.spec.ts` — `NEXANDRO_AGENT_ENABLED=false` → assert 404 + zero audit rows.
 - `packages/ui-kit/src/AgentChatWidget/AgentChatWidget.test.tsx` includes a `flag-disabled returns null` assertion + the matching Storybook story.
 
 **Consequences.**
@@ -178,14 +178,14 @@ streaming ──[proactive event]──► open + new agent bubble injected
 - ✅ Coverage on both branches without doubling CI compute.
 - ✅ The flag-disabled Storybook story doubles as visual regression — anyone seeing a non-empty render in that story knows the flag is leaking.
 
-**Alternatives considered.** GH Actions matrix `OPENTRATTOS_AGENT_ENABLED: [true, false]` running the full suite — rejected as overkill; ~95% of tests don't touch the flag.
+**Alternatives considered.** GH Actions matrix `NEXANDRO_AGENT_ENABLED: [true, false]` running the full suite — rejected as overkill; ~95% of tests don't touch the flag.
 
 ## Open questions / known risks
 
 - ❓ **Hermes overlay rebuild cadence.** Adding the platform requires rebuilding `eligia/hermes-agent:wamba` with the new file under `gateway/platforms/`. The user's existing build script `/opt/hermes/wamba_build/Dockerfile.eligia-overlay` should accept the addition with one COPY line. Confirmed visually but not yet exercised. **Mitigation**: Stage 1 includes a smoke build before any other Stage starts.
 - ❓ **CORS regex vs allowlist.** `WEB_VIA_HTTP_SSE_ALLOWED_ORIGINS` is a CSV allowlist; we picked it because it's auditable. Alternative: regex pattern. CSV is fine for ≤10 origins; revisit if the multi-tenant SaaS variant needs hundreds.
 - ⚠ **Idempotency on streaming endpoints.** Cached replay is the full final text, not token-by-token. If a chef expects "second click streams the response again" they will be surprised. Mitigation: docs + the `done` event fires immediately on replay, which is a clear UX signal.
-- ⚠ **Bank slug collisions.** Two orgs named "La Tradicional" become `opentrattos-la-tradicional` + the orgId hash suffix. Display is internal (Hindsight key), not user-facing. Acceptable.
+- ⚠ **Bank slug collisions.** Two orgs named "La Tradicional" become `nexandro-la-tradicional` + the orgId hash suffix. Display is internal (Hindsight key), not user-facing. Acceptable.
 - ⚠ **Hermes auth secret rotation.** Same key for both Hermes and apps/api. Rotation = update both env vars in lockstep + restart both. Document in the operations runbook (Stage 4).
 
 ## Stages

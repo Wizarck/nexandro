@@ -1,7 +1,7 @@
 /**
  * Pluggable bundle storage interface. The MVP implementation
  * (`LocalBundleStorage`) writes to the local filesystem under
- * `OPENTRATTOS_BUNDLE_STORAGE_ROOT`. A future S3 backend swaps via this
+ * `NEXANDRO_BUNDLE_STORAGE_ROOT`. A future S3 backend swaps via this
  * interface without touching the generator.
  */
 

@@ -16,38 +16,38 @@ function makeCtx(req: Partial<Request>): ExecutionContext {
 describe('capabilityToEnvVar', () => {
   it('transforms namespace.op into UPPER_SNAKE env var', () => {
     expect(capabilityToEnvVar('recipes.create')).toBe(
-      'OPENTRATTOS_AGENT_RECIPES_CREATE_ENABLED',
+      'NEXANDRO_AGENT_RECIPES_CREATE_ENABLED',
     );
   });
 
   it('handles dotted nested namespaces', () => {
     expect(capabilityToEnvVar('iam.users.create')).toBe(
-      'OPENTRATTOS_AGENT_IAM_USERS_CREATE_ENABLED',
+      'NEXANDRO_AGENT_IAM_USERS_CREATE_ENABLED',
     );
   });
 
   it('handles dashes (supplier-items)', () => {
     expect(capabilityToEnvVar('supplier-items.create')).toBe(
-      'OPENTRATTOS_AGENT_SUPPLIER_ITEMS_CREATE_ENABLED',
+      'NEXANDRO_AGENT_SUPPLIER_ITEMS_CREATE_ENABLED',
     );
   });
 
   it('splits camelCase ops (changePassword → CHANGE_PASSWORD)', () => {
     expect(capabilityToEnvVar('iam.users.changePassword')).toBe(
-      'OPENTRATTOS_AGENT_IAM_USERS_CHANGE_PASSWORD_ENABLED',
+      'NEXANDRO_AGENT_IAM_USERS_CHANGE_PASSWORD_ENABLED',
     );
   });
 
   it('splits camelCase compound ops (promotePreferred → PROMOTE_PREFERRED)', () => {
     expect(capabilityToEnvVar('supplier-items.promotePreferred')).toBe(
-      'OPENTRATTOS_AGENT_SUPPLIER_ITEMS_PROMOTE_PREFERRED_ENABLED',
+      'NEXANDRO_AGENT_SUPPLIER_ITEMS_PROMOTE_PREFERRED_ENABLED',
     );
   });
 });
 
 describe('AgentCapabilityGuard', () => {
   const guard = new AgentCapabilityGuard();
-  const FLAG = 'OPENTRATTOS_AGENT_RECIPES_CREATE_ENABLED';
+  const FLAG = 'NEXANDRO_AGENT_RECIPES_CREATE_ENABLED';
 
   beforeEach(() => {
     delete process.env[FLAG];

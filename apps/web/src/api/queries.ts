@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from './client';
-import type { MarginReport } from '@opentrattos/ui-kit';
+import type { MarginReport } from '@nexandro/ui-kit';
 
 export interface MenuItemDto {
   id: string;

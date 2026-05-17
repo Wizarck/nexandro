@@ -70,15 +70,15 @@
 
 ## §7 MCP capability
 
-- [ ] Extend `packages/mcp-server-opentrattos/src/capabilities/write/inventory.ts` with `inventory.retroactive-correct-photo-ingestion`:
+- [ ] Extend `packages/mcp-server-nexandro/src/capabilities/write/inventory.ts` with `inventory.retroactive-correct-photo-ingestion`:
   - `restMethod: 'POST'`.
   - `restPathTemplate: '/m3/photo-ingest/items/:itemId/retroactive-correction'`.
   - `restPathParams: (input) => ({ itemId: (input as { itemId: string }).itemId })`.
   - `restBodyExtractor` strips `itemId` + `idempotencyKey`.
   - Schema: `itemId` (uuid), `organizationId` (uuid), `fieldCorrections` (existing schema, max 200), optional `reason` (1-500 chars), optional `idempotencyKey`.
-- [ ] Extend `packages/mcp-server-opentrattos/src/capabilities/write/inventory.spec.ts` with shape + schema + restBodyExtractor tests for the new capability.
-- [ ] Update `packages/mcp-server-opentrattos/src/capabilities/write/index.spec.ts` count (`WRITE_CAPABILITIES` 52 → 53).
-- [ ] Update `packages/mcp-server-opentrattos/test/smoke.spec.ts` registered-keys count 59 → 60 + add the new key to the spot-check list.
+- [ ] Extend `packages/mcp-server-nexandro/src/capabilities/write/inventory.spec.ts` with shape + schema + restBodyExtractor tests for the new capability.
+- [ ] Update `packages/mcp-server-nexandro/src/capabilities/write/index.spec.ts` count (`WRITE_CAPABILITIES` 52 → 53).
+- [ ] Update `packages/mcp-server-nexandro/test/smoke.spec.ts` registered-keys count 59 → 60 + add the new key to the spot-check list.
 
 ## §8 App-module wiring
 

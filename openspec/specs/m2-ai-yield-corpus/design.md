@@ -1,13 +1,13 @@
 ## Context
 
-Wave 1.7 (`m2-ai-yield-suggestions`) shipped the apps/api surface for AI yield + waste suggestions with the iron-rule citation guard. The feature flag `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED` is `false` in production because no real RAG endpoint backs it. This slice provides that backing.
+Wave 1.7 (`m2-ai-yield-suggestions`) shipped the apps/api surface for AI yield + waste suggestions with the iron-rule citation guard. The feature flag `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED` is `false` in production because no real RAG endpoint backs it. This slice provides that backing.
 
 The user already runs RAGAnything (HKUDS/RAG-Anything, multimodal ingestion library) wrapping LightRAG (HKUDS/LightRAG, retrieval + FastAPI server) on a VPS. Default config: bge-m3 multilingual embeddings + nano-vectordb file-based store. We **reuse this deployment unchanged** — adding only:
 
 - A thin Python proxy in front of LightRAG for contract translation + Brave fallback.
 - Ingestion scripts that pipe authoritative corpus (USDA, EU Reglamento 1169/2011, CIAA Spain, Escoffier public-domain) through RAGAnything into LightRAG.
 
-The proxy speaks the canonical `{value, citationUrl, snippet}` contract. apps/api's existing `GptOssRagProvider` consumes the proxy without code changes — only `OPENTRATTOS_AI_RAG_BASE_URL` flips at deploy time.
+The proxy speaks the canonical `{value, citationUrl, snippet}` contract. apps/api's existing `GptOssRagProvider` consumes the proxy without code changes — only `NEXANDRO_AI_RAG_BASE_URL` flips at deploy time.
 
 ## Goals / Non-Goals
 
@@ -113,7 +113,7 @@ The corpus ingestion scripts include the canonical URL as document metadata (`so
 5. Add Dockerfile + Docker Compose snippet for proxy. README documents VPS deploy steps but the actual deploy is operational, post-merge.
 6. ADRs added to `docs/architecture-decisions.md`.
 7. CI: new GH Action job for Python tools (lint + tests).
-8. apps/api `.env.example` updated to point `OPENTRATTOS_AI_RAG_BASE_URL` at the proxy URL pattern.
+8. apps/api `.env.example` updated to point `NEXANDRO_AI_RAG_BASE_URL` at the proxy URL pattern.
 
 **Rollback**: stop the proxy Docker container; apps/api falls back to `null` on every suggestion call → "manual entry" UX. No data corruption risk because proxy is stateless.
 

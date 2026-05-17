@@ -1,4 +1,4 @@
-import type { UserRole } from '@opentrattos/ui-kit';
+import type { UserRole } from '@nexandro/ui-kit';
 
 /**
  * Demo-time `currentRole` source. Reads `VITE_DEMO_USER_ROLE` from the Vite

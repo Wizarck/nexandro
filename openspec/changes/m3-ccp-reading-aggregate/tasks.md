@@ -56,10 +56,10 @@
 
 ## 9. MCP capabilities
 
-- [ ] 9.1 `packages/mcp-server-opentrattos/src/capabilities/write/haccp.ts` — HACCP_WRITE_CAPABILITIES array with 3 entries: haccp.record-ccp-reading, haccp.record-corrective-action, haccp.configure-fsms-standards
-- [ ] 9.2 `packages/mcp-server-opentrattos/src/capabilities/write/index.ts` — spread HACCP_WRITE_CAPABILITIES + add to namespace barrel
-- [ ] 9.3 `packages/mcp-server-opentrattos/src/capabilities/write/index.spec.ts` — bump count to 48, add `haccp` namespace to expected set (size 14)
-- [ ] 9.4 `packages/mcp-server-opentrattos/test/smoke.spec.ts` — bump count to 55
+- [ ] 9.1 `packages/mcp-server-nexandro/src/capabilities/write/haccp.ts` — HACCP_WRITE_CAPABILITIES array with 3 entries: haccp.record-ccp-reading, haccp.record-corrective-action, haccp.configure-fsms-standards
+- [ ] 9.2 `packages/mcp-server-nexandro/src/capabilities/write/index.ts` — spread HACCP_WRITE_CAPABILITIES + add to namespace barrel
+- [ ] 9.3 `packages/mcp-server-nexandro/src/capabilities/write/index.spec.ts` — bump count to 48, add `haccp` namespace to expected set (size 14)
+- [ ] 9.4 `packages/mcp-server-nexandro/test/smoke.spec.ts` — bump count to 55
 
 ## 10. Unit tests
 

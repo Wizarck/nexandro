@@ -71,7 +71,7 @@ This slice closes both gaps. It is the H1b hardening slice; H1a is the parallel 
 
 **Why**:
 - Personas-jtbd matrix: compliance-affecting writes belong to the role that owns the audit trail. STAFF sign is a *forward* operation on a row that hasn't yet been written into the regulatory chain; STAFF retro-correct would mean rewriting an already-regulator-visible record.
-- Defense in depth: the AGPL community surface uses NestJS `@Roles` decorator; TrattOS Enterprise additionally gates via MCP capability allowlist. Both honour the same MANAGER+OWNER set.
+- Defense in depth: the AGPL community surface uses NestJS `@Roles` decorator; Nexandro Enterprise additionally gates via MCP capability allowlist. Both honour the same MANAGER+OWNER set.
 
 **Why not**:
 - *STAFF allowed with audit_log carrying actor_kind='user' actor_user_id=staff*. Rejected: the persona contract is the spec, not the role string.
@@ -83,7 +83,7 @@ This slice closes both gaps. It is the H1b hardening slice; H1a is the parallel 
 **Why**:
 - Separation of concerns: `photo-ingestion` owns extraction + HITL queue + signing. `photo-ingestion-revocation` owns the cross-aggregate side effect of a correction (Lot + GR flagging).
 - The split makes the dependency direction clean: `photo-ingestion-revocation` depends on `photo-ingestion`'s emitted events (loosely, via the bus) and on the downstream tables (`lots`, `goods_receipts`) — it has NO compile-time dependency on `photo-ingestion`'s service surface.
-- Future TrattOS Enterprise may legitimately scale this into a separate microservice (the revocation flow may need to fan out to additional downstream consumers — kitchen-display invalidation, recall-window re-issue, cost-snapshot rebuilds). The separate BC pre-positions for that.
+- Future Nexandro Enterprise may legitimately scale this into a separate microservice (the revocation flow may need to fan out to additional downstream consumers — kitchen-display invalidation, recall-window re-issue, cost-snapshot rebuilds). The separate BC pre-positions for that.
 - The new BC's only public surface is its module; the subscriber + repository are internal. No new controller, no new REST endpoint.
 
 **Why not**:
@@ -163,7 +163,7 @@ Slot 0041 per `master/docs/openspec-slice-module-3.md` (post-Gate-C amendment 20
   - cross-org body mismatch: 403.
   - error→HTTP mapping: 404 / 422 / 200 (idempotent) / 200 (success).
 - Audit types spec extension: 3 new `'regulatory'` entries verified.
-- MCP unit (packages/mcp-server-opentrattos/src/capabilities/write/inventory.spec.ts):
+- MCP unit (packages/mcp-server-nexandro/src/capabilities/write/inventory.spec.ts):
   - new capability shape: name, restMethod, restPathTemplate, restPathParams, restBodyExtractor (strips itemId + idempotencyKey), schema accepts optional reason.
-- MCP smoke (packages/mcp-server-opentrattos/test/smoke.spec.ts):
+- MCP smoke (packages/mcp-server-nexandro/test/smoke.spec.ts):
   - count assertion 59 → 60.

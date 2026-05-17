@@ -4,11 +4,11 @@ services:
     ports:
       - "5433:5432"
     environment:
-      POSTGRES_USER: opentrattos_test
-      POSTGRES_PASSWORD: opentrattos_test
-      POSTGRES_DB: opentrattos_test
+      POSTGRES_USER: nexandro_test
+      POSTGRES_PASSWORD: nexandro_test
+      POSTGRES_DB: nexandro_test
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U opentrattos_test -d opentrattos_test"]
+      test: ["CMD-SHELL", "pg_isready -U nexandro_test -d nexandro_test"]
       interval: 2s
       timeout: 3s
       retries: 10

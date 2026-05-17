@@ -14,7 +14,7 @@ import {
   type LabelApiError,
   type LabelPreviewLocale,
   type RecipeListItem,
-} from '@opentrattos/ui-kit';
+} from '@nexandro/ui-kit';
 import { ApiError } from '../api/client';
 import { useRecipes } from '../hooks/useRecipes';
 import { useIngredients } from '../hooks/useIngredients';

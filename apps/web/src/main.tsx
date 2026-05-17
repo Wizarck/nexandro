@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
-import '@opentrattos/ui-kit/globals.css';
+import '@nexandro/ui-kit/globals.css';
 import { App } from './App';
 import { AuditLogScreen } from './screens/AuditLogScreen';
 import { OwnerDashboardScreen } from './screens/OwnerDashboardScreen';

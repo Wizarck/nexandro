@@ -1,4 +1,4 @@
-# Cloudflared ingress snippet — trattos.palafitofood.com
+# Cloudflared ingress snippet — nexandro.palafitofood.com
 # m3.x-app-bootstrap-and-vps-deploy slice §3.5.
 #
 # WHERE TO INSERT
@@ -18,7 +18,7 @@
 #   Target: 675fa973-4c22-4b1c-9fd4-a52fad422ca4.cfargotunnel.com
 #   Proxy:  Proxied (orange cloud)
 
-- hostname: trattos.palafitofood.com
+- hostname: nexandro.palafitofood.com
   service: http://localhost:3201
 
 # RELOAD PROCEDURE
@@ -34,7 +34,7 @@
 #
 # 3. Smoke test from anywhere:
 #
-#      curl https://trattos.palafitofood.com/health
+#      curl https://nexandro.palafitofood.com/health
 #      # → {"status":"ok","info":{"database":{"status":"up"}, ...}}
 #
 # 4. If validate fails, do NOT restart — the running tunnel is unaffected.

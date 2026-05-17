@@ -7,7 +7,7 @@
 ```
 GIVEN  An agent-flagged HTTP write request (POST/PUT/PATCH/DELETE)
        arrives at apps/api with valid X-Via-Agent + X-Agent-Name headers
-       AND OPENTRATTOS_AGENT_<NS>_<OP>_ENABLED=true for that capability
+       AND NEXANDRO_AGENT_<NS>_<OP>_ENABLED=true for that capability
        AND req.user is populated by the auth pipeline
 WHEN   The request flows through AgentAuditMiddleware (lean emit) →
        IdempotencyMiddleware → guards → BeforeAfterAuditInterceptor
@@ -31,7 +31,7 @@ THEN   Two audit_log rows are persisted:
 
 ```
 GIVEN  POST /agent-chat/stream is called by an agent with a session id
-       AND OPENTRATTOS_AGENT_ENABLED=true
+       AND NEXANDRO_AGENT_ENABLED=true
        AND the Hermes upstream returns a stream that terminates
 WHEN   The Observable's terminal callback fires (success / 5xx / unsubscribe)
        AND the auditEmitted flag has not been raised yet

@@ -46,7 +46,7 @@ None.
   - Zero production code touched.
   - Combined LOC budget ~600-800.
 - **Performance**: INT specs run only via `npm run test:int` (requires `DATABASE_URL` and a real Postgres). Unit suite (`npm run test:api`) unchanged.
-- **Risk**: None — test-only addition. The specs may flake on a misconfigured DB harness; they skip cleanly when `DATABASE_URL` is unset (TypeOrm `forRoot` falls back to `postgres://opentrattos_test:opentrattos_test@localhost:5433/opentrattos_test` per the convention in the existing `audit-log-fts.int.spec.ts`).
+- **Risk**: None — test-only addition. The specs may flake on a misconfigured DB harness; they skip cleanly when `DATABASE_URL` is unset (TypeOrm `forRoot` falls back to `postgres://nexandro_test:nexandro_test@localhost:5433/nexandro_test` per the convention in the existing `audit-log-fts.int.spec.ts`).
 - **No BREAKING.** No public API touched.
 
 ## Out of scope (deferred)

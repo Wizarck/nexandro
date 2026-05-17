@@ -15,7 +15,7 @@ The system SHALL register `TypeOrmModule.forRootAsync` in `AppModule.imports` wi
 - WHEN `node dist/main` runs with `DATABASE_URL=postgresql://user:pass@host:5432/db` pointing at a reachable Postgres
 - THEN every `TypeOrmModule.forFeature([...])` call across the 25 BCs resolves
 - AND the NestJS app reaches the `listen()` step without error
-- AND the log emits "🍷 openTrattOS API running on http://localhost:3001"
+- AND the log emits "🍷 nexandro API running on http://localhost:3001"
 
 #### Scenario: boot fails fast with a clear error when DATABASE_URL is unset
 
@@ -40,7 +40,7 @@ The system SHALL honour six environment flags whose default values represent the
 | `AUDIT_ARCHIVAL_ENABLED` | `false` | The daily S3 archival cron (PR #174) does not register |
 | `PHOTO_STORAGE_ENABLED` | `false` | The S3 signed-URL surface (slice #18) does not construct an S3 client; the 90-day retention cron does not register |
 | `M3_PO_AGGREGATE_ENABLED` | `false` | (already exists per ADR-GR-PO-STATE-TRANSITION) PO/GR state transitions remain inert |
-| `OPENTRATTOS_AGENT_ENABLED` | `false` | (already exists) `AgentChatModule` SSE endpoint returns 404 |
+| `NEXANDRO_AGENT_ENABLED` | `false` | (already exists) `AgentChatModule` SSE endpoint returns 404 |
 
 #### Scenario: app boots with all defaults and no external creds
 
@@ -66,14 +66,14 @@ The system SHALL apply all pending TypeORM migrations during container startup, 
 - WHEN the container starts against an empty Postgres database
 - THEN `migrate-and-start.sh` runs `node dist/cli/migrate.js` (or equivalent), which invokes `data-source.ts`'s `migration:run`
 - AND all 41+ migrations apply in order
-- AND the `opentrattos_migrations` table records each applied migration
+- AND the `nexandro_migrations` table records each applied migration
 - AND only after the migrations complete does the script `exec node dist/main`
 
 #### Scenario: re-run on an already-migrated DB is a no-op
 
 - WHEN the container restarts against a Postgres where all migrations are already applied
 - THEN the migrations step completes in <2 seconds
-- AND no additional rows are inserted into `opentrattos_migrations`
+- AND no additional rows are inserted into `nexandro_migrations`
 - AND the app starts normally
 
 #### Scenario: failing migration blocks app start

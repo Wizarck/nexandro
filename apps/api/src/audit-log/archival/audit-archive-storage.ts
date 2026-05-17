@@ -30,6 +30,6 @@ export interface AuditArchiveStorage {
  * DI token for the storage implementation. Resolved at module
  * construction time by the factory in
  * `audit-archive-storage.factory.ts` based on the
- * `OPENTRATTOS_AUDIT_ARCHIVE_BACKEND` env var.
+ * `NEXANDRO_AUDIT_ARCHIVE_BACKEND` env var.
  */
 export const AUDIT_ARCHIVE_STORAGE = Symbol('AUDIT_ARCHIVE_STORAGE');

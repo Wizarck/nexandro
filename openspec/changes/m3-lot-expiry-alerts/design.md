@@ -148,10 +148,10 @@ The planner picks the partial index because (a) the `WHERE expires_at IS NOT NUL
 
 ## Migration Plan
 
-1. **Stage 1 — Schema** (this PR): run migration 0028 on staging. No data; no scanner running yet (default `OPENTRATTOS_EXPIRY_SCANNER_ENABLED=false`).
+1. **Stage 1 — Schema** (this PR): run migration 0028 on staging. No data; no scanner running yet (default `NEXANDRO_EXPIRY_SCANNER_ENABLED=false`).
 2. **Stage 2 — Scanner enabled in staging**: set env true on one replica. Verify (a) 5-min ticks log, (b) dedup table fills, (c) no event-bus subscribers fire (subscriber lands in slice #21 — verified by absent `audit_log` rows).
 3. **Stage 3 — Production rollout**: enable on production after slice #21 wires the audit subscriber, so the `LotExpiryNearEvent` round-trips into `audit_log` and Hermes routing (if configured) starts firing.
-4. **Rollback**: env flag `OPENTRATTOS_EXPIRY_SCANNER_ENABLED=false` halts emission immediately. Migration 0028's down drops `expiry_alerts_fired`. No data depends on it outside this BC.
+4. **Rollback**: env flag `NEXANDRO_EXPIRY_SCANNER_ENABLED=false` halts emission immediately. Migration 0028's down drops `expiry_alerts_fired`. No data depends on it outside this BC.
 
 ## Open Questions
 

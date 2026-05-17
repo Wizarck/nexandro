@@ -72,10 +72,10 @@ class TestAuthMiddleware {
       type: 'postgres',
       url:
         process.env.DATABASE_URL ??
-        'postgres://opentrattos_test:opentrattos_test@localhost:5433/opentrattos_test',
+        'postgres://nexandro_test:nexandro_test@localhost:5433/nexandro_test',
       entities: ALL_ENTITIES,
       migrations: [`${__dirname}/../migrations/*.{ts,js}`],
-      migrationsTableName: 'opentrattos_migrations',
+      migrationsTableName: 'nexandro_migrations',
       synchronize: false,
     }),
     SharedModule,
@@ -204,11 +204,11 @@ describe('AgentSignatureMiddleware (integration)', () => {
     await new Promise<void>((resolve) => server.close(() => resolve()));
     await dataSource?.destroy();
     await moduleRef?.close();
-    delete process.env.OPENTRATTOS_AGENT_SIGNATURE_REQUIRED;
+    delete process.env.NEXANDRO_AGENT_SIGNATURE_REQUIRED;
   });
 
   beforeEach(async () => {
-    delete process.env.OPENTRATTOS_AGENT_SIGNATURE_REQUIRED;
+    delete process.env.NEXANDRO_AGENT_SIGNATURE_REQUIRED;
     await dataSource.query(
       'TRUNCATE TABLE "agent_credentials", "audit_log", "agent_idempotency_keys", "user_locations", "users", "locations", "organizations" RESTART IDENTITY CASCADE',
     );
@@ -251,7 +251,7 @@ describe('AgentSignatureMiddleware (integration)', () => {
   });
 
   it('flag-on + viaAgent without signature → 401', async () => {
-    process.env.OPENTRATTOS_AGENT_SIGNATURE_REQUIRED = org.id;
+    process.env.NEXANDRO_AGENT_SIGNATURE_REQUIRED = org.id;
     const ownerHeaders = {
       'x-test-user-id': '99999999-9999-4999-8999-999999999999',
       'x-test-user-role': 'OWNER' as const,

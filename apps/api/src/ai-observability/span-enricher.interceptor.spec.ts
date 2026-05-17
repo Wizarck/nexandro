@@ -1,6 +1,6 @@
 import { normalizeTag } from './span-enricher.interceptor';
 
-describe('normalizeTag (opentrattos.tag canonicalization)', () => {
+describe('normalizeTag (nexandro.tag canonicalization)', () => {
   it('passes already-canonical tags unchanged', () => {
     const result = normalizeTag('photo-ingest-batch');
     expect(result.value).toBe('photo-ingest-batch');

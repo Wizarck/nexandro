@@ -53,12 +53,12 @@
 
 ## §7 MCP write capabilities
 
-- [x] Create `packages/mcp-server-opentrattos/src/capabilities/write/inventory.ts` with 3 capabilities:
+- [x] Create `packages/mcp-server-nexandro/src/capabilities/write/inventory.ts` with 3 capabilities:
   - `inventory.ingest-invoice-photo`
   - `inventory.ingest-product-photo`
   - `inventory.sign-photo-ingestion`
 - [x] Unit spec: `inventory.spec.ts` asserting capability shapes + parameter schemas.
-- [x] Wire into `packages/mcp-server-opentrattos/src/capabilities/write/index.ts`. Update `INVENTORY_WRITE_CAPABILITIES` export.
+- [x] Wire into `packages/mcp-server-nexandro/src/capabilities/write/index.ts`. Update `INVENTORY_WRITE_CAPABILITIES` export.
 - [x] Update `write/index.spec.ts`: `WRITE_CAPABILITIES` count 49 → 52, namespace count 15 → 16.
 - [x] Update `test/smoke.spec.ts` count 56 → 59.
 

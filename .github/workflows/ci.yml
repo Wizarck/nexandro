@@ -4,7 +4,7 @@ name: CI
 # v0.8.x release-management.md. Required-checks on master are currently
 # review-only (no required_status_checks); when this CI proves stable,
 # add these job names to branch protection via:
-#   gh api -X PUT repos/Wizarck/openTrattOS/branches/master/protection \
+#   gh api -X PUT repos/Wizarck/nexandro/branches/master/protection \
 #     --input <json with required_status_checks>
 # Or re-run `bootstrap_gh_project.py --profile auto --required-checks "Lint,Build,Test,Secrets scan"`
 
@@ -100,18 +100,18 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: opentrattos_test
-          POSTGRES_PASSWORD: opentrattos_test
-          POSTGRES_DB: opentrattos_test
+          POSTGRES_USER: nexandro_test
+          POSTGRES_PASSWORD: nexandro_test
+          POSTGRES_DB: nexandro_test
         ports:
           - 5433:5432
         options: >-
-          --health-cmd "pg_isready -U opentrattos_test"
+          --health-cmd "pg_isready -U nexandro_test"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
     env:
-      DATABASE_URL: postgres://opentrattos_test:opentrattos_test@localhost:5433/opentrattos_test
+      DATABASE_URL: postgres://nexandro_test:nexandro_test@localhost:5433/nexandro_test
     steps:
       - uses: actions/checkout@v4
         with:

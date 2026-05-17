@@ -145,7 +145,7 @@ The system SHALL create exactly two indexes on `cost_snapshots` per design.md AD
 The system SHALL export `CostSnapshotRecordedEvent` (typed `AuditEventEnvelope` with `aggregateType='cost_snapshot'`, `eventType='COST_SNAPSHOT_RECORDED'`, `capability_used='inventory.cost-resolve'`) from `packages/contracts/src/m3/cost-snapshot.ts`. This slice SHALL NOT update `AuditLogSubscriber.KNOWN_EVENTS` — that registration is claimed by slice #21 `m3-audit-log-hash-chain-hardening`. A smoke INT test SHALL assert that calling `snapshotConsumption()` produces NO `audit_log` row.
 
 #### Scenario: Event type importable from contracts
-- **WHEN** a downstream slice imports `import { CostSnapshotRecordedEvent } from '@opentrattos/contracts/m3/cost-snapshot'`
+- **WHEN** a downstream slice imports `import { CostSnapshotRecordedEvent } from '@nexandro/contracts/m3/cost-snapshot'`
 - **THEN** the import resolves; the schema validates an envelope with the documented field set
 
 #### Scenario: No audit_log row written by this slice

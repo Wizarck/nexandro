@@ -36,9 +36,9 @@
 
 ## §6 MCP capabilities
 
-- [x] `packages/mcp-server-opentrattos/src/capabilities/read/` — add `inventory.list-flagged-aggregates`. Maps to `GET /m3/review-queue`. Inline schema mirrors the controller's query DTO.
-- [x] `packages/mcp-server-opentrattos/src/capabilities/write/inventory.ts` — add `inventory.clear-review-flag` to `INVENTORY_WRITE_CAPABILITIES`. Path template `/m3/review-queue/:aggregateType/:aggregateId/clear`. `restPathParams` extracts `aggregateType` + `aggregateId`; `restBodyExtractor` keeps `organizationId` only.
-- [x] Smoke spec counts: bumps to existing assertions in `packages/mcp-server-opentrattos/test/smoke.spec.ts` + `packages/mcp-server-opentrattos/src/capabilities/write/index.spec.ts` (WRITE_CAPABILITIES total + INVENTORY_WRITE_CAPABILITIES length tests).
+- [x] `packages/mcp-server-nexandro/src/capabilities/read/` — add `inventory.list-flagged-aggregates`. Maps to `GET /m3/review-queue`. Inline schema mirrors the controller's query DTO.
+- [x] `packages/mcp-server-nexandro/src/capabilities/write/inventory.ts` — add `inventory.clear-review-flag` to `INVENTORY_WRITE_CAPABILITIES`. Path template `/m3/review-queue/:aggregateType/:aggregateId/clear`. `restPathParams` extracts `aggregateType` + `aggregateId`; `restBodyExtractor` keeps `organizationId` only.
+- [x] Smoke spec counts: bumps to existing assertions in `packages/mcp-server-nexandro/test/smoke.spec.ts` + `packages/mcp-server-nexandro/src/capabilities/write/index.spec.ts` (WRITE_CAPABILITIES total + INVENTORY_WRITE_CAPABILITIES length tests).
 
 ## §7 Wiring
 
@@ -49,17 +49,17 @@
 - [x] `apps/api/src/review-queue/application/review-queue.repository.spec.ts` — 6 cases (listFlagged happy/cap, clearLot happy/already-clear, clearGr happy, 42703 graceful probe).
 - [x] `apps/api/src/review-queue/application/review-queue.service.spec.ts` — 5 cases (list delegation, clear lot emits envelope, clear gr emits envelope, already-clear is no-op, unknown aggregateType throws BadRequest).
 - [x] `apps/api/src/review-queue/interface/review-queue.controller.spec.ts` — 6 cases (GET happy, GET cross-org→403, POST clear-lot happy, POST clear-gr happy, POST cross-org→403, POST bad aggregateType→400, RBAC enum metadata).
-- [x] `packages/mcp-server-opentrattos/src/capabilities/write/inventory.spec.ts` — count bump + spot-check for `clear-review-flag` (path template, restPathParams, body extractor).
-- [x] `packages/mcp-server-opentrattos/test/smoke.spec.ts` — count bumps + spot-check for both new capabilities.
+- [x] `packages/mcp-server-nexandro/src/capabilities/write/inventory.spec.ts` — count bump + spot-check for `clear-review-flag` (path template, restPathParams, body extractor).
+- [x] `packages/mcp-server-nexandro/test/smoke.spec.ts` — count bumps + spot-check for both new capabilities.
 
 ## §9 Local gates
 
 - [x] `npx jest --testPathPattern='review-queue'` — green incl. all new specs.
 - [x] `npx jest --testPathPattern='audit-log/application/types\\.spec'` — green (regulatory list extended).
 - [x] `npx jest --testPathPattern='audit-log/application/audit-log\\.subscriber\\.spec'` — green (2 new handlers reachable).
-- [x] `npx jest` in `packages/mcp-server-opentrattos` — green incl. count bumps.
+- [x] `npx jest` in `packages/mcp-server-nexandro` — green incl. count bumps.
 - [x] `npx tsc --noEmit -p apps/api/tsconfig.json` — clean.
-- [x] `npx tsc --noEmit -p packages/mcp-server-opentrattos/tsconfig.json` — clean.
+- [x] `npx tsc --noEmit -p packages/mcp-server-nexandro/tsconfig.json` — clean.
 - [x] `npx eslint` on all changed files — clean.
 
 ## §10 §4.5.6 AI-reviewer signoff

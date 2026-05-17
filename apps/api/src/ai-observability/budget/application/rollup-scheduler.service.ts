@@ -17,7 +17,7 @@ import {
   type SpanAggregatorPort,
 } from './ports/span-aggregator.port';
 
-const SCHEDULER_ENV_FLAG = 'OPENTRATTOS_AI_BUDGET_SCHEDULER_ENABLED';
+const SCHEDULER_ENV_FLAG = 'NEXANDRO_AI_BUDGET_SCHEDULER_ENABLED';
 
 /**
  * Per ADR-AGGREGATE-INTERVAL: 5-minute cron tick aggregates `gen_ai.*`
@@ -25,7 +25,7 @@ const SCHEDULER_ENV_FLAG = 'OPENTRATTOS_AI_BUDGET_SCHEDULER_ENABLED';
  * tiers, and emits `AI_BUDGET_TIER_CROSSED` per newly-crossed tier.
  *
  * Operational invariants:
- *  - Env-flag gate: `OPENTRATTOS_AI_BUDGET_SCHEDULER_ENABLED !== 'true'` →
+ *  - Env-flag gate: `NEXANDRO_AI_BUDGET_SCHEDULER_ENABLED !== 'true'` →
  *    tick is a no-op. Matches slice #3 ExpiryScannerService pattern.
  *  - Per-org exceptions log + continue (one org's failure does NOT stall
  *    the whole tick).

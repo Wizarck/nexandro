@@ -100,10 +100,10 @@ function readHeader(req: Request, name: string): string | null {
       type: 'postgres',
       url:
         process.env.DATABASE_URL ??
-        'postgres://opentrattos_test:opentrattos_test@localhost:5433/opentrattos_test',
+        'postgres://nexandro_test:nexandro_test@localhost:5433/nexandro_test',
       entities: ALL_ENTITIES,
       migrations: [`${__dirname}/../migrations/*.{ts,js}`],
-      migrationsTableName: 'opentrattos_migrations',
+      migrationsTableName: 'nexandro_migrations',
       synchronize: false,
     }),
     TypeOrmModule.forFeature([
@@ -212,9 +212,9 @@ describe('Agent write capabilities — end-to-end (integration)', () => {
 
   // Env-flag state save+restore so flag toggles don't leak across tests.
   const ENV_KEYS = [
-    'OPENTRATTOS_AGENT_RECIPES_CREATE_ENABLED',
-    'OPENTRATTOS_AGENT_RECIPES_UPDATE_ENABLED',
-    'OPENTRATTOS_AGENT_RECIPES_DELETE_ENABLED',
+    'NEXANDRO_AGENT_RECIPES_CREATE_ENABLED',
+    'NEXANDRO_AGENT_RECIPES_UPDATE_ENABLED',
+    'NEXANDRO_AGENT_RECIPES_DELETE_ENABLED',
   ];
   const savedEnv: Record<string, string | undefined> = {};
 
@@ -330,7 +330,7 @@ describe('Agent write capabilities — end-to-end (integration)', () => {
 
   describe('Idempotency-Key round-trip', () => {
     it('first call writes; second call with same key+body replays cached body without inserting a fresh row', async () => {
-      process.env.OPENTRATTOS_AGENT_RECIPES_CREATE_ENABLED = 'true';
+      process.env.NEXANDRO_AGENT_RECIPES_CREATE_ENABLED = 'true';
       const body = recipeBody('Bolognesa');
       const beforeCount = await countRecipes();
 
@@ -356,7 +356,7 @@ describe('Agent write capabilities — end-to-end (integration)', () => {
     });
 
     it('second call with same key + DIFFERENT body returns 409 IDEMPOTENCY_KEY_REQUEST_MISMATCH', async () => {
-      process.env.OPENTRATTOS_AGENT_RECIPES_CREATE_ENABLED = 'true';
+      process.env.NEXANDRO_AGENT_RECIPES_CREATE_ENABLED = 'true';
       const first = await sendRequest(baseUrl, 'POST', '/recipes', {
         headers: { ...agentHeaders('recipes.create'), 'idempotency-key': 'abc123' },
         body: recipeBody('Bolognesa'),
@@ -374,7 +374,7 @@ describe('Agent write capabilities — end-to-end (integration)', () => {
     });
 
     it('third call with NO Idempotency-Key always inserts a fresh row', async () => {
-      process.env.OPENTRATTOS_AGENT_RECIPES_CREATE_ENABLED = 'true';
+      process.env.NEXANDRO_AGENT_RECIPES_CREATE_ENABLED = 'true';
       const first = await sendRequest(baseUrl, 'POST', '/recipes', {
         headers: { ...agentHeaders('recipes.create'), 'idempotency-key': 'abc123' },
         body: recipeBody('Bolognesa'),
@@ -441,7 +441,7 @@ describe('Agent write capabilities — end-to-end (integration)', () => {
     }
 
     it('PUT /recipes/:id with X-Via-Agent emits an AGENT_ACTION_FORENSIC row with payload_before + payload_after + agent_name + capability', async () => {
-      process.env.OPENTRATTOS_AGENT_RECIPES_UPDATE_ENABLED = 'true';
+      process.env.NEXANDRO_AGENT_RECIPES_UPDATE_ENABLED = 'true';
       const seeded = await seedRecipe('Bolognesa');
 
       const res = await sendRequest(
@@ -502,7 +502,7 @@ describe('Agent write capabilities — end-to-end (integration)', () => {
     });
 
     it('DELETE /recipes/:id via agent headers carries payload_before populated and payload_after null', async () => {
-      process.env.OPENTRATTOS_AGENT_RECIPES_DELETE_ENABLED = 'true';
+      process.env.NEXANDRO_AGENT_RECIPES_DELETE_ENABLED = 'true';
       const seeded = await seedRecipe('Bolognesa');
 
       const res = await sendRequest(
@@ -526,7 +526,7 @@ describe('Agent write capabilities — end-to-end (integration)', () => {
     });
 
     it('POST /recipes via agent headers (create) carries payload_before null and payload_after populated', async () => {
-      process.env.OPENTRATTOS_AGENT_RECIPES_CREATE_ENABLED = 'true';
+      process.env.NEXANDRO_AGENT_RECIPES_CREATE_ENABLED = 'true';
       const res = await sendRequest(baseUrl, 'POST', '/recipes', {
         headers: agentHeaders('recipes.create'),
         body: recipeBody('Carbonara'),
@@ -564,7 +564,7 @@ describe('Agent write capabilities — end-to-end (integration)', () => {
     it('flag=false (default) + agent headers → 503 AGENT_CAPABILITY_DISABLED', async () => {
       const seeded = await seedRecipe();
       // Explicitly clear / set false.
-      delete process.env.OPENTRATTOS_AGENT_RECIPES_UPDATE_ENABLED;
+      delete process.env.NEXANDRO_AGENT_RECIPES_UPDATE_ENABLED;
       const res = await sendRequest(
         baseUrl,
         'PUT',
@@ -579,12 +579,12 @@ describe('Agent write capabilities — end-to-end (integration)', () => {
       expect(body.code).toBe('AGENT_CAPABILITY_DISABLED');
       expect(body.capability).toBe('recipes.update');
       expect(body.message).toContain(
-        'OPENTRATTOS_AGENT_RECIPES_UPDATE_ENABLED',
+        'NEXANDRO_AGENT_RECIPES_UPDATE_ENABLED',
       );
     });
 
     it('flag=true + agent headers → request succeeds', async () => {
-      process.env.OPENTRATTOS_AGENT_RECIPES_UPDATE_ENABLED = 'true';
+      process.env.NEXANDRO_AGENT_RECIPES_UPDATE_ENABLED = 'true';
       const seeded = await seedRecipe();
       const res = await sendRequest(
         baseUrl,
@@ -600,7 +600,7 @@ describe('Agent write capabilities — end-to-end (integration)', () => {
 
     it('direct REST (no X-Via-Agent) succeeds REGARDLESS of the flag value', async () => {
       // Flag is unset (default false).
-      delete process.env.OPENTRATTOS_AGENT_RECIPES_UPDATE_ENABLED;
+      delete process.env.NEXANDRO_AGENT_RECIPES_UPDATE_ENABLED;
       const seeded = await seedRecipe();
       const res = await sendRequest(
         baseUrl,

@@ -1,7 +1,7 @@
 import { SetMetadata } from '@nestjs/common';
 import { UserRole } from '../../iam/domain/user.entity';
 
-export const ROLES_METADATA_KEY = 'opentrattos:roles';
+export const ROLES_METADATA_KEY = 'nexandro:roles';
 
 /**
  * `@Roles('OWNER', 'MANAGER')` on a controller method declares the minimum

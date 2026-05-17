@@ -39,10 +39,10 @@ This slice is the backend foundation. No UX. Slice #17 owns the actual ingestion
 ### ADR-PHOTO-STORAGE-BACKEND — S3-compatible object storage
 
 The system SHALL use S3-compatible object storage for photo persistence. Storage backend is selected at boot via env vars:
-- `OPENTRATTOS_PHOTO_STORAGE_ENDPOINT` — base URL (e.g., `http://minio.local:9000` for dev; `https://s3.eu-central-1.amazonaws.com` for prod)
-- `OPENTRATTOS_PHOTO_STORAGE_BUCKET` — bucket name (e.g., `opentrattos-photos-prod`)
-- `OPENTRATTOS_PHOTO_STORAGE_REGION` — region (used in signature computation; default `us-east-1` for MinIO)
-- `OPENTRATTOS_PHOTO_STORAGE_ACCESS_KEY_ID`, `OPENTRATTOS_PHOTO_STORAGE_SECRET_ACCESS_KEY` — auth credentials
+- `NEXANDRO_PHOTO_STORAGE_ENDPOINT` — base URL (e.g., `http://minio.local:9000` for dev; `https://s3.eu-central-1.amazonaws.com` for prod)
+- `NEXANDRO_PHOTO_STORAGE_BUCKET` — bucket name (e.g., `nexandro-photos-prod`)
+- `NEXANDRO_PHOTO_STORAGE_REGION` — region (used in signature computation; default `us-east-1` for MinIO)
+- `NEXANDRO_PHOTO_STORAGE_ACCESS_KEY_ID`, `NEXANDRO_PHOTO_STORAGE_SECRET_ACCESS_KEY` — auth credentials
 
 The `PhotoStorageService` ships with an inline AWS Signature V4 + pre-signed URL implementation (no AWS SDK dependency); the wire protocol is identical between MinIO and AWS S3. Cross-tested in CI against a MinIO container.
 

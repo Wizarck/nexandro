@@ -59,12 +59,12 @@ The system SHALL gate the primary CTA (`Firmar lectura`) on a non-null correctiv
 
 ### Requirement: Local draft persists in localStorage for 10 minutes per (orgId, ccpId, actorUserId)
 
-The system SHALL persist an in-progress reading to `localStorage` under the key `opentrattos.haccp.draft.v1.<orgId>.<ccpId>.<actorUserId>`. The persisted shape SHALL include `value`, optional `notes`, optional `correctiveActionId`, `savedAt` (ms epoch), and `v: 1`. On mount, the screen SHALL hydrate the draft if `now - savedAt < 600_000` (10 minutes); older drafts SHALL be discarded.
+The system SHALL persist an in-progress reading to `localStorage` under the key `nexandro.haccp.draft.v1.<orgId>.<ccpId>.<actorUserId>`. The persisted shape SHALL include `value`, optional `notes`, optional `correctiveActionId`, `savedAt` (ms epoch), and `v: 1`. On mount, the screen SHALL hydrate the draft if `now - savedAt < 600_000` (10 minutes); older drafts SHALL be discarded.
 
 #### Scenario: a fresh reading is written to localStorage on input change
 - **GIVEN** the operator has picked a CCP `(orgId='org-1', ccpId='ccp-1', actorUserId='u-1')`
 - **WHEN** the operator types `1.2` into the reading input
-- **THEN** `localStorage.getItem('opentrattos.haccp.draft.v1.org-1.ccp-1.u-1')` returns a JSON string containing `"value":"1.2"` and `"v":1`
+- **THEN** `localStorage.getItem('nexandro.haccp.draft.v1.org-1.ccp-1.u-1')` returns a JSON string containing `"value":"1.2"` and `"v":1`
 
 #### Scenario: a 4-minute-old draft hydrates on mount with a continuation eyebrow
 - **GIVEN** `localStorage` has a draft `{ value: "1.2", savedAt: <now - 4 min>, v: 1 }` for `(org-1, ccp-1, u-1)`
@@ -79,7 +79,7 @@ The system SHALL persist an in-progress reading to `localStorage` under the key 
 #### Scenario: successful submit clears the draft
 - **GIVEN** a draft exists for `(org-1, ccp-1, u-1)`
 - **WHEN** the operator submits and the mutation resolves successfully
-- **THEN** `localStorage.getItem('opentrattos.haccp.draft.v1.org-1.ccp-1.u-1')` returns `null`
+- **THEN** `localStorage.getItem('nexandro.haccp.draft.v1.org-1.ccp-1.u-1')` returns `null`
 
 ### Requirement: OutOfSpecStickyWarning surfaces when a prior reading is out-of-spec without a linked corrective action
 

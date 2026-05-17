@@ -79,19 +79,19 @@ describe('AuditLogArchivalScanner', () => {
   let prevEnv: string | undefined;
 
   beforeEach(() => {
-    prevEnv = process.env.OPENTRATTOS_AUDIT_LOG_ARCHIVAL_ENABLED;
+    prevEnv = process.env.NEXANDRO_AUDIT_LOG_ARCHIVAL_ENABLED;
   });
 
   afterEach(() => {
     if (prevEnv === undefined) {
-      delete process.env.OPENTRATTOS_AUDIT_LOG_ARCHIVAL_ENABLED;
+      delete process.env.NEXANDRO_AUDIT_LOG_ARCHIVAL_ENABLED;
     } else {
-      process.env.OPENTRATTOS_AUDIT_LOG_ARCHIVAL_ENABLED = prevEnv;
+      process.env.NEXANDRO_AUDIT_LOG_ARCHIVAL_ENABLED = prevEnv;
     }
   });
 
   it('env-disabled (no env) → no DB queries, no storage call, no emit', async () => {
-    delete process.env.OPENTRATTOS_AUDIT_LOG_ARCHIVAL_ENABLED;
+    delete process.env.NEXANDRO_AUDIT_LOG_ARCHIVAL_ENABLED;
     const { ds, calls } = fakeDataSource([]);
     const { storage, writes } = makeStorage();
     const { events, emitted } = makeEvents();
@@ -109,7 +109,7 @@ describe('AuditLogArchivalScanner', () => {
   });
 
   it('env-disabled (value=false) → no DB queries', async () => {
-    process.env.OPENTRATTOS_AUDIT_LOG_ARCHIVAL_ENABLED = 'false';
+    process.env.NEXANDRO_AUDIT_LOG_ARCHIVAL_ENABLED = 'false';
     const { ds, calls } = fakeDataSource([]);
     const { storage } = makeStorage();
     const { events } = makeEvents();
@@ -125,7 +125,7 @@ describe('AuditLogArchivalScanner', () => {
   });
 
   it('env-enabled, no rows → no storage call, no delete, no emit', async () => {
-    process.env.OPENTRATTOS_AUDIT_LOG_ARCHIVAL_ENABLED = 'true';
+    process.env.NEXANDRO_AUDIT_LOG_ARCHIVAL_ENABLED = 'true';
     // 3 bucket-queries (one per retention class) all return [].
     const { ds, calls } = fakeDataSource([
       async () => [],
@@ -148,7 +148,7 @@ describe('AuditLogArchivalScanner', () => {
   });
 
   it('SQL params match AUDIT_RETENTION_DAYS for each retention class', async () => {
-    process.env.OPENTRATTOS_AUDIT_LOG_ARCHIVAL_ENABLED = 'true';
+    process.env.NEXANDRO_AUDIT_LOG_ARCHIVAL_ENABLED = 'true';
     const { ds, calls } = fakeDataSource([
       async () => [],
       async () => [],
@@ -180,7 +180,7 @@ describe('AuditLogArchivalScanner', () => {
   });
 
   it('happy path: write succeeds → delete called AFTER write → emit fired', async () => {
-    process.env.OPENTRATTOS_AUDIT_LOG_ARCHIVAL_ENABLED = 'true';
+    process.env.NEXANDRO_AUDIT_LOG_ARCHIVAL_ENABLED = 'true';
     const orgId = '11111111-1111-1111-1111-111111111111';
     const ids = ['aaa', 'bbb'];
     const rows = [
@@ -247,7 +247,7 @@ describe('AuditLogArchivalScanner', () => {
   });
 
   it('storage.write throws → DELETE NOT called → no emit → rows preserved', async () => {
-    process.env.OPENTRATTOS_AUDIT_LOG_ARCHIVAL_ENABLED = 'true';
+    process.env.NEXANDRO_AUDIT_LOG_ARCHIVAL_ENABLED = 'true';
     const orgId = '22222222-2222-2222-2222-222222222222';
     const ids = ['x'];
     const rows = [{ id: 'x', value: 1 }];
@@ -284,7 +284,7 @@ describe('AuditLogArchivalScanner', () => {
   });
 
   it('one bucket failing does NOT abort sibling buckets in the same class', async () => {
-    process.env.OPENTRATTOS_AUDIT_LOG_ARCHIVAL_ENABLED = 'true';
+    process.env.NEXANDRO_AUDIT_LOG_ARCHIVAL_ENABLED = 'true';
     const orgA = '33333333-3333-3333-3333-333333333333';
     const orgB = '44444444-4444-4444-4444-444444444444';
     const idsA = ['a1'];
@@ -328,7 +328,7 @@ describe('AuditLogArchivalScanner', () => {
   });
 
   it('bucket-query failure on one class → log + continue to next class', async () => {
-    process.env.OPENTRATTOS_AUDIT_LOG_ARCHIVAL_ENABLED = 'true';
+    process.env.NEXANDRO_AUDIT_LOG_ARCHIVAL_ENABLED = 'true';
     const orgId = '55555555-5555-5555-5555-555555555555';
     const { ds, calls } = fakeDataSource([
       async () => {
@@ -358,7 +358,7 @@ describe('AuditLogArchivalScanner', () => {
   });
 
   it('runTick swallows top-level errors so the cron worker does not die', async () => {
-    process.env.OPENTRATTOS_AUDIT_LOG_ARCHIVAL_ENABLED = 'true';
+    process.env.NEXANDRO_AUDIT_LOG_ARCHIVAL_ENABLED = 'true';
     const ds: Pick<DataSource, 'query'> = {
       query: jest.fn().mockImplementation(() => {
         throw new Error('synchronous catastrophe');

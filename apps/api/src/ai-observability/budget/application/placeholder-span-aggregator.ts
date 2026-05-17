@@ -26,7 +26,7 @@ export class PlaceholderSpanAggregator implements SpanAggregatorPort {
 
   async listActiveOrgs(_period: string): Promise<string[]> {
     // Defensive: returning [] means the scheduler tick is a no-op even when
-    // OPENTRATTOS_AI_BUDGET_SCHEDULER_ENABLED=true and no real adapter is
+    // NEXANDRO_AI_BUDGET_SCHEDULER_ENABLED=true and no real adapter is
     // bound. Operators see one warn log line per tick, no rollup rows.
     this.logger.warn(
       'PlaceholderSpanAggregator.listActiveOrgs returned []; slice #20 ' +

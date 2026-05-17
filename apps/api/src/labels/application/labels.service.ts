@@ -8,7 +8,7 @@ import {
   type LabelData,
   type PrintJob,
   type PrintResult,
-} from '@opentrattos/label-renderer';
+} from '@nexandro/label-renderer';
 import {
   INGREDIENT_OVERRIDE_CHANGED,
   RECIPE_ALLERGENS_OVERRIDE_CHANGED,

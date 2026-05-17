@@ -144,10 +144,10 @@ The system SHALL maintain a process-local LRU cache (capacity 1024 orgs, TTL 1 h
 
 ### Requirement: RollupScheduler runs on @Cron('*/5 * * * *') with env-flag gate
 
-The system SHALL register `RollupSchedulerService.tick()` with `@Cron('*/5 * * * *')` from `@nestjs/schedule`. The system SHALL short-circuit the tick when `process.env.OPENTRATTOS_AI_BUDGET_SCHEDULER_ENABLED !== 'true'`. Per-organization exceptions SHALL log + skip; whole-tick exceptions SHALL log without killing the scheduler.
+The system SHALL register `RollupSchedulerService.tick()` with `@Cron('*/5 * * * *')` from `@nestjs/schedule`. The system SHALL short-circuit the tick when `process.env.NEXANDRO_AI_BUDGET_SCHEDULER_ENABLED !== 'true'`. Per-organization exceptions SHALL log + skip; whole-tick exceptions SHALL log without killing the scheduler.
 
 #### Scenario: env flag off — tick is a no-op
-- **GIVEN** `OPENTRATTOS_AI_BUDGET_SCHEDULER_ENABLED=false` (or unset)
+- **GIVEN** `NEXANDRO_AI_BUDGET_SCHEDULER_ENABLED=false` (or unset)
 - **WHEN** the cron fires
 - **THEN** the handler returns immediately with no DB or bus traffic
 

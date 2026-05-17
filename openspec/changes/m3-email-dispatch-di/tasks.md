@@ -24,7 +24,7 @@
 
 - [x] 3.1 `smtp-email.adapter.ts`:
   - Uses `nodemailer.createTransport({ host, port, auth, pool: true, maxConnections })`
-  - Reads env: `OPENTRATTOS_SMTP_HOST`, `_PORT`, `_USER`, `_PASS`, `_POOL_SIZE` (default 5)
+  - Reads env: `NEXANDRO_SMTP_HOST`, `_PORT`, `_USER`, `_PASS`, `_POOL_SIZE` (default 5)
   - `dispatch()` builds message + sends via transport
   - `verifyConnection()` calls `transport.verify()`
   - Maps `nodemailer` errors to `EmailAdapterError` → `EmailDispatchError` (no nodemailer types leak)
@@ -38,7 +38,7 @@
 
 - [x] 4.1 `sendgrid-email.adapter.ts`:
   - Uses `@sendgrid/mail` (static import; bundled in Enterprise build)
-  - Reads env: `OPENTRATTOS_SENDGRID_API_KEY`
+  - Reads env: `NEXANDRO_SENDGRID_API_KEY`
   - `dispatch()` calls `sgMail.send()` with mapped input
   - Maps SendGrid errors (4xx vs 5xx) to `EmailAdapterError` with `retryable` flag
 - [x] 4.2 `sendgrid-email.adapter.spec.ts`:
@@ -51,7 +51,7 @@
 
 - [x] 5.1 `postmark-email.adapter.ts`:
   - Lazy-import via `await import('postmark')` inside `init()` (NOT static import); `import type` only at top
-  - Reads env: `OPENTRATTOS_POSTMARK_SERVER_TOKEN`
+  - Reads env: `NEXANDRO_POSTMARK_SERVER_TOKEN`
   - `dispatch()` calls `postmarkClient.sendEmail()` with mapped input
   - Maps Postmark errors to `EmailAdapterError`
 - [x] 5.2 `postmark-email.adapter.spec.ts`:
@@ -61,7 +61,7 @@
 ## 6. Factory + retry policy
 
 - [x] 6.1 `email-dispatch.factory.ts`:
-  - `onModuleInit()` reads `OPENTRATTOS_EMAIL_PROVIDER` (default `smtp`)
+  - `onModuleInit()` reads `NEXANDRO_EMAIL_PROVIDER` (default `smtp`)
   - Resolves to one of 3 adapter instances (lazy-import Postmark when selected)
   - Throws `UnknownEmailProviderError` on unknown value
   - Factory IS the `EmailDispatchService` (proxy pattern — sidesteps Nest lifecycle race)
@@ -124,7 +124,7 @@
 
 - [x] 11.1 `apps/api/src/app.module.ts` — import `EmailDispatchModule`
 - [x] 11.2 Module exposes boot probe via `onApplicationBootstrap()` calling `factory.getService().verifyConnection()`; failures are logged at `warn` and do NOT block boot. Live-mailpit verification deferred to Group 10 INT suite.
-- [x] 11.3 `apps/api/.env.example` — added `OPENTRATTOS_EMAIL_PROVIDER`, `_EMAIL_FROM`, `_SMTP_HOST`, `_SMTP_PORT`, `_SMTP_USER`, `_SMTP_PASS`, `_SMTP_POOL_SIZE`, `_SENDGRID_API_KEY`, `_POSTMARK_SERVER_TOKEN` with inline comments per ADR-039
+- [x] 11.3 `apps/api/.env.example` — added `NEXANDRO_EMAIL_PROVIDER`, `_EMAIL_FROM`, `_SMTP_HOST`, `_SMTP_PORT`, `_SMTP_USER`, `_SMTP_PASS`, `_SMTP_POOL_SIZE`, `_SENDGRID_API_KEY`, `_POSTMARK_SERVER_TOKEN` with inline comments per ADR-039
 
 ## 12. Documentation + handoff
 

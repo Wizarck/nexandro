@@ -7,7 +7,7 @@ M3 introduces two surfaces that must send email:
 
 M2 has no email infrastructure today. Wave 1.x AI-suggestion notifications surface via in-app banners only. Without this slice, slices #13, #15, and #19 each need to bring their own email integration — three duplicate-with-drift implementations.
 
-Architecture-m3.md **ADR-039** specifies the contract: a single `EmailDispatchService` DI token in `apps/api/src/shared/email-dispatch/` with three adapters (`SmtpEmailAdapter` AGPL default, `SendGridEmailAdapter` Enterprise, `PostmarkEmailAdapter` alternative Enterprise). Factory selects by env `OPENTRATTOS_EMAIL_PROVIDER`. 3-retry exponential backoff on 5xx + network timeouts. Final failure surfaces to Owner via dashboard alert.
+Architecture-m3.md **ADR-039** specifies the contract: a single `EmailDispatchService` DI token in `apps/api/src/shared/email-dispatch/` with three adapters (`SmtpEmailAdapter` AGPL default, `SendGridEmailAdapter` Enterprise, `PostmarkEmailAdapter` alternative Enterprise). Factory selects by env `NEXANDRO_EMAIL_PROVIDER`. 3-retry exponential backoff on 5xx + network timeouts. Final failure surfaces to Owner via dashboard alert.
 
 This slice ships the **dispatch infrastructure only** — provider DI surface + retry/backoff + outbound delivery-status receipt model. It is **independent** (no `Depends on`) and can launch day-1 in parallel with slices #1 (`m3-lot-aggregate`) and #16 (`m3-vision-llm-provider-di-otel`). Slices #13, #15, and #19 consume the `EmailDispatchService` DI token from here.
 
@@ -19,7 +19,7 @@ This slice ships the **dispatch infrastructure only** — provider DI surface + 
   - `smtp-email.adapter.ts` (default, AGPL community build; uses `nodemailer` with SMTP transport)
   - `sendgrid-email.adapter.ts` (Enterprise bundled; uses `@sendgrid/mail` SDK)
   - `postmark-email.adapter.ts` (alternative Enterprise; uses `postmark` SDK; bundled but un-imported by default — only constructed when env selects it)
-  - `email-dispatch.factory.ts` — factory class with `onModuleInit()` reading `OPENTRATTOS_EMAIL_PROVIDER` (default `smtp`), resolves to one of 3 adapter instances
+  - `email-dispatch.factory.ts` — factory class with `onModuleInit()` reading `NEXANDRO_EMAIL_PROVIDER` (default `smtp`), resolves to one of 3 adapter instances
   - `email-retry.policy.ts` — 3-retry exponential backoff helper (delays 1s, 4s, 16s; total worst-case ~21s before giving up)
   - `email-failure-alerter.ts` — surfaces final failures to Owner via existing M2 `notifications` BC + dashboard alert banner
 - **`packages/contracts/src/m3/email.ts`** new module:
@@ -27,11 +27,11 @@ This slice ships the **dispatch infrastructure only** — provider DI surface + 
   - `EmailDispatchResult` Zod schema (`{ providerMessageId: string, deliveredAt: timestamptz, provider: 'smtp' | 'sendgrid' | 'postmark' }` on success; `{ error: EmailDispatchError, attempts: number }` on failure)
   - `EmailAttachment` Zod schema (`{ filename: string, contentType: string, contentBase64: string }`)
 - **`.env.example`** — 5 new env vars:
-  - `OPENTRATTOS_EMAIL_PROVIDER` (default `smtp`; one of `smtp` / `sendgrid` / `postmark`)
-  - `OPENTRATTOS_EMAIL_FROM` (sender address, e.g. `notifications@your-tenant.example`)
-  - `OPENTRATTOS_SMTP_HOST` / `OPENTRATTOS_SMTP_PORT` / `OPENTRATTOS_SMTP_USER` / `OPENTRATTOS_SMTP_PASS` (when `smtp`)
-  - `OPENTRATTOS_SENDGRID_API_KEY` (when `sendgrid`)
-  - `OPENTRATTOS_POSTMARK_SERVER_TOKEN` (when `postmark`)
+  - `NEXANDRO_EMAIL_PROVIDER` (default `smtp`; one of `smtp` / `sendgrid` / `postmark`)
+  - `NEXANDRO_EMAIL_FROM` (sender address, e.g. `notifications@your-tenant.example`)
+  - `NEXANDRO_SMTP_HOST` / `NEXANDRO_SMTP_PORT` / `NEXANDRO_SMTP_USER` / `NEXANDRO_SMTP_PASS` (when `smtp`)
+  - `NEXANDRO_SENDGRID_API_KEY` (when `sendgrid`)
+  - `NEXANDRO_POSTMARK_SERVER_TOKEN` (when `postmark`)
 - **No tables in this slice** — delivery-status receipts are returned synchronously to the caller; persistent receipt storage (for j7 `DispatchReceiptCard` rendering) is delegated to slice #13's own audit_log envelope per ADR-028 reuse pattern.
 - **No OTel emission in this slice** — slice #16 (`m3-vision-llm-provider-di-otel`) provides the OTel scaffold; email dispatch will gain spans automatically via the global `SpanEnricherInterceptor` once #16 lands. This slice's tests use OTel mock helpers from #16 (not strictly a dependency since #16 ships independently; if #16 hasn't merged yet, the mock helpers stub no-op).
 - **BREAKING**: none. No existing M2 caller sends email; this is purely additive.

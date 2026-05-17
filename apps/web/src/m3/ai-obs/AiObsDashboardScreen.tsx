@@ -1,6 +1,6 @@
 import { useState, type ReactElement } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { RoleGuard } from '@opentrattos/ui-kit';
+import { RoleGuard } from '@nexandro/ui-kit';
 import { useCurrentOrgId, useCurrentRole } from '../../lib/currentUser';
 import { AnomalyChip } from './chrome/AnomalyChip';
 import { BlastRadiusCard } from './chrome/BlastRadiusCard';

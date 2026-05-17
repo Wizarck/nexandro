@@ -1,0 +1,646 @@
+<!doctype html>
+<!--
+  nexandro · Recall dossier · Module 3 / Journey 7
+  Post-crisis review of dispatched dossier. Iker, Owner. Laptop reference (1280 × 800).
+  Pulcinella palette + standard AppLayout (top nav + breadcrumb returns).
+
+  Per-dimension audit notes — every reference points inward to docs/ux/DESIGN.md.
+
+  typography (DESIGN.md §3):
+    UI on system sans. Brand `nexandro` carries Newsreader (one-serif-wink, opsz
+    32). Technical IDs (IR-, L-, AL-) carry ui-monospace (system code font) — they
+    are identifiers, not names. Section headers in the dossier preview kept sans for
+    audit-context discipline. tabular-nums on every timestamp + retry counter.
+    text-wrap:balance on the status eyebrow.
+
+  color (DESIGN.md §2):
+    --ink on --bg                       → ~14:1 (AA+ body)
+    --mute on --bg                      → ~5.0:1 (AA body — eyebrow, watermarks)
+    --mute on --surface                 → ~4.6:1 (AA — receipt card meta lines)
+    --success on --bg                   → ~4.6:1 (AA — legal-window pass + delivered checks)
+    --destructive on --bg               → ~5.6:1 (AA — legal-window miss only, never on read surfaces)
+    --accent on --bg                    → ~4.8:1 (AA — ghost-action borders, addendum CTA)
+    Crisis-mode rule reversed here: NO --destructive on the primary action. The
+      addendum CTA is --accent ghost; the surface is deliberative, not reactive.
+
+  spatial (DESIGN.md §5/§6):
+    4pt scale. Two-column laptop layout: dossier preview left, chronology rail right.
+    Phone collapses to single column with chronology as bottom drawer. Receipt card
+    is one flat full-bordered panel, never nested. Sticky addendum strip at bottom
+    when not expanded; expands inline (no modal).
+
+  motion (DESIGN.md §7):
+    150 ms ease-out-quart on opacity/transform only.
+    prefers-reduced-motion disables transitions; retry countdown remains live (data).
+    Chronology rail entries fade in on append (aria-live polite).
+
+  Anti-patterns avoided: pure-black-white, gradient-text, AI-color-palette, nested
+    cards, side-tab, modal-as-first-thought, edit-original-record, hero-metric,
+    icon-tile-stack, emoji-icons, decorative-red.
+
+  Accessibility: keyboard tab order = breadcrumb → status → receipt → dossier → re-dispatch
+    → addendum → chronology. DossierPreview includes skip-to-sections anchor.
+    IncidentChronologyRail uses role="log" + aria-live="polite". WCAG-AA verified above.
+
+  Capabilities satisfied: FR18, FR19, FR20, ADR-025, ADR-032.
+  Citations: DESIGN.md §1, §2, §3, §5, §6, §7. ADR-028, ADR-029, ADR-032, ADR-039.
+-->
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Incidente IR-2026-0007 · Dossier · nexandro</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap"
+  />
+
+  <style>
+    :root {
+      --bg:           oklch(94.5% 0.012 70);
+      --surface:      oklch(91.5% 0.014 70);
+      --surface-2:    oklch(88.5% 0.014 70);
+      --border:       oklch(83%   0.018 70);
+      --border-strong: oklch(73%  0.020 70);
+      --ink:          oklch(20%   0.010 60);
+      --mute:         oklch(48%   0.012 70);
+      --accent:       oklch(54%   0.072 190);
+      --accent-press: oklch(46%   0.072 190);
+      --accent-fg:    oklch(99%   0.003 190);
+      --accent-soft:  oklch(91%   0.025 190);
+      --success:      oklch(53%   0.080 130);
+      --destructive:  oklch(48%   0.150 32);
+      --warn-bg:      oklch(91%   0.045 80);
+
+      --space-2xs: 4px;
+      --space-xs:  8px;
+      --space-sm:  12px;
+      --space-md:  16px;
+      --space-lg:  24px;
+      --space-xl:  32px;
+      --space-2xl: 48px;
+
+      --fs-xs:   13px;
+      --fs-sm:   14px;
+      --fs-md:   16px;
+      --fs-lg:   20px;
+      --fs-xl:   28px;
+      --fs-2xl:  36px;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:           oklch(20%   0.012 70);
+        --surface:      oklch(24%   0.014 70);
+        --surface-2:    oklch(28%   0.014 70);
+        --ink:          oklch(94%   0.010 60);
+        --mute:         oklch(70%   0.012 70);
+        --border:       oklch(32%   0.018 70);
+        --border-strong: oklch(40%  0.020 70);
+        --accent-soft:  oklch(35%   0.025 190);
+        --warn-bg:      oklch(32%   0.045 80);
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: var(--fs-md);
+      line-height: 1.5;
+      font-variant-numeric: tabular-nums lining-nums;
+    }
+
+    button, input, textarea { font-family: inherit; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; animation: none !important; }
+    }
+
+    .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+
+    /* AppLayout — standard top nav */
+    .nav {
+      height: 56px;
+      border-bottom: 1px solid var(--border-strong);
+      display: flex;
+      align-items: center;
+      padding: 0 var(--space-lg);
+      gap: var(--space-lg);
+      background: var(--bg);
+    }
+
+    .nav .brand {
+      font-family: "Newsreader", Georgia, serif;
+      font-variation-settings: "opsz" 32;
+      font-weight: 600;
+      font-size: var(--fs-lg);
+    }
+
+    .nav .breadcrumb {
+      font-size: var(--fs-sm);
+      color: var(--mute);
+    }
+
+    .nav .breadcrumb .here { color: var(--ink); }
+
+    /* Main two-column grid */
+    .grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: var(--space-lg);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: var(--space-xl);
+    }
+
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      .rail { order: 2; }
+    }
+
+    /* (2) Status header */
+    .status-header { margin-bottom: var(--space-lg); }
+
+    .status-header .incident-id {
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      font-weight: 600;
+      font-size: var(--fs-2xl);
+      letter-spacing: -0.02em;
+    }
+
+    .status-header .eyebrow {
+      font-size: var(--fs-sm);
+      color: var(--mute);
+      text-wrap: balance;
+      margin-top: var(--space-xs);
+    }
+
+    .legal-window-pass {
+      display: inline-block;
+      padding: 2px 10px;
+      margin-left: var(--space-xs);
+      border: 1px solid var(--success);
+      color: var(--success);
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    /* (3) DispatchReceiptCard */
+    .receipt {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--space-md) var(--space-lg);
+      margin-bottom: var(--space-lg);
+      background: var(--surface);
+    }
+
+    .receipt-header {
+      font-size: var(--fs-sm);
+      color: var(--mute);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: var(--space-sm);
+    }
+
+    .receipt-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      padding: var(--space-sm) 0;
+      border-top: 1px solid var(--border);
+      gap: var(--space-md);
+    }
+
+    .receipt-row:first-of-type { border-top: none; }
+
+    .receipt-row .recipient {
+      font-size: var(--fs-md);
+      color: var(--ink);
+    }
+
+    .receipt-row .status {
+      font-size: var(--fs-sm);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .status-delivered { color: var(--success); font-weight: 500; }
+    .status-retry { color: var(--mute); }
+
+    .receipt-row .audit-link {
+      grid-column: 1 / -1;
+      font-size: var(--fs-sm);
+      color: var(--mute);
+      padding-top: var(--space-xs);
+      border-top: 1px solid var(--border);
+      margin-top: var(--space-sm);
+    }
+
+    .receipt-row .audit-link a { color: var(--accent-press); text-decoration: none; }
+    .receipt-row .audit-link a:hover { text-decoration: underline; }
+
+    /* (4) DossierPreview */
+    .preview {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-md);
+      position: relative;
+    }
+
+    .preview .watermark {
+      position: absolute;
+      top: var(--space-md);
+      right: var(--space-lg);
+      font-size: var(--fs-xs);
+      color: var(--mute);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .preview h2 {
+      font-size: var(--fs-lg);
+      margin: 0 0 var(--space-sm);
+      color: var(--ink);
+    }
+
+    .preview .doc-eyebrow {
+      font-size: var(--fs-xs);
+      color: var(--mute);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .preview section {
+      border-top: 1px solid var(--border);
+      padding-top: var(--space-md);
+      margin-top: var(--space-md);
+    }
+
+    .preview .signature {
+      margin-top: var(--space-lg);
+      padding-top: var(--space-md);
+      border-top: 1px solid var(--border-strong);
+      font-size: var(--fs-sm);
+      color: var(--mute);
+    }
+
+    .preview .signature .signer {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    /* (5) Download / Re-dispatch row */
+    .preview-actions {
+      display: flex;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-lg);
+    }
+
+    .ghost {
+      height: 40px;
+      padding: 0 var(--space-md);
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: var(--fs-sm);
+    }
+
+    .ghost:hover { background: var(--accent-soft); }
+    .ghost:focus-visible { outline: 2px solid var(--accent-press); outline-offset: 2px; }
+
+    /* (6) Addendum strip */
+    .addendum {
+      border: 1px dashed var(--accent);
+      border-radius: var(--radius-md);
+      padding: var(--space-md) var(--space-lg);
+      background: var(--bg);
+    }
+
+    .addendum-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .addendum-cta {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent-press);
+      padding: 6px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: var(--fs-sm);
+      font-weight: 500;
+    }
+
+    .addendum-composer {
+      margin-top: var(--space-md);
+      display: block;
+    }
+
+    .addendum-composer textarea {
+      width: 100%;
+      min-height: 96px;
+      padding: var(--space-sm);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: var(--fs-md);
+      background: var(--surface);
+      color: var(--ink);
+      resize: vertical;
+    }
+
+    .addendum-composer textarea:focus {
+      outline: none;
+      border-color: var(--accent-press);
+      box-shadow: 0 0 0 2px var(--accent-soft);
+    }
+
+    .addendum-composer .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: var(--space-sm);
+      font-size: var(--fs-sm);
+      color: var(--mute);
+    }
+
+    .confirm-pill {
+      height: 40px;
+      padding: 0 var(--space-md);
+      background: var(--accent);
+      color: var(--accent-fg);
+      border: none;
+      border-radius: 999px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .confirm-pill:hover { background: var(--accent-press); }
+
+    /* (7) Chronology rail */
+    .rail {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--space-md) var(--space-lg);
+      align-self: start;
+      position: sticky;
+      top: var(--space-lg);
+    }
+
+    .rail h3 {
+      font-size: var(--fs-sm);
+      color: var(--mute);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin: 0 0 var(--space-sm);
+    }
+
+    .rail-entries {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      border-left: 1px solid var(--border-strong);
+      padding-left: var(--space-md);
+    }
+
+    .rail-entries li {
+      padding: var(--space-xs) 0;
+      font-size: var(--fs-sm);
+      color: var(--ink);
+      position: relative;
+    }
+
+    .rail-entries li::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      background: var(--mute);
+      border-radius: 50%;
+      position: absolute;
+      left: calc(var(--space-md) * -1 - 4px);
+      top: 0.55em;
+    }
+
+    .rail-entries li .ts {
+      display: block;
+      color: var(--mute);
+      font-size: var(--fs-xs);
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
+</head>
+<body>
+  <header class="nav" role="navigation">
+    <span class="brand">nexandro</span>
+    <nav class="breadcrumb" aria-label="Migas">
+      Recall · Incidente IR-2026-0007 · <span class="here">Dossier</span>
+    </nav>
+  </header>
+
+  <div class="grid">
+    <main role="main">
+      <!-- (2) Status header with absolute ts + legal-window dual display -->
+      <section class="status-header">
+        <div class="doc-eyebrow" style="font-size: var(--fs-xs); color: var(--mute); letter-spacing: 0.04em; text-transform: uppercase;">Incidente</div>
+        <h1 class="incident-id">IR-2026-0007</h1>
+        <p class="eyebrow">
+          Despachado el 13 mayo 2026 02:21:08 CEST · ventana legal EU 178/2002 cumplida en 0h 21min
+          <span class="legal-window-pass">✓ dentro de plazo</span>
+        </p>
+        <p class="eyebrow" style="margin-top: var(--space-xs); font-size: 12px;">
+          <span style="color: var(--mute); letter-spacing: 0.04em; text-transform: uppercase;">Para regulador (UTC):</span>
+          <code style="font-family: ui-monospace, Menlo, monospace; color: var(--ink); font-size: 12px; padding: 1px 4px; background: var(--surface); border-radius: 3px;">2026-05-13T00:14:32Z</code>
+          <span style="color: var(--mute);">request</span>
+          <span style="color: var(--mute);">→</span>
+          <code style="font-family: ui-monospace, Menlo, monospace; color: var(--ink); font-size: 12px; padding: 1px 4px; background: var(--surface); border-radius: 3px;">2026-05-13T00:21:08Z</code>
+          <span style="color: var(--mute);">response · ∆ 21m 36s</span>
+        </p>
+      </section>
+
+      <!-- (3) DispatchReceiptCard + 86-flag-per-location + SHA-256 -->
+      <section class="receipt" aria-label="Receipt de despacho">
+        <div class="receipt-header">Email · destinatarios · 2 / 2 entregados</div>
+        <div class="receipt-row">
+          <div class="recipient">info-claims@aseguradora.es</div>
+          <div class="status status-delivered">✓ entregado 02:21:14</div>
+        </div>
+        <div class="receipt-row">
+          <div class="recipient">inspector.regional@sanidad.eu</div>
+          <div class="status status-delivered">✓ entregado 02:21:09</div>
+        </div>
+
+        <div style="margin-top: var(--space-md); padding-top: var(--space-sm); border-top: 1px solid var(--border);">
+          <div class="receipt-header" style="margin-top: 0; margin-bottom: var(--space-xs);">86-flag · 3 / 3 locales recibieron</div>
+          <div class="receipt-row">
+            <div class="recipient">Algorta · Hermes WhatsApp</div>
+            <div class="status status-delivered">✓ recibido 02:21:04</div>
+          </div>
+          <div class="receipt-row">
+            <div class="recipient">Bilbao · Hermes Telegram</div>
+            <div class="status status-delivered">✓ recibido 02:21:03</div>
+          </div>
+          <div class="receipt-row">
+            <div class="recipient">Getxo · Hermes WhatsApp</div>
+            <div class="status status-delivered">✓ recibido 02:21:05</div>
+          </div>
+        </div>
+
+        <div style="margin-top: var(--space-md); padding-top: var(--space-sm); border-top: 1px solid var(--border); font-size: var(--fs-xs); color: var(--mute);">
+          <div style="font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 4px;">Hash de integridad · SHA-256</div>
+          <div style="display: flex; justify-content: space-between; gap: var(--space-sm); align-items: center; flex-wrap: wrap;">
+            <code style="font-family: ui-monospace, Menlo, monospace; color: var(--ink); background: var(--bg); padding: 3px 6px; border-radius: 3px; border: 1px solid var(--border); flex: 1 1 auto; min-width: 0; overflow-x: auto; white-space: nowrap;">a9f3 b7c4 1e02 8d56 4a91 fc83 7b29 5e0d 3c4f 8a17 9bd4 e602 0f15 7c83 a945 b274</code>
+            <div style="display: inline-flex; gap: 4px; flex-shrink: 0;">
+              <button type="button" class="ghost" style="height: 28px; padding: 0 10px; font-size: 11px;" title="Copiar al portapapeles">⎘ Copiar</button>
+              <button type="button" class="ghost" style="height: 28px; padding: 0 10px; font-size: 11px; color: var(--success); border-color: var(--success);" title="Re-calcular hash y comparar con el almacenado">✓ Verificar</button>
+            </div>
+          </div>
+          <div style="margin-top: 6px;">
+            Original audit_log: <a href="#" style="font-family: ui-monospace, Menlo, monospace; color: var(--accent-press); text-decoration: none;">AL-2026-189447 · ver chain →</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- (5) Action row: download (primary) + share + re-dispatch -->
+      <div class="preview-actions" style="flex-wrap: wrap;">
+        <button type="button" style="height: 40px; padding: 0 var(--space-md); background: var(--accent); color: var(--accent-fg); border: none; border-radius: var(--radius-md); font-size: var(--fs-sm); font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">↓ Descargar PDF</button>
+        <button class="ghost" type="button">⎘ Compartir enlace view-only</button>
+        <details style="margin: 0;">
+          <summary class="ghost" style="list-style: none; cursor: pointer; display: inline-flex; align-items: center; height: 40px; padding: 0 var(--space-md); background: transparent; color: var(--ink); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: var(--fs-sm);">↻ Re-dispatch · editar destinatarios</summary>
+          <div style="margin-top: var(--space-sm); padding: var(--space-md); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: var(--space-xs);">
+            <label style="display: flex; align-items: center; gap: var(--space-sm); font-size: var(--fs-sm);">
+              <input type="checkbox" checked /> info-claims@aseguradora.es
+            </label>
+            <label style="display: flex; align-items: center; gap: var(--space-sm); font-size: var(--fs-sm);">
+              <input type="checkbox" checked /> inspector.regional@sanidad.eu
+            </label>
+            <input type="email" placeholder="añadir destinatario ad-hoc…" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: var(--fs-sm); background: var(--bg); margin-top: 4px;" />
+            <button type="button" class="confirm-pill" style="height: 36px; align-self: flex-start; margin-top: 4px;">Re-enviar a seleccionados</button>
+          </div>
+        </details>
+      </div>
+
+      <!-- (4) DossierPreview -->
+      <article class="preview" aria-label="Preview del dossier despachado">
+        <div class="watermark">DISPATCHED 02:21 CEST · ORIGINAL · 1 de 1</div>
+
+        <div class="doc-eyebrow">Dossier de incidente</div>
+        <h2>IR-2026-0007 · sospecha anisakis · Casa Aitona Algorta</h2>
+
+        <section>
+          <div class="doc-eyebrow">Cronología</div>
+          <p>
+            21:30 — comensal H.G. consume Tartar de atún en Algorta.<br>
+            00:45 — síntomas comunicados al restaurante por familiar.<br>
+            01:10 — primer reporte hospitalario.<br>
+            02:14 — investigación iniciada en nexandro por I.A. (Owner).<br>
+            02:18 — lote identificado: L-2026-0042 (Pescados Atlántico SL, recibido martes 09:30).<br>
+            02:21 — 86-flag despachado a 3 locales + dossier dispatched.
+          </p>
+        </section>
+
+        <section>
+          <div class="doc-eyebrow">Procedencia del lote</div>
+          <p>
+            Lote: <strong>L-2026-0042</strong> · Atún rojo · 18 kg.<br>
+            Proveedor: Pescados Atlántico SL (NIF B-12345678, La Coruña).<br>
+            Recibido: 11 mayo 2026 09:30 CEST por J.C. (Manager).<br>
+            Albarán: A-2026-3398 · OC: OC-2026-1124.
+          </p>
+        </section>
+
+        <section>
+          <div class="doc-eyebrow">Cadena de consumo</div>
+          <p>
+            Tartar de atún (receta) → consumido 12 kg → menu items en Algorta + Bilbao (47 servicios miércoles cena).<br>
+            Ceviche de atún (receta) → consumido 6 kg → menu item en Bilbao (14 servicios jueves comida).
+          </p>
+        </section>
+
+        <section>
+          <div class="doc-eyebrow">Acciones correctivas (placeholder)</div>
+          <p>
+            86-flag activo en los 3 locales hasta nueva orden. Stock de L-2026-0042 segregado y rotulado.
+            Comunicación con proveedor pendiente. Análisis de laboratorio en curso. <em>Esta sección será ampliada vía adenda.</em>
+          </p>
+        </section>
+
+        <div class="signature">
+          Firmado: <span class="signer">Iker Arana (Owner · Casa Aitona)</span> · UTC 2026-05-13T00:21:08Z · audit_log AL-2026-189447 · hash chain válido.
+        </div>
+      </article>
+
+      <!-- (6) Addendum strip -->
+      <section class="addendum" aria-label="Añadir adenda al expediente">
+        <div class="addendum-header">
+          <div>
+            <strong>Adenda inmutable</strong>
+            <div style="font-size: var(--fs-sm); color: var(--mute); margin-top: 2px;">
+              Las adendas se adjuntan al expediente sin modificar el original.
+            </div>
+          </div>
+          <button class="addendum-cta" type="button" aria-expanded="true">Añadir adenda</button>
+        </div>
+        <div class="addendum-composer">
+          <textarea placeholder="Resultado de laboratorio, declaración del proveedor, comunicación oficial…"></textarea>
+          <div class="row">
+            <span>Adjuntar archivos · hasta 50 MB</span>
+            <button class="confirm-pill" type="button">Adjuntar al expediente</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- (7) Chronology rail with sort toggle -->
+    <aside class="rail" role="log" aria-live="polite" aria-label="Cronología del incidente">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm);">
+        <h3 style="margin: 0;">Cronología</h3>
+        <div role="group" aria-label="Orden" style="display: inline-flex; border: 1px solid var(--border); border-radius: 999px; padding: 2px; font-size: 11px;">
+          <button type="button" aria-pressed="true" style="border: none; background: var(--accent-soft); color: var(--accent-press); padding: 4px 10px; border-radius: 999px; cursor: pointer; font-weight: 500; font-size: 11px;">Más reciente</button>
+          <button type="button" aria-pressed="false" style="border: none; background: transparent; color: var(--mute); padding: 4px 10px; border-radius: 999px; cursor: pointer; font-size: 11px;">Más antigua</button>
+        </div>
+      </div>
+      <div style="font-size: 11px; color: var(--mute); margin-bottom: 6px; letter-spacing: 0.02em;">Autor: <strong style="color: var(--ink); font-weight: 600;">Iker Arana</strong> · sistema marca eventos auto-firmados</div>
+      <ul class="rail-entries">
+        <li>
+          Investigación iniciada
+          <span class="ts">02:14:32 CEST</span>
+        </li>
+        <li>
+          Lote identificado · L-2026-0042
+          <span class="ts">02:18:09 CEST</span>
+        </li>
+        <li>
+          86-flag despachado en 3 locales
+          <span class="ts">02:21:02 CEST</span>
+        </li>
+        <li>
+          Dossier enviado a 2 destinatarios
+          <span class="ts">02:21:08 CEST</span>
+        </li>
+        <li>
+          Audit_log AL-2026-189447 firmado
+          <span class="ts">02:21:09 CEST · <span style="color: var(--mute); font-style: italic;">Sistema</span></span>
+        </li>
+      </ul>
+    </aside>
+  </div>
+</body>
+</html>

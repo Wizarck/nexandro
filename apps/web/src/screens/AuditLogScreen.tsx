@@ -6,7 +6,7 @@ import {
   RoleGuard,
   type AuditLogFilterValues,
   type AuditLogRow,
-} from '@opentrattos/ui-kit';
+} from '@nexandro/ui-kit';
 import { buildExportUrl, type AppliedAuditLogFilter } from '../api/auditLog';
 import { useAuditLogQuery } from '../hooks/useAuditLog';
 import { useCurrentOrgId, useCurrentRole } from '../lib/currentUser';

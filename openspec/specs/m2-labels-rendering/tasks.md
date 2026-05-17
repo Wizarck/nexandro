@@ -83,7 +83,7 @@
 - [ ] 8.1 `docs/labels/article-9-fields.md` documenting EU 1169/2011 mandatory fields list + which Recipe/Org fields back each
 - [ ] 8.2 Allergen emphasis verified per Article 21 (bold + icon + text always present in rendered PDF)
 - [ ] 8.3 Pre-launch external legal review per ADR-019 §Risk — written report attached to retro before production deploy
-- [ ] 8.4 Production feature flag: `OPENTRATTOS_LABELS_PROD_ENABLED=false` gates user-visible label endpoints in prod until legal sign-off; CI + dev unaffected
+- [ ] 8.4 Production feature flag: `NEXANDRO_LABELS_PROD_ENABLED=false` gates user-visible label endpoints in prod until legal sign-off; CI + dev unaffected
 
 ## 9. Verification
 

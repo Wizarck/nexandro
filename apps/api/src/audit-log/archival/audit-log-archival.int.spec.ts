@@ -12,8 +12,8 @@
  *  1. seed N old `audit_log` rows across 2 orgs × 2 months (regulatory
  *     class, created_at older than 2555 days)
  *  2. seed 1 fresh row per org (created_at = now)
- *  3. set `OPENTRATTOS_AUDIT_LOG_ARCHIVAL_ENABLED=true` +
- *     `OPENTRATTOS_AUDIT_ARCHIVE_DIR=<tmp>`
+ *  3. set `NEXANDRO_AUDIT_LOG_ARCHIVAL_ENABLED=true` +
+ *     `NEXANDRO_AUDIT_ARCHIVE_DIR=<tmp>`
  *  4. run `scanner.runOnce()`
  *  5. assert:
  *     - 4 archive files exist (2 orgs × 2 months)

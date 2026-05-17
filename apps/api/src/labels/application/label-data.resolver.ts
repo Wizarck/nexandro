@@ -10,7 +10,7 @@ import {
   type LabelOrg,
   type LabelPageSize,
   type LabelRecipe,
-} from '@opentrattos/label-renderer';
+} from '@nexandro/label-renderer';
 import { Ingredient } from '../../ingredients/domain/ingredient.entity';
 import { IngredientsService } from '../../ingredients/application/ingredients.service';
 import { Organization } from '../../iam/domain/organization.entity';

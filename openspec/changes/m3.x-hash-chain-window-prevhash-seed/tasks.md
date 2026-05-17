@@ -25,9 +25,9 @@
 
 ## §5 Local gates
 
-- [x] `pnpm --filter @opentrattos/api test -- audit-log-hash-chain` passes (unit-level coverage of the fix).
-- [x] `pnpm --filter @opentrattos/api tsc --noEmit` passes.
-- [x] `pnpm --filter @opentrattos/api lint` passes for the changed files.
+- [x] `pnpm --filter @nexandro/api test -- audit-log-hash-chain` passes (unit-level coverage of the fix).
+- [x] `pnpm --filter @nexandro/api tsc --noEmit` passes.
+- [x] `pnpm --filter @nexandro/api lint` passes for the changed files.
 - [ ] CI Integration job runs AC-CHAIN-2 + AC-CHAIN-2b on real Postgres and they pass (verified post-merge).
 
 ## §6 §4.5.6 AI-reviewer signoff

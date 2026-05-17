@@ -83,8 +83,8 @@ The system SHALL provide ingestion scripts that pipe authoritative corpus conten
 
 ### Requirement: apps/api configuration points at rag-proxy, not LightRAG directly
 
-The `apps/api/.env.example` SHALL document that `OPENTRATTOS_AI_RAG_BASE_URL` should target the rag-proxy URL (not LightRAG directly) so that the canonical `{value, citationUrl, snippet}` contract is honoured. No code changes in `apps/api/` are required for this slice.
+The `apps/api/.env.example` SHALL document that `NEXANDRO_AI_RAG_BASE_URL` should target the rag-proxy URL (not LightRAG directly) so that the canonical `{value, citationUrl, snippet}` contract is honoured. No code changes in `apps/api/` are required for this slice.
 
 #### Scenario: Operator deploys proxy + flips flag
-- **WHEN** the operator sets `OPENTRATTOS_AI_RAG_BASE_URL=https://rag-proxy.opentrattos.local/query` and `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED=true`
+- **WHEN** the operator sets `NEXANDRO_AI_RAG_BASE_URL=https://rag-proxy.nexandro.local/query` and `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED=true`
 - **THEN** chef-issued yield/waste requests in the UI hit apps/api → GptOssRagProvider → rag-proxy → LightRAG, and the chef sees citations from the ingested corpus

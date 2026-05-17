@@ -79,7 +79,7 @@ async function makeHarness(): Promise<Harness> {
 
   const config: PhotoStorageConfig = {
     endpoint: 'minio.local:9000',
-    bucket: 'opentrattos-photos-test',
+    bucket: 'nexandro-photos-test',
     region: 'us-east-1',
     accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
     secretAccessKey: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',

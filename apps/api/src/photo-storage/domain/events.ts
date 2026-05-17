@@ -5,7 +5,7 @@ import type { PhotoMimeType, PhotoRetentionClass } from './photo.entity';
  * Bus channel names for the slice #18 m3-photo-storage-lifecycle events.
  *
  * Per Wave 2.1+ hard constraint: events declared INLINE in `apps/api/src/`,
- * NOT imported from `@opentrattos/contracts`. The subscriber side (slice
+ * NOT imported from `@nexandro/contracts`. The subscriber side (slice
  * #21 AuditLogSubscriber, extended by this slice) consumes the same
  * channel name + envelope shape.
  *

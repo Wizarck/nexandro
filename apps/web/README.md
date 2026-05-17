@@ -1,4 +1,4 @@
-# `@opentrattos/web` — kitchen + owner web app
+# `@nexandro/web` — kitchen + owner web app
 
 Vite + React 18 + TanStack Query + React Router. Tablet-first kitchen surface (Journey 1, 4) + mobile-aware Owner dashboard (Journey 3). NOT server-side rendered — `apps/api/` is the contract per ADR-013, this app is one consumer of it.
 

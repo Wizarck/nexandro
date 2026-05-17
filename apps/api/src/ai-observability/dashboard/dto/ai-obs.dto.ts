@@ -10,7 +10,7 @@ import { z } from 'zod';
  *  - All response shapes are typed via `z.infer<typeof ...>` so the
  *    contract is the single source of truth.
  *
- * Per Wave 2.1+ hard rule: NO imports from `@opentrattos/contracts` in
+ * Per Wave 2.1+ hard rule: NO imports from `@nexandro/contracts` in
  * apps/api. The types stay inline here; the frontend gets its own
  * types in `apps/web/src/m3/ai-obs/api/aiObs.types.ts`.
  *

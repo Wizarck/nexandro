@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../api/client';
-import type { CostDeltaRow } from '@opentrattos/ui-kit';
+import type { CostDeltaRow } from '@nexandro/ui-kit';
 
 interface CostDeltaResponse {
   rows: CostDeltaRow[];

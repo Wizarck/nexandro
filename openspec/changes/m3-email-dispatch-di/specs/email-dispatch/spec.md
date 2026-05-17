@@ -12,24 +12,24 @@ The system SHALL provide an `EmailDispatchService` DI token in `apps/api/src/sha
 - **WHEN** `dispatch()` returns successfully
 - **THEN** the result conforms to `EmailDispatchResult` Zod schema (`{ providerMessageId, deliveredAt, provider }`); no SendGrid / nodemailer / Postmark response object is exposed
 
-### Requirement: Factory selects adapter at module init via OPENTRATTOS_EMAIL_PROVIDER env
+### Requirement: Factory selects adapter at module init via NEXANDRO_EMAIL_PROVIDER env
 
-The system SHALL provide `EmailDispatchFactory` that reads `OPENTRATTOS_EMAIL_PROVIDER` env at `onModuleInit()`. The default value SHALL be `smtp`. Allowed values: `smtp`, `sendgrid`, `postmark`. Unknown values SHALL throw `UnknownEmailProviderError` at bootstrap (NOT at first call).
+The system SHALL provide `EmailDispatchFactory` that reads `NEXANDRO_EMAIL_PROVIDER` env at `onModuleInit()`. The default value SHALL be `smtp`. Allowed values: `smtp`, `sendgrid`, `postmark`. Unknown values SHALL throw `UnknownEmailProviderError` at bootstrap (NOT at first call).
 
 #### Scenario: Default selects SMTP adapter
-- **WHEN** the API process starts without `OPENTRATTOS_EMAIL_PROVIDER` env set
+- **WHEN** the API process starts without `NEXANDRO_EMAIL_PROVIDER` env set
 - **THEN** the factory resolves `EmailDispatchService` to `SmtpEmailAdapter`
 
 #### Scenario: Env override selects SendGrid
-- **WHEN** the API starts with `OPENTRATTOS_EMAIL_PROVIDER=sendgrid`
+- **WHEN** the API starts with `NEXANDRO_EMAIL_PROVIDER=sendgrid`
 - **THEN** the factory resolves `EmailDispatchService` to `SendGridEmailAdapter`
 
 #### Scenario: Env override selects Postmark (lazy-imported)
-- **WHEN** the API starts with `OPENTRATTOS_EMAIL_PROVIDER=postmark`
+- **WHEN** the API starts with `NEXANDRO_EMAIL_PROVIDER=postmark`
 - **THEN** the factory lazy-imports the `postmark` SDK via dynamic `import('postmark')` and resolves to `PostmarkEmailAdapter`; the `postmark` package is NOT in the AGPL build's runtime dependency closure when SMTP is selected
 
 #### Scenario: Unknown provider throws at bootstrap
-- **WHEN** the API starts with `OPENTRATTOS_EMAIL_PROVIDER=mailchimp` (not a known adapter)
+- **WHEN** the API starts with `NEXANDRO_EMAIL_PROVIDER=mailchimp` (not a known adapter)
 - **THEN** `EmailDispatchFactory.onModuleInit()` throws `UnknownEmailProviderError('mailchimp; expected one of: smtp, sendgrid, postmark')`; the API does NOT start
 
 ### Requirement: 3-retry exponential backoff for retryable failures, fail-fast for permanent errors
@@ -73,7 +73,7 @@ The system SHALL export the following Zod schemas from `packages/contracts/src/m
 - `EmailDispatchError` (`{ code, message, attempts, providerError? }`)
 
 #### Scenario: Downstream consumer imports resolve
-- **WHEN** slice #13 imports `import { EmailDispatchInput, EmailDispatchResult } from '@opentrattos/contracts/m3/email'`
+- **WHEN** slice #13 imports `import { EmailDispatchInput, EmailDispatchResult } from '@nexandro/contracts/m3/email'`
 - **THEN** the imports resolve; Zod schemas are usable for runtime validation; TS types are inferred
 
 #### Scenario: Input requires body content
@@ -89,7 +89,7 @@ The system SHALL export the following Zod schemas from `packages/contracts/src/m
 The system SHALL declare the `EMAIL_DISPATCHED` event type in `packages/contracts/src/m3/email.ts` (typed `AuditEventEnvelope` with `aggregateType='email_dispatch'`). Consumers (slices #13/#15/#19) SHALL emit this event on the in-process bus after a successful `dispatch()` call. This slice SHALL NOT register the event with the M2 `AuditLogSubscriber` — that registration is claimed by slice #21 (`m3-audit-log-hash-chain-hardening`).
 
 #### Scenario: Event type is exported from contracts package
-- **WHEN** a downstream consumer imports `import { EmailDispatchedEvent } from '@opentrattos/contracts/m3/email'`
+- **WHEN** a downstream consumer imports `import { EmailDispatchedEvent } from '@nexandro/contracts/m3/email'`
 - **THEN** the import resolves; the type includes `eventType='EMAIL_DISPATCHED'`, `aggregateType='email_dispatch'`, `aggregateId` (provider message ID), and the typed payload
 
 #### Scenario: Subscriber registration is NOT in this slice
@@ -98,7 +98,7 @@ The system SHALL declare the `EMAIL_DISPATCHED` event type in `packages/contract
 
 ### Requirement: SMTP adapter uses nodemailer with connection pool
 
-The `SmtpEmailAdapter` SHALL use `nodemailer` (no per-provider SDK) with a persistent connection pool. Pool size SHALL be configurable via `OPENTRATTOS_SMTP_POOL_SIZE` env (default `5`). The adapter SHALL emit a `connection-error` log entry at `warn` level when the pool fails to acquire a connection within 5s.
+The `SmtpEmailAdapter` SHALL use `nodemailer` (no per-provider SDK) with a persistent connection pool. Pool size SHALL be configurable via `NEXANDRO_SMTP_POOL_SIZE` env (default `5`). The adapter SHALL emit a `connection-error` log entry at `warn` level when the pool fails to acquire a connection within 5s.
 
 #### Scenario: Pool reuses connections across calls
 - **WHEN** 10 consecutive `dispatch()` calls run within 10s against the same SMTP server
@@ -113,11 +113,11 @@ The `SmtpEmailAdapter` SHALL use `nodemailer` (no per-provider SDK) with a persi
 The `SendGridEmailAdapter` SHALL use `@sendgrid/mail` SDK. The `PostmarkEmailAdapter` SHALL use `postmark` SDK lazy-imported via dynamic `import('postmark')`. Both SHALL make one HTTPS request per `dispatch()` call (no persistent connection pool — HTTPS handshake amortizes to ~50ms p99).
 
 #### Scenario: SendGrid lazy-loaded only when selected
-- **WHEN** the AGPL build runs with `OPENTRATTOS_EMAIL_PROVIDER=smtp`
+- **WHEN** the AGPL build runs with `NEXANDRO_EMAIL_PROVIDER=smtp`
 - **THEN** the `@sendgrid/mail` package is NOT in the runtime require cache; only the SMTP adapter's nodemailer dependency is loaded
 
 #### Scenario: Postmark lazy-imported on first call
-- **WHEN** `OPENTRATTOS_EMAIL_PROVIDER=postmark` is set and the API boots
+- **WHEN** `NEXANDRO_EMAIL_PROVIDER=postmark` is set and the API boots
 - **THEN** the `postmark` SDK is loaded via `await import('postmark')` inside the factory; bundle size measurement shows the AGPL-default build does NOT include postmark
 
 ### Requirement: INT tests use mailpit for SMTP delivery assertion

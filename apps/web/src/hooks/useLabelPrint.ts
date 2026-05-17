@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { ApiError, api } from '../api/client';
-import type { LabelPreviewLocale } from '@opentrattos/ui-kit';
+import type { LabelPreviewLocale } from '@nexandro/ui-kit';
 
 export interface PrintLabelInput {
   recipeId: string;

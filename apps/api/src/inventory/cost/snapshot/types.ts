@@ -5,7 +5,7 @@ import type { CostBreakdownEntry, CostSnapshotStrategy } from './domain/cost-sna
  * M3 inventory.cost-snapshot Zod schemas + types.
  *
  * INLINE per Wave 2.1 hard constraint (TS6059 — apps/api MUST NOT import from
- * @opentrattos/contracts). Slice #21 batches re-export into the contracts
+ * @nexandro/contracts). Slice #21 batches re-export into the contracts
  * package once the post-Wave-2.2 typing reconciliation is done.
  *
  * Per ADR-SNAPSHOT-SCHEMA (design.md):

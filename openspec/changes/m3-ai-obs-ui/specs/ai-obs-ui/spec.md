@@ -54,10 +54,10 @@ The system SHALL expose `GET /m3/ai-obs/overview?organizationId=...&period=24h|7
 
 ### Requirement: Backend exposes /m3/ai-obs/cost-by-tag with grouped tag spend
 
-The system SHALL expose `GET /m3/ai-obs/cost-by-tag?organizationId=...&period=this_month` returning the top 10 `opentrattos.tag` values by spend within the period. Tagless calls SHALL aggregate under the synthetic `(sin tag)` row.
+The system SHALL expose `GET /m3/ai-obs/cost-by-tag?organizationId=...&period=this_month` returning the top 10 `nexandro.tag` values by spend within the period. Tagless calls SHALL aggregate under the synthetic `(sin tag)` row.
 
 #### Scenario: Owner GET /m3/ai-obs/cost-by-tag returns top-10 tags
-- **GIVEN** seeded rollup rows with diverse `opentrattos.tag` attributes
+- **GIVEN** seeded rollup rows with diverse `nexandro.tag` attributes
 - **WHEN** an Owner JWT issues `GET /m3/ai-obs/cost-by-tag?organizationId=org-1&period=this_month`
 - **THEN** the response is 200 with body `{ tags: [{ tag, totalEur, sharePct }, ...] }` ordered descending by `totalEur`, capped at 10 rows
 
@@ -109,7 +109,7 @@ The system SHALL provide three React hooks (`useAiObsOverview`, `useAiObsCostByT
 
 ### Requirement: Widget config persists per-user in localStorage
 
-The system SHALL persist a per-user widget config object under localStorage key `opentrattos.aiObsDashboard.widgetConfig.v1`. The shape SHALL be `{ order: WidgetId[], hidden: WidgetId[], v: 1 }`. The `useWidgetConfig` hook SHALL read on mount, write on every mutation, and fall back to defaults on corruption.
+The system SHALL persist a per-user widget config object under localStorage key `nexandro.aiObsDashboard.widgetConfig.v1`. The shape SHALL be `{ order: WidgetId[], hidden: WidgetId[], v: 1 }`. The `useWidgetConfig` hook SHALL read on mount, write on every mutation, and fall back to defaults on corruption.
 
 #### Scenario: defaults on first visit
 - **GIVEN** no entry in localStorage for the key
@@ -127,7 +127,7 @@ The system SHALL persist a per-user widget config object under localStorage key 
 - **THEN** `Top5FailuresWidget` is not in the DOM AND `useAiObsFailures` is not invoked (verified via fetch spy)
 
 #### Scenario: corrupt entry falls back to defaults
-- **GIVEN** localStorage contains `opentrattos.aiObsDashboard.widgetConfig.v1 = '{"v": 99, "x"}'`
+- **GIVEN** localStorage contains `nexandro.aiObsDashboard.widgetConfig.v1 = '{"v": 99, "x"}'`
 - **WHEN** `useWidgetConfig` mounts
 - **THEN** the hook returns the defaults; no exception is thrown
 
@@ -225,8 +225,8 @@ The 4 chrome elements (`AnomalyChip`, `SavingsOppCard`, `BlastRadiusCard`, `Otlp
 - **THEN** four model cards render with `criticality`-coded `border-left` colour
 
 #### Scenario: OTLP banner renders active exporter endpoint
-- **WHEN** the overview carries `otlpExporter: { endpoint: 'langfuse.opentrattos.local', status: 'active' }`
-- **THEN** the banner renders "Exporter activo → langfuse.opentrattos.local" with links to `/owner-settings#otlp`
+- **WHEN** the overview carries `otlpExporter: { endpoint: 'langfuse.nexandro.local', status: 'active' }`
+- **THEN** the banner renders "Exporter activo → langfuse.nexandro.local" with links to `/owner-settings#otlp`
 
 ### Requirement: Every widget renders a "last refreshed N min ago" footer + manual refresh button
 

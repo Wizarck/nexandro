@@ -115,8 +115,8 @@
 
 ## 9. apps/api documentation update
 
-- [ ] 9.1 `apps/api/.env.example`: add comment block above `OPENTRATTOS_AI_RAG_BASE_URL` clarifying it should point at the rag-proxy URL (not LightRAG directly), with example `https://rag-proxy.opentrattos.local/query`
-- [ ] 9.2 No code changes in `apps/api/`; verify `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED=false` still default
+- [ ] 9.1 `apps/api/.env.example`: add comment block above `NEXANDRO_AI_RAG_BASE_URL` clarifying it should point at the rag-proxy URL (not LightRAG directly), with example `https://rag-proxy.nexandro.local/query`
+- [ ] 9.2 No code changes in `apps/api/`; verify `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED=false` still default
 
 ## 10. Verification
 
@@ -126,7 +126,7 @@
 - [ ] 10.4 TS: `npm test` at root — full M2 suite still green (no regressions; this slice should not touch any TS)
 - [ ] 10.5 TS: `npm run lint` at root — clean
 - [ ] 10.6 TS: `npm run build` at root — clean (no apps/api change should affect build)
-- [ ] 10.7 Manual smoke (deferred to post-deploy): bring up LightRAG + rag-proxy on VPS; ingest USDA sample; flip `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED=true` and `OPENTRATTOS_AI_RAG_BASE_URL=https://rag-proxy.opentrattos.local`; chef sees real citation in YieldEditor
+- [ ] 10.7 Manual smoke (deferred to post-deploy): bring up LightRAG + rag-proxy on VPS; ingest USDA sample; flip `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED=true` and `NEXANDRO_AI_RAG_BASE_URL=https://rag-proxy.nexandro.local`; chef sees real citation in YieldEditor
 
 ## 11. CI + landing
 
@@ -138,4 +138,4 @@
 - [ ] 11.6 File follow-up slices:
   - `m2-ai-yield-cookbooks-modern` — Larousse + CIA + McGee after legal due diligence
   - `m2-ai-yield-structured-outputs` — patch LightRAG (or fork) for 100% valid JSON via response_format if user_prompt reliability proves insufficient
-  - `m2-wrap-up` — flip `OPENTRATTOS_LABELS_PROD_ENABLED=true` post legal review + flip `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED=true` post corpus ingestion
+  - `m2-wrap-up` — flip `NEXANDRO_LABELS_PROD_ENABLED=true` post legal review + flip `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED=true` post corpus ingestion

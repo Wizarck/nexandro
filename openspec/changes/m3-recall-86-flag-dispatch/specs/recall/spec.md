@@ -120,6 +120,6 @@ When two requests with the same `Idempotency-Key` header POST to `/m3/recall/inc
 
 ### AC-RECALL-12 — MCP capabilities
 
-`recall.dispatch-86-flag` and `recall.generate-dossier` are registered in the WRITE_CAPABILITIES registry. Each respects the per-capability env flag (`OPENTRATTOS_AGENT_RECALL_DISPATCH_86_FLAG_ENABLED`, `OPENTRATTOS_AGENT_RECALL_GENERATE_DOSSIER_ENABLED`) — when the flag is `false`, the AgentCapabilityGuard rejects with 403 even if the agent is otherwise authorised.
+`recall.dispatch-86-flag` and `recall.generate-dossier` are registered in the WRITE_CAPABILITIES registry. Each respects the per-capability env flag (`NEXANDRO_AGENT_RECALL_DISPATCH_86_FLAG_ENABLED`, `NEXANDRO_AGENT_RECALL_GENERATE_DOSSIER_ENABLED`) — when the flag is `false`, the AgentCapabilityGuard rejects with 403 even if the agent is otherwise authorised.
 
 Both capabilities proxy to `POST /m3/recall/incidents/:id/dispatch`. The web sticky CTA, the WhatsApp Hermes path, and the Telegram Hermes path all route to the same handler — there is one canonical dispatch path per ADR-MCP-RECALL-CAPABILITIES.

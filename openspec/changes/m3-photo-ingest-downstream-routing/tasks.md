@@ -64,7 +64,7 @@
 - [ ] `npm install` succeeds.
 - [ ] `npm run typecheck` clean.
 - [ ] `npm run lint` clean.
-- [ ] `npm --workspace=@opentrattos/api run test` green.
+- [ ] `npm --workspace=@nexandro/api run test` green.
 
 ## Deferred
 

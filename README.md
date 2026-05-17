@@ -1,7 +1,7 @@
-# 🍷 openTrattOS
+# 🍷 nexandro
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/openTrattOS/openTrattOS/pulls)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/nexandro/nexandro/pulls)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![NestJS](https://img.shields.io/badge/NestJS-10.x-E0234E?logo=nestjs&logoColor=white)](https://nestjs.com/)
 [![Next.js](https://img.shields.io/badge/Next.js-14.x-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org/)
@@ -9,20 +9,20 @@
 > **The Open Source Back-of-House (BOH) & Kitchen Traceability Operating System.**  
 > Built to kill the grey, bloated ERP. Designed for modern kitchens.
 
-openTrattOS is a modern, **AI-ready**, open-source restaurant management and food costing 
+nexandro is a modern, **AI-ready**, open-source restaurant management and food costing 
 platform. It covers everything that happens **behind the kitchen door**: ingredient 
 costing, recipe engineering (escandallos), supplier management, HACCP/APPCC compliance, 
 and inventory operations.
 
 ---
 
-## ✨ Why openTrattOS?
+## ✨ Why nexandro?
 
 The Back-of-House software market is dominated by **closed-source, expensive SaaS** 
 (Apicbase, MarketMan, tSpoonLab) and **legacy ERPs** that look like they were designed 
 in 1998. Chefs deserve better.
 
-| Problem | openTrattOS Solution |
+| Problem | nexandro Solution |
 |---|---|
 | SaaS costs €90-300/month per venue | **Free & self-hosted** (AGPL-3.0) |
 | ERPs are grey, bloated, confusing | **Beautiful, minimal interface** (TailwindCSS, mobile-first) |
@@ -33,7 +33,7 @@ in 1998. Chefs deserve better.
 
 ## 🧩 Modules
 
-openTrattOS is built as a **modular monolith**. Each module is independently useful:
+nexandro is built as a **modular monolith**. Each module is independently useful:
 
 | Module | Description | Status |
 |---|---|---|
@@ -61,12 +61,12 @@ openTrattOS is built as a **modular monolith**. Each module is independently use
 
 ## 🚀 Quick Start
 
-openTrattOS ships as a single omnibus Docker image (per [ADR-028](docs/architecture-decisions.md)) that bundles the API, the web SPA, and all required runtimes. Same pattern as GitLab CE, Mattermost, n8n.
+nexandro ships as a single omnibus Docker image (per [ADR-028](docs/architecture-decisions.md)) that bundles the API, the web SPA, and all required runtimes. Same pattern as GitLab CE, Mattermost, n8n.
 
 ```bash
 # Clone + configure
-git clone https://github.com/Wizarck/openTrattOS.git
-cd openTrattOS
+git clone https://github.com/Wizarck/nexandro.git
+cd nexandro
 cp .env.example .env       # then edit POSTGRES_PASSWORD
 
 # Start
@@ -76,7 +76,7 @@ docker compose up -d
 open http://localhost:3000
 ```
 
-The compose pulls the public image `ghcr.io/wizarck/opentrattos:latest` (no GitHub auth required). Migrations run automatically on first start; the `/health` endpoint reports DB connectivity once ready.
+The compose pulls the public image `ghcr.io/wizarck/nexandro:latest` (no GitHub auth required). Migrations run automatically on first start; the `/health` endpoint reports DB connectivity once ready.
 
 For deployment behind cloudflared / Traefik / nginx with loopback-only bind, see [deploy/README.md](deploy/README.md).
 
@@ -125,13 +125,13 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 - [ ] Module 2: Recipe Engine & Food Costing (Escandallos)
 - [ ] Module 3: HACCP / APPCC Compliance
 - [ ] Module 4: Inventory & Purchase Operations
-- [ ] TrattOS Enterprise: AI Agent layer (Hermes/OpenClaw + WhatsApp/Telegram)
+- [ ] Nexandro Enterprise: AI Agent layer (Hermes/OpenClaw + WhatsApp/Telegram)
 
 ---
 
-## 💼 openTrattOS vs TrattOS Enterprise
+## 💼 nexandro vs Nexandro Enterprise
 
-| Feature | openTrattOS (Free) | TrattOS (Enterprise) |
+| Feature | nexandro (Free) | Nexandro (Enterprise) |
 |---|:---:|:---:|
 | Ingredients & Recipes | ✅ | ✅ |
 | HACCP Compliance | ✅ | ✅ |

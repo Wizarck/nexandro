@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   RecallActionBar,
   RecallConfirmationStrip,
-} from '@opentrattos/ui-kit';
+} from '@nexandro/ui-kit';
 import { CrisisLayout } from '../layouts/CrisisLayout';
 import {
   useCountdownToDeadline,

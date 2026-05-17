@@ -46,7 +46,7 @@ const DEDUP_WITHIN_HOURS = 23;
  * next 5-minute tick re-evaluates. Whole-tick exceptions are caught
  * and logged so the `@Cron` worker does not die.
  *
- * Env flag `OPENTRATTOS_EXPIRY_SCANNER_ENABLED=false` short-circuits
+ * Env flag `NEXANDRO_EXPIRY_SCANNER_ENABLED=false` short-circuits
  * the tick (REQ-EX-7 scenario 3).
  */
 @Injectable()
@@ -66,7 +66,7 @@ export class ExpiryScannerService {
    */
   @Cron(CronExpression.EVERY_5_MINUTES, { name: 'expiry-scanner' })
   async runTick(): Promise<void> {
-    if (process.env.OPENTRATTOS_EXPIRY_SCANNER_ENABLED !== 'true') {
+    if (process.env.NEXANDRO_EXPIRY_SCANNER_ENABLED !== 'true') {
       return;
     }
     try {

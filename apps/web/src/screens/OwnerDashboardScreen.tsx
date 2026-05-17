@@ -1,5 +1,5 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MenuItemRanker, type DashboardMenuItem } from '@opentrattos/ui-kit';
+import { MenuItemRanker, type DashboardMenuItem } from '@nexandro/ui-kit';
 import { useDashboardMenuItems } from '../hooks/useDashboardMenuItems';
 
 /**

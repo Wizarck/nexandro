@@ -19,7 +19,7 @@ import { AgentChatEnabledGuard } from './agent-chat-enabled.guard';
 /**
  * Wave 1.13 [3b] — first-party web-chat surface.
  *
- * `OPENTRATTOS_AGENT_ENABLED=false` → 404 (enforced by `AgentChatEnabledGuard`,
+ * `NEXANDRO_AGENT_ENABLED=false` → 404 (enforced by `AgentChatEnabledGuard`,
  * which runs before the `@Sse()` handler opens the stream). Authenticated
  * users of any role can chat; tool-call authorisation is handled per-capability
  * by the existing AgentCapabilityGuard (Wave 1.13 [3a]) once Hermes invokes
@@ -42,7 +42,7 @@ export class AgentChatController {
   @Sse()
   @Roles('OWNER', 'MANAGER', 'STAFF')
   @ApiOperation({
-    summary: 'Open an SSE chat stream with the openTrattOS agent (feature-flagged)',
+    summary: 'Open an SSE chat stream with the nexandro agent (feature-flagged)',
   })
   stream(
     @Body() body: ChatRequestDto,

@@ -8,7 +8,7 @@ M2's AI-Assisted Authoring differentiator (FR16–19) is what makes recipe entry
 - AI suggestion of recipe-level `wasteFactor` at creation, classified by recipe pattern (stew, sauté, grill, raw, etc.) (FR17).
 - Chef override flow: Manager can accept / accept-then-tweak / reject any AI suggestion; override is recorded with attribution and (if rejected) the reason (FR18).
 - **Iron rule** (FR19): system never produces an AI suggestion without a citation URL — if the model cannot cite, no suggestion is offered (manual entry only, no fallback).
-- Model selection per ADR-013: `gpt-oss-20b-rag` via internal RAG endpoint as the M2 default; pluggable contract for `claude-haiku-hermes` or other models. Single feature flag `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED` controls the surface.
+- Model selection per ADR-013: `gpt-oss-20b-rag` via internal RAG endpoint as the M2 default; pluggable contract for `claude-haiku-hermes` or other models. Single feature flag `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED` controls the surface.
 - `YieldEditor` UI component — yield% with AI suggestion + citation popover + chef override (per `docs/ux/components.md`).
 - `WasteFactorEditor` UI component — recipe-level waste % with AI suggestion + citation popover + chef override.
 - **BREAKING** (none — additive, behind feature flag.)

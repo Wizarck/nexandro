@@ -7,7 +7,7 @@ import { S3CompatibleArchiveStorage } from './s3-archive-storage';
  * the `AUDIT_ARCHIVE_STORAGE` symbol's `useFactory`. Backend is
  * picked once at module instantiation:
  *
- *  - `OPENTRATTOS_AUDIT_ARCHIVE_BACKEND=s3` → `S3CompatibleArchiveStorage`.
+ *  - `NEXANDRO_AUDIT_ARCHIVE_BACKEND=s3` → `S3CompatibleArchiveStorage`.
  *  - anything else (incl. unset / `filesystem`) → `FilesystemArchiveStorage`.
  *
  * Per slice design picks, `S3CompatibleArchiveStorage` lazy-initialises
@@ -16,7 +16,7 @@ import { S3CompatibleArchiveStorage } from './s3-archive-storage';
  * to be set.
  */
 export function createAuditArchiveStorage(): AuditArchiveStorage {
-  const backend = process.env.OPENTRATTOS_AUDIT_ARCHIVE_BACKEND ?? 'filesystem';
+  const backend = process.env.NEXANDRO_AUDIT_ARCHIVE_BACKEND ?? 'filesystem';
   if (backend === 's3') {
     return new S3CompatibleArchiveStorage();
   }

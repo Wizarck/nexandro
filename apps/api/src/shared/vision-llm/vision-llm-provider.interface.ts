@@ -51,7 +51,7 @@ export interface VisionLlmProvider {
  *       @Inject(VISION_LLM_PROVIDER) private readonly provider: VisionLlmProvider,
  *     ) {}
  *
- * The factory `VisionLlmFactory` reads `OPENTRATTOS_VISION_LLM_PROVIDER` at
+ * The factory `VisionLlmFactory` reads `NEXANDRO_VISION_LLM_PROVIDER` at
  * module-init and resolves to one of `GptOssVisionRagProxyProvider`,
  * `ClaudeVisionProvider`, or `GptFourVProvider`.
  */

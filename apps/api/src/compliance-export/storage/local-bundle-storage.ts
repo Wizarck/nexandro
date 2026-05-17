@@ -6,7 +6,7 @@ import type { BundleAsset, BundleStorage } from './bundle-storage';
 
 const DEFAULT_ROOT = './var/bundles';
 const DEFAULT_TTL_SECONDS = 60 * 60; // 1h
-const DEFAULT_SIGNING_SECRET = 'opentrattos-bundle-signing-dev-only';
+const DEFAULT_SIGNING_SECRET = 'nexandro-bundle-signing-dev-only';
 
 /**
  * Filesystem-backed `BundleStorage` for self-hosted MVP. Path layout:
@@ -16,7 +16,7 @@ const DEFAULT_SIGNING_SECRET = 'opentrattos-bundle-signing-dev-only';
  * Signed URLs are HMAC-signed (sha256) tokens of the form
  * `<storagePath>?token=<hex>&exp=<unix>`; the controller validates +
  * streams via `readBundle()`. The signing secret is read from env
- * `OPENTRATTOS_BUNDLE_SIGNING_SECRET` (defaulted for dev only — the
+ * `NEXANDRO_BUNDLE_SIGNING_SECRET` (defaulted for dev only — the
  * production deployment MUST override).
  */
 @Injectable()
@@ -27,11 +27,11 @@ export class LocalBundleStorage implements BundleStorage {
   private readonly downloadBaseUrl: string;
 
   constructor() {
-    this.root = resolve(process.env.OPENTRATTOS_BUNDLE_STORAGE_ROOT ?? DEFAULT_ROOT);
+    this.root = resolve(process.env.NEXANDRO_BUNDLE_STORAGE_ROOT ?? DEFAULT_ROOT);
     this.signingSecret =
-      process.env.OPENTRATTOS_BUNDLE_SIGNING_SECRET ?? DEFAULT_SIGNING_SECRET;
+      process.env.NEXANDRO_BUNDLE_SIGNING_SECRET ?? DEFAULT_SIGNING_SECRET;
     this.downloadBaseUrl =
-      process.env.OPENTRATTOS_API_BASE_URL ?? '';
+      process.env.NEXANDRO_API_BASE_URL ?? '';
   }
 
   async putBundle(

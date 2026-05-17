@@ -50,7 +50,7 @@ The system SHALL record every chef interaction with an AI suggestion: accept, ac
 
 ### Requirement: Feature flag controls the entire AI suggestion surface
 
-The system SHALL gate all AI suggestion endpoints and UI surfaces behind the `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED` feature flag.
+The system SHALL gate all AI suggestion endpoints and UI surfaces behind the `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED` feature flag.
 
 #### Scenario: Flag enabled — suggestions available
 - **WHEN** the flag is `true`

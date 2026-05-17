@@ -5,7 +5,7 @@
  *   this slice; replaced by real implementations in slice #17a
  *   (`m3-photo-ingest-backend`).
  * - `UnknownVisionLlmProviderError` — thrown by `VisionLlmFactory` at
- *   module-init when `OPENTRATTOS_VISION_LLM_PROVIDER` env names an
+ *   module-init when `NEXANDRO_VISION_LLM_PROVIDER` env names an
  *   unknown adapter. Fails at boot, NOT at first call.
  */
 

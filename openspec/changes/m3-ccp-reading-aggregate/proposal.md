@@ -51,7 +51,7 @@ Per the slot-reservation table in `docs/openspec-slice-module-3.md` §3 the slic
 - **`apps/api/src/audit-log/application/audit-log.subscriber.ts`** — 3 new `@OnEvent` handlers (envelope-shaped; persisted via `persistEnvelope`). Pattern lifted from slice #13's recall handlers.
 - **`apps/api/src/app.module.ts`** — uncomments `HaccpModule` from the "Future Bounded Contexts" list near the bottom of the imports.
 
-### MCP capabilities (packages/mcp-server-opentrattos/)
+### MCP capabilities (packages/mcp-server-nexandro/)
 
 - **`src/capabilities/haccp.ts`** — read-only registrar (mirrors recall.ts pattern). Plus 3 new write entries in `HACCP_WRITE_CAPABILITIES`:
   - `haccp.record-ccp-reading` → `POST /m3/haccp/readings`.
@@ -62,7 +62,7 @@ Per the slot-reservation table in `docs/openspec-slice-module-3.md` §3 the slic
 - **`src/index.ts`** — wire any read-only haccp registrar (none in this slice — all 3 capabilities are writes).
 - **`test/smoke.spec.ts`** — capability count: `52 → 55` (52 after Wave 2.5 + 3 haccp writes).
 - **`src/capabilities/write/index.spec.ts`** — `WRITE_CAPABILITIES` length: `45 → 48` + add `'haccp'` to the expected namespace set (size `13 → 14`).
-- Per-capability kill switches: `OPENTRATTOS_AGENT_HACCP_RECORD_CCP_READING_ENABLED` + `OPENTRATTOS_AGENT_HACCP_RECORD_CORRECTIVE_ACTION_ENABLED` + `OPENTRATTOS_AGENT_HACCP_CONFIGURE_FSMS_STANDARDS_ENABLED` (env-flag pattern from M2 ADR-MCP-W-PERCAP-FLAGS).
+- Per-capability kill switches: `NEXANDRO_AGENT_HACCP_RECORD_CCP_READING_ENABLED` + `NEXANDRO_AGENT_HACCP_RECORD_CORRECTIVE_ACTION_ENABLED` + `NEXANDRO_AGENT_HACCP_CONFIGURE_FSMS_STANDARDS_ENABLED` (env-flag pattern from M2 ADR-MCP-W-PERCAP-FLAGS).
 
 ### Frontend
 
@@ -98,10 +98,10 @@ NEW: `openspec/changes/m3-ccp-reading-aggregate/specs/haccp/spec.md` — 11 Give
 - `apps/api/src/audit-log/application/types.ts` (extend `AuditEventType` + `AuditEventTypeName` + `RETENTION_BY_EVENT_NAME`).
 - `apps/api/src/audit-log/application/audit-log.subscriber.ts` (3 new `@OnEvent` handlers).
 - `apps/api/src/app.module.ts` (wire `HaccpModule`).
-- `packages/mcp-server-opentrattos/src/capabilities/write/haccp.ts` (new).
-- `packages/mcp-server-opentrattos/src/capabilities/write/index.ts` (spread).
-- `packages/mcp-server-opentrattos/src/capabilities/write/index.spec.ts` (count + namespace expectations).
-- `packages/mcp-server-opentrattos/test/smoke.spec.ts` (count expectation: `55`).
+- `packages/mcp-server-nexandro/src/capabilities/write/haccp.ts` (new).
+- `packages/mcp-server-nexandro/src/capabilities/write/index.ts` (spread).
+- `packages/mcp-server-nexandro/src/capabilities/write/index.spec.ts` (count + namespace expectations).
+- `packages/mcp-server-nexandro/test/smoke.spec.ts` (count expectation: `55`).
 
 ### Backward compatibility
 

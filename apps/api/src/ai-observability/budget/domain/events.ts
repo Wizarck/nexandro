@@ -13,7 +13,7 @@ export const AI_BUDGET_TIER_CROSSED_CHANNEL = 'ai-observability.budget-tier-cros
 
 /**
  * INLINE payload shape — per Wave 2.1+2.2+2.3 hard constraint, slice
- * application code does NOT import from `@opentrattos/contracts`. The
+ * application code does NOT import from `@nexandro/contracts`. The
  * payload is envelope-shaped (matches `AuditEventEnvelope`) so the
  * `AuditLogSubscriber` consumes it via `persistEnvelope()` without a
  * per-event-type translator.

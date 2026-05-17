@@ -32,7 +32,7 @@ Full persona definitions, JTBD, and RBAC matrix are documented in
   any product in my kitchen without scrolling through a flat unstructured list.
 - **As a Kitchen Manager**, I want the system to block invalid unit conversions 
   (e.g. kg to unidades) so my food cost is never corrupted by a bad recipe entry.
-- **As an openTrattOS Admin (multi-venue)**, I want a pre-seeded category tree when I 
+- **As an nexandro Admin (multi-venue)**, I want a pre-seeded category tree when I 
   first install the system so I don't start from a blank page.
 - **As an Owner**, I want to set my organization's currency once during setup, 
   so all cost calculations are consistent across all my venues.

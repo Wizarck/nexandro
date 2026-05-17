@@ -41,7 +41,7 @@ async function bootstrap() {
 
   // Swagger / OpenAPI — MCP-ready documentation (ADR-002)
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('openTrattOS API')
+    .setTitle('nexandro API')
     .setDescription(
       'The Open Source Back-of-House (BOH) & Kitchen Traceability OS. ' +
       'Every endpoint is designed to be wrapped as an MCP Tool for AI agents.',
@@ -58,7 +58,7 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3001;
   await app.listen(port);
-  console.log(`🍷 openTrattOS API running on http://localhost:${port}`);
+  console.log(`🍷 nexandro API running on http://localhost:${port}`);
   console.log(`📖 Swagger docs at http://localhost:${port}/api/docs`);
 }
 

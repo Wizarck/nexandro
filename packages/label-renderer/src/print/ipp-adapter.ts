@@ -86,7 +86,7 @@ export class IppPrintAdapter implements PrintAdapter {
 
     const msg = {
       'operation-attributes-tag': {
-        'requesting-user-name': 'opentrattos',
+        'requesting-user-name': 'nexandro',
         'job-name': this.config.queue ?? `recipe-${job.meta.recipeId}`,
         'document-format': 'application/pdf',
       },

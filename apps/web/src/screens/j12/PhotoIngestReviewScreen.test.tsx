@@ -220,7 +220,7 @@ describe('PhotoIngestReviewScreen', () => {
 
     await waitFor(() => {
       const raw = window.localStorage.getItem(
-        'opentrattos.photoIngest.draft.v1.itm-1.MANAGER',
+        'nexandro.photoIngest.draft.v1.itm-1.MANAGER',
       );
       expect(raw).not.toBeNull();
       const parsed = JSON.parse(raw!) as {
@@ -240,7 +240,7 @@ describe('PhotoIngestReviewScreen', () => {
     );
 
     window.localStorage.setItem(
-      'opentrattos.photoIngest.draft.v1.itm-1.MANAGER',
+      'nexandro.photoIngest.draft.v1.itm-1.MANAGER',
       JSON.stringify({
         fieldValues: { total: 'stale' },
         savedAt: Date.now() - 31 * 60_000,
@@ -257,7 +257,7 @@ describe('PhotoIngestReviewScreen', () => {
     expect(total.value).toBe('');
     expect(
       window.localStorage.getItem(
-        'opentrattos.photoIngest.draft.v1.itm-1.MANAGER',
+        'nexandro.photoIngest.draft.v1.itm-1.MANAGER',
       ),
     ).toBeNull();
   });

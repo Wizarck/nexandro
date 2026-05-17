@@ -27,7 +27,7 @@ import { PhotoRetentionScheduler } from './application/photo-retention.scheduler
  *  - `PhotoRetentionScheduler` (`@Cron('0 3 * * *')` daily; env-flag gated)
  *
  * Config-from-env wiring:
- *  - `PHOTO_STORAGE_CONFIG`: built from env vars `OPENTRATTOS_PHOTO_STORAGE_*`.
+ *  - `PHOTO_STORAGE_CONFIG`: built from env vars `NEXANDRO_PHOTO_STORAGE_*`.
  *  - `PHOTO_S3_CLIENT`: built from a `fetch`-based implementation that uses
  *    the same env credentials for HEAD + DELETE against the storage backend.
  *
@@ -47,16 +47,16 @@ import { PhotoRetentionScheduler } from './application/photo-retention.scheduler
     {
       provide: PHOTO_STORAGE_CONFIG,
       useFactory: (): PhotoStorageConfig => {
-        const endpoint = process.env.OPENTRATTOS_PHOTO_STORAGE_ENDPOINT ?? '';
-        const bucket = process.env.OPENTRATTOS_PHOTO_STORAGE_BUCKET ?? '';
+        const endpoint = process.env.NEXANDRO_PHOTO_STORAGE_ENDPOINT ?? '';
+        const bucket = process.env.NEXANDRO_PHOTO_STORAGE_BUCKET ?? '';
         const region =
-          process.env.OPENTRATTOS_PHOTO_STORAGE_REGION ?? 'us-east-1';
+          process.env.NEXANDRO_PHOTO_STORAGE_REGION ?? 'us-east-1';
         const accessKeyId =
-          process.env.OPENTRATTOS_PHOTO_STORAGE_ACCESS_KEY_ID ?? '';
+          process.env.NEXANDRO_PHOTO_STORAGE_ACCESS_KEY_ID ?? '';
         const secretAccessKey =
-          process.env.OPENTRATTOS_PHOTO_STORAGE_SECRET_ACCESS_KEY ?? '';
+          process.env.NEXANDRO_PHOTO_STORAGE_SECRET_ACCESS_KEY ?? '';
         const scheme =
-          process.env.OPENTRATTOS_PHOTO_STORAGE_SCHEME === 'http'
+          process.env.NEXANDRO_PHOTO_STORAGE_SCHEME === 'http'
             ? 'http'
             : 'https';
         return {

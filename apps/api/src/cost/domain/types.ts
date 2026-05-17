@@ -5,7 +5,7 @@
 // Inline types + Zod schemas for the FIFO/FEFO resolver. Per
 // ADR-COST-RESOLVER-INTERFACE + [[feedback_subagent_apply_typing_fix_cascade]],
 // types live here and are NOT extracted to `packages/contracts/` —
-// apps/api never imports `@opentrattos/contracts` from its own src tree.
+// apps/api never imports `@nexandro/contracts` from its own src tree.
 //
 // This file OWNS the `CostResolution` shape. Slice #5
 // (m3-cost-snapshot-persistence) will import `CostResolution`,

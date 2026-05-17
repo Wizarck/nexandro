@@ -17,7 +17,7 @@
 
 ## 3. Types — inline `TraceNode` shape
 
-- [ ] 3.1 `apps/api/src/recall/types.ts` — `TraceNodeKind`, `TraceNode`, `TraceForwardOptions`, `TraceReverseOptions`, `ReverseAnchor` (NO `@opentrattos/contracts` import per ADR-TRACE-NODE-SHAPE)
+- [ ] 3.1 `apps/api/src/recall/types.ts` — `TraceNodeKind`, `TraceNode`, `TraceForwardOptions`, `TraceReverseOptions`, `ReverseAnchor` (NO `@nexandro/contracts` import per ADR-TRACE-NODE-SHAPE)
 
 ## 4. Application layer — TraceService
 

@@ -11,9 +11,9 @@ import { tap } from 'rxjs/operators';
 
 /**
  * Global NestJS interceptor that enriches the current OTel span (if any)
- * with the `opentrattos.tag` attribute.
+ * with the `nexandro.tag` attribute.
  *
- * - Reads the tag from `request.opentrattosTag` (set by upstream code that
+ * - Reads the tag from `request.nexandroTag` (set by upstream code that
  *   knows the capability — e.g. controllers can use a decorator in a later
  *   slice to declare their tag).
  * - Normalizes the value to lowercase kebab-case ASCII, max 64 chars.
@@ -42,9 +42,9 @@ export class SpanEnricherInterceptor implements NestInterceptor {
 
     let rawTag: string | undefined;
     try {
-      const httpRequest = context.switchToHttp().getRequest<{ opentrattosTag?: unknown }>();
-      if (httpRequest && typeof httpRequest.opentrattosTag === 'string') {
-        rawTag = httpRequest.opentrattosTag;
+      const httpRequest = context.switchToHttp().getRequest<{ nexandroTag?: unknown }>();
+      if (httpRequest && typeof httpRequest.nexandroTag === 'string') {
+        rawTag = httpRequest.nexandroTag;
       }
     } catch {
       // not an HTTP context — fall through to untagged
@@ -55,19 +55,19 @@ export class SpanEnricherInterceptor implements NestInterceptor {
 
     if (rawTag === undefined || rawTag.trim().length === 0) {
       this.logger.warn(
-        `Span emitted without opentrattos.tag from ${className}.${handlerName}; defaulting to 'untagged'`,
+        `Span emitted without nexandro.tag from ${className}.${handlerName}; defaulting to 'untagged'`,
       );
-      span.setAttribute('opentrattos.tag', 'untagged');
+      span.setAttribute('nexandro.tag', 'untagged');
       return;
     }
 
     const normalized = normalizeTag(rawTag);
     if (normalized.value !== rawTag) {
       this.logger.warn(
-        `opentrattos.tag normalized from "${rawTag}" → "${normalized.value}" in ${className}.${handlerName} (${normalized.reason})`,
+        `nexandro.tag normalized from "${rawTag}" → "${normalized.value}" in ${className}.${handlerName} (${normalized.reason})`,
       );
     }
-    span.setAttribute('opentrattos.tag', normalized.value);
+    span.setAttribute('nexandro.tag', normalized.value);
   }
 }
 
@@ -79,7 +79,7 @@ interface NormalizationResult {
 const MAX_TAG_LENGTH = 64;
 
 /**
- * Normalize a free-form tag into the canonical `opentrattos.tag` shape:
+ * Normalize a free-form tag into the canonical `nexandro.tag` shape:
  *  - lowercase
  *  - replace non-[a-z0-9] chars with hyphen
  *  - collapse consecutive hyphens

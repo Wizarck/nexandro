@@ -9,7 +9,7 @@ interface CostByTagWidgetProps {
 
 /**
  * Widget #7 (eligia-dashboard cross-pollination, NFR-OBS-10). Groups
- * spend by the `opentrattos.tag` span attribute. Tagless calls fall
+ * spend by the `nexandro.tag` span attribute. Tagless calls fall
  * under `(sin tag)`.
  */
 export function CostByTagWidget(props: CostByTagWidgetProps) {
@@ -21,7 +21,7 @@ export function CostByTagWidget(props: CostByTagWidgetProps) {
       dataUpdatedAt={props.dataUpdatedAt}
       onRefresh={props.onRefresh}
       emptyTitle="Sin tags registrados"
-      emptyBody="Etiqueta tus capacidades MCP con `opentrattos.tag` para ver el desglose."
+      emptyBody="Etiqueta tus capacidades MCP con `nexandro.tag` para ver el desglose."
     />
   );
 }

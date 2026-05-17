@@ -11,7 +11,7 @@ import {
   type CorrectionsHistoryFieldDiff,
   type ExtractedField,
   type HitlQueueRow,
-} from '@opentrattos/ui-kit';
+} from '@nexandro/ui-kit';
 import { useCurrentOrgId, useCurrentRole } from '../../lib/currentUser';
 import {
   useHitlQueue,
@@ -44,7 +44,7 @@ import type {
  * Manager only per ADR-J12-OWNER-MANAGER-ONLY.
  */
 const DRAFT_TTL_MS = 30 * 60_000;
-const DRAFT_KEY_PREFIX = 'opentrattos.photoIngest.draft.v1';
+const DRAFT_KEY_PREFIX = 'nexandro.photoIngest.draft.v1';
 
 type ScopeChip = 'mine' | 'all' | 'rejected' | 'signed';
 

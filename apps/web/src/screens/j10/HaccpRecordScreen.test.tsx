@@ -183,7 +183,7 @@ describe('HaccpRecordScreen', () => {
 
     await waitFor(() => {
       const raw = window.localStorage.getItem(
-        'opentrattos.haccp.draft.v1.org-demo.ccp-cooling-curve.STAFF',
+        'nexandro.haccp.draft.v1.org-demo.ccp-cooling-curve.STAFF',
       );
       expect(raw).not.toBeNull();
       const parsed = JSON.parse(raw!) as { value: string; v: number };

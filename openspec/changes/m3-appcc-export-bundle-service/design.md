@@ -107,7 +107,7 @@ Three pre-locked decisions from architecture-m3.md + j9.md constrain the design:
 
 ### ADR-STORAGE-INTERFACE-LOCAL-DEFAULT
 
-**Decision.** Bundle bytes (PDF + CSV) are persisted via a `BundleStorage` interface. The default implementation is `LocalBundleStorage` writing under `OPENTRATTOS_BUNDLE_STORAGE_ROOT` (default `./var/bundles/`). Signed read URLs are issued by the controller (HMAC-signed, 1 h TTL) and proxied through the API.
+**Decision.** Bundle bytes (PDF + CSV) are persisted via a `BundleStorage` interface. The default implementation is `LocalBundleStorage` writing under `NEXANDRO_BUNDLE_STORAGE_ROOT` (default `./var/bundles/`). Signed read URLs are issued by the controller (HMAC-signed, 1 h TTL) and proxied through the API.
 
 **Rationale.**
 
@@ -127,7 +127,7 @@ Three pre-locked decisions from architecture-m3.md + j9.md constrain the design:
 
 ### ADR-MCP-COMPLIANCE-CAPABILITY
 
-**Decision.** Single MCP capability `compliance.generate-export` proxies `POST /m3/compliance/exports`. Per-capability kill switch: `OPENTRATTOS_AGENT_COMPLIANCE_GENERATE_EXPORT_ENABLED`.
+**Decision.** Single MCP capability `compliance.generate-export` proxies `POST /m3/compliance/exports`. Per-capability kill switch: `NEXANDRO_AGENT_COMPLIANCE_GENERATE_EXPORT_ENABLED`.
 
 **Rationale.** Matches architecture-m3.md sub-decision under MCP namespacing. Hermes calls from WhatsApp / Telegram surface the same endpoint as the j9 trigger.
 

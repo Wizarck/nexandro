@@ -70,10 +70,10 @@ class TestAuthMiddleware {
       type: 'postgres',
       url:
         process.env.DATABASE_URL ??
-        'postgres://opentrattos_test:opentrattos_test@localhost:5433/opentrattos_test',
+        'postgres://nexandro_test:nexandro_test@localhost:5433/nexandro_test',
       entities: ALL_ENTITIES,
       migrations: [`${__dirname}/../migrations/*.{ts,js}`],
-      migrationsTableName: 'opentrattos_migrations',
+      migrationsTableName: 'nexandro_migrations',
       synchronize: false,
     }),
     SharedModule,
@@ -192,9 +192,9 @@ describe('agent-chat — flag-enabled (integration)', () => {
 
   beforeAll(async () => {
     fakeHermes = await startFakeHermes();
-    process.env.OPENTRATTOS_AGENT_ENABLED = 'true';
-    process.env.OPENTRATTOS_HERMES_BASE_URL = fakeHermes.url;
-    process.env.OPENTRATTOS_HERMES_AUTH_SECRET = 's3cret-int';
+    process.env.NEXANDRO_AGENT_ENABLED = 'true';
+    process.env.NEXANDRO_HERMES_BASE_URL = fakeHermes.url;
+    process.env.NEXANDRO_HERMES_AUTH_SECRET = 's3cret-int';
 
     moduleRef = await Test.createTestingModule({ imports: [TestAppModule] }).compile();
     const app = moduleRef.createNestApplication();
@@ -212,9 +212,9 @@ describe('agent-chat — flag-enabled (integration)', () => {
     await dataSource?.destroy();
     await moduleRef?.close();
     await fakeHermes.close();
-    delete process.env.OPENTRATTOS_AGENT_ENABLED;
-    delete process.env.OPENTRATTOS_HERMES_BASE_URL;
-    delete process.env.OPENTRATTOS_HERMES_AUTH_SECRET;
+    delete process.env.NEXANDRO_AGENT_ENABLED;
+    delete process.env.NEXANDRO_HERMES_BASE_URL;
+    delete process.env.NEXANDRO_HERMES_AUTH_SECRET;
   });
 
   beforeEach(async () => {
@@ -257,7 +257,7 @@ describe('agent-chat — flag-enabled (integration)', () => {
     expect(fakeHermes.received.auth).toBe('s3cret-int');
     expect(fakeHermes.received.bodies).toHaveLength(1);
     const sent = fakeHermes.received.bodies[0] as { bank_id: string; user_attribution: { user_id: string }; message: unknown };
-    expect(sent.bank_id).toBe('opentrattos-acme-trattoria');
+    expect(sent.bank_id).toBe('nexandro-acme-trattoria');
     expect(sent.user_attribution.user_id).toBe(userId);
 
     // Assert exactly one AGENT_ACTION_FORENSIC audit row was written (per
@@ -344,9 +344,9 @@ describe('agent-chat — flag-disabled (integration)', () => {
   const userId = '22222222-2222-4222-8222-222222222222';
 
   beforeAll(async () => {
-    process.env.OPENTRATTOS_AGENT_ENABLED = 'false';
-    delete process.env.OPENTRATTOS_HERMES_BASE_URL;
-    delete process.env.OPENTRATTOS_HERMES_AUTH_SECRET;
+    process.env.NEXANDRO_AGENT_ENABLED = 'false';
+    delete process.env.NEXANDRO_HERMES_BASE_URL;
+    delete process.env.NEXANDRO_HERMES_AUTH_SECRET;
 
     moduleRef = await Test.createTestingModule({ imports: [TestAppModule] }).compile();
     const app = moduleRef.createNestApplication();
@@ -363,7 +363,7 @@ describe('agent-chat — flag-disabled (integration)', () => {
     await new Promise<void>((resolve) => server.close(() => resolve()));
     await dataSource?.destroy();
     await moduleRef?.close();
-    delete process.env.OPENTRATTOS_AGENT_ENABLED;
+    delete process.env.NEXANDRO_AGENT_ENABLED;
   });
 
   beforeEach(async () => {

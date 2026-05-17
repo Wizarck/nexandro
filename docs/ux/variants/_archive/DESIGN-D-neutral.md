@@ -109,7 +109,7 @@ Tablet still primary, but adaptations follow shadcn defaults.
 ## 9. Agent prompts (how to describe screens to LLMs)
 
 ```
-You are designing a screen for openTrattOS, a kitchen-operations SaaS.
+You are designing a screen for nexandro, a kitchen-operations SaaS.
 Visual language: Variant D "Neutral baseline" — shadcn/ui defaults verbatim,
 slate palette, Inter sans everywhere, lucide icons. NO custom colors,
 NO custom fonts, NO custom motion. Use Tailwind utilities directly

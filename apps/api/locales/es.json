@@ -59,8 +59,8 @@
     "ALLERGEN_CROSS_CONTAMINATION_TAGS_REQUIRED": "La contaminación cruzada requiere tanto una nota libre como una lista estructurada de alérgenos no vacía"
   },
   "ui": {
-    "swagger_title": "API de openTrattOS",
-    "swagger_description": "openTrattOS Módulo 1 — Ingredientes Foundation. Multi-inquilino, multi-ubicación, con RBAC.",
+    "swagger_title": "API de nexandro",
+    "swagger_description": "nexandro Módulo 1 — Ingredientes Foundation. Multi-inquilino, multi-ubicación, con RBAC.",
     "tag_iam": "Identidad y Acceso",
     "tag_categories": "Categorías",
     "tag_ingredients": "Ingredientes",

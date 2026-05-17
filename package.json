@@ -1,12 +1,12 @@
 {
-  "name": "opentrattos",
+  "name": "nexandro",
   "version": "0.1.0",
   "private": true,
   "description": "The Open Source Back-of-House (BOH) & Kitchen Traceability OS",
   "license": "AGPL-3.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Wizarck/openTrattOS.git"
+    "url": "https://github.com/Wizarck/nexandro.git"
   },
   "workspaces": [
     "apps/*",

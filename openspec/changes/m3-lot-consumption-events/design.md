@@ -6,7 +6,7 @@ What slice #1 explicitly deferred (design.md ADR-LOT-INDEXES, line 75): *"The co
 
 This slice picks up both deferred items and ships them as a thin operational BC. It does **not** wire the existing M2 `RecipeExecutionService` to call the new consumption seam — that's procurement-block follow-up work (likely between slice #7 GR reconciliation and the cost-resolver slices). This slice is the **plumbing**: the event type, the emitter point, the read-side query, the indexes. Consumers are slices #11/#12/#13.
 
-ADR-031 (architecture-m3.md line 192) drives the index choices. ADR-030 (line 232) drives the `opentrattos_tag` JSONB attribute requirement on every emitted event for downstream cost-by-tag drill-down. Both inform the event payload schema.
+ADR-031 (architecture-m3.md line 192) drives the index choices. ADR-030 (line 232) drives the `nexandro_tag` JSONB attribute requirement on every emitted event for downstream cost-by-tag drill-down. Both inform the event payload schema.
 
 ## Goals / Non-Goals
 
@@ -46,7 +46,7 @@ The `LotConsumedEvent` envelope inherits the M2 `AuditEventEnvelope` shape (`eve
 | `menu_item_id` | uuid | YES | populated when consumption is driven directly by menu-item depletion (some agent flows skip the recipe layer) |
 | `consumed_at` | timestamptz | NO | server-side timestamp at `recordConsumption()` call time (NOT the wall-clock the agent claimed) |
 | `consumed_by_user_id` | uuid | NO | actor; matches the envelope-level `actor_user_id` but duplicated in payload for self-contained event consumers |
-| `opentrattos_tag` | text | YES | free-form tag per ADR-030 (e.g., `"recall-investigation"`, `"chef-tablet"`) for cost-by-tag drill-down |
+| `nexandro_tag` | text | YES | free-form tag per ADR-030 (e.g., `"recall-investigation"`, `"chef-tablet"`) for cost-by-tag drill-down |
 | `reason` | text | YES | optional human note from the operator (e.g., `"prep for service"`, `"manual depletion - dropped"`) |
 
 **Why duplicate `organization_id` and `consumed_by_user_id` in both envelope and payload?** Two reasons: (a) ADR-CONSUMPTION-MULTI-TENANT-PAYLOAD below — every payload MUST carry org_id at top level so downstream consumers (cost-rollup, recall, dashboard) never have to JOIN back to the envelope; (b) self-contained events survive replay and shipping to external systems without context loss.
@@ -169,4 +169,4 @@ Both columns NULL-able at DB level + payload schema level. **App-side invariant*
 
 - **Idempotency of `recordConsumption()` against retries**: if a network blip causes the agent to retry the same MCP call, we get two `stock_moves` rows. **Proposed answer**: the caller passes an idempotency key (UUID v4) in `RecordConsumptionInput`; the service short-circuits if a `stock_moves` row with that key already exists. Implementation detail; INT-tested in this slice but not promoted to ADR — covered by REQ-CE-5 in the spec.
 
-- **Does the `opentrattos_tag` field propagate to the StockMove row, or live only in the event payload?** **Proposed answer**: event-only for now. Tag is an AI-obs / cost-attribution concept (ADR-030 widget #7); the StockMove row is the operational ledger and shouldn't grow per-AI-obs requirement. If future cost-by-tag analysis needs to query StockMove directly, we add a `metadata->>'tag'` jsonb path in a follow-up migration.
+- **Does the `nexandro_tag` field propagate to the StockMove row, or live only in the event payload?** **Proposed answer**: event-only for now. Tag is an AI-obs / cost-attribution concept (ADR-030 widget #7); the StockMove row is the operational ledger and shouldn't grow per-AI-obs requirement. If future cost-by-tag analysis needs to query StockMove directly, we add a `metadata->>'tag'` jsonb path in a follow-up migration.

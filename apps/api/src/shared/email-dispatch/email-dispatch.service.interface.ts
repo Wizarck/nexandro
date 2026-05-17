@@ -36,6 +36,6 @@ export interface EmailDispatchService {
 /**
  * NestJS DI token for the resolved `EmailDispatchService` instance. The
  * factory (`EmailDispatchFactory.onModuleInit()`) reads
- * `OPENTRATTOS_EMAIL_PROVIDER` and picks one of the 3 adapters.
+ * `NEXANDRO_EMAIL_PROVIDER` and picks one of the 3 adapters.
  */
 export const EMAIL_DISPATCH_SERVICE = Symbol('EMAIL_DISPATCH_SERVICE');

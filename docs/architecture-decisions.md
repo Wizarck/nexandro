@@ -1,6 +1,6 @@
 # Architecture Decision Records (ADR)
 
-**Project:** openTrattOS  
+**Project:** nexandro  
 **Status:** Approved by Product Owner  
 **Date:** 2026-04-19
 
@@ -26,7 +26,7 @@ direct entity imports.
 **Decision:** All API endpoints must be atomic, semantically named, and fully 
 documented in OpenAPI/Swagger from day one.
 
-**Rationale:** In TrattOS Enterprise, the API will be wrapped as MCP (Model Context 
+**Rationale:** In Nexandro Enterprise, the API will be wrapped as MCP (Model Context 
 Protocol) Tools to be consumed by AI agents (Hermes/OpenClaw). An agent LLM must be 
 able to understand what a tool does from its name and description alone, without 
 reading documentation.
@@ -44,8 +44,8 @@ reading documentation.
 **Decision:** The Python FastAPI AI microservice is a separate process. The NestJS 
 API only calls it if `AI_SERVICE_URL` is set in environment variables.
 
-**Rationale:** openTrattOS Community Edition must work 100% offline and without AI 
-costs. The AI layer is a TrattOS Enterprise differentiator.
+**Rationale:** nexandro Community Edition must work 100% offline and without AI 
+costs. The AI layer is a Nexandro Enterprise differentiator.
 
 ---
 
@@ -55,15 +55,15 @@ costs. The AI layer is a TrattOS Enterprise differentiator.
 non-nullable foreign key.
 
 **Rationale:** A single restaurateur uses 1 organization. A group with 5 venues uses 
-1 organization with 5 Locations. This enables TrattOS Enterprise's multi-venue 
+1 organization with 5 Locations. This enables Nexandro Enterprise's multi-venue 
 management without schema migrations later.
 
 ---
 
-## ADR-005: TrattOS Enterprise Agent Stack (Reserved)
+## ADR-005: Nexandro Enterprise Agent Stack (Reserved)
 
-**Decision:** The following components are out of scope for openTrattOS Community and 
-are reserved for TrattOS Enterprise:
+**Decision:** The following components are out of scope for nexandro Community and 
+are reserved for Nexandro Enterprise:
 
 - **Agent Runtime:** Hermes / OpenClaw
 - **Memory Layer:** Hindsight
@@ -114,7 +114,7 @@ always in the org's currency. The UI displays the org's currency symbol everywhe
 the organization's `defaultLocale` field. System-managed data (category seeds) 
 uses dedicated translation columns (`nameEs`, `nameEn`) in the database.
 
-**Rationale:** openTrattOS targets the Spanish and international markets. A Spanish 
+**Rationale:** nexandro targets the Spanish and international markets. A Spanish 
 chef must see "Verduras de Hoja" while an English-speaking chef sees "Leafy Greens". 
 User-generated content (ingredient names, recipe descriptions) is NOT translated — 
 each organization writes in their own language.
@@ -196,7 +196,7 @@ FR9/FR14 callers. Aligns with FIFO costing used by McDonald's, Sodexo, Aramark
   dump (~2-4 GB compressed). Active-passive table swap for zero-downtime sync.
 - **REST API fallback:** `world.openfoodfacts.org/api/v3` queried on local cache miss
   or when local data is stale (>30 days for that product). Gated by
-  `OPENTRATTOS_OFF_API_FALLBACK_ENABLED` feature flag.
+  `NEXANDRO_OFF_API_FALLBACK_ENABLED` feature flag.
 - **Refresh job:** Cron, weekly. Atomic schema-versioned table swap.
 
 **Rationale:** Local mirror gives <100ms p95 lookup (NFR target), zero network dependency
@@ -214,14 +214,14 @@ DB). API fallback covers freshly-released products + cache misses without forcin
 
 ## ADR-013: MCP-server is Community core; specific agent runtimes stay BYO/Enterprise
 
-**Decision:** The `opentrattos` MCP server (the contract surface that any
+**Decision:** The `nexandro` MCP server (the contract surface that any
 MCP-compatible agent connects to) ships in the **Community edition**. The specific AGENT
 RUNTIMES (Hermes, OpenCode, Claude Desktop, custom) and the MEMORY LAYER (Hindsight)
 remain Enterprise/BYO per the unchanged parts of ADR-005.
 
 **Rationale:** ADR-005 conflated three concerns: (a) agent runtime, (b) memory layer,
 (c) MCP contract surface. Contract surfaces are cheap to ship and define the integration
-point. Community openTrattOS thus offers a standard MCP server out-of-the-box; Enterprise
+point. Community nexandro thus offers a standard MCP server out-of-the-box; Enterprise
 customers (or any DIY user) plug their preferred agent into it.
 
 **Rules enforced:**
@@ -231,7 +231,7 @@ customers (or any DIY user) plug their preferred agent into it.
   or any agent vendor packages. Enforced by `eslint-plugin-import` `no-restricted-paths`.
 - Standalone deployment mode (no MCP server, no web chat widget) is fully functional via
   UI; switching to agent-integrated mode requires only env-var changes
-  (`OPENTRATTOS_AGENT_ENABLED=true`) + container restart. Target operator time: ≤30 min.
+  (`NEXANDRO_AGENT_ENABLED=true`) + container restart. Target operator time: ≤30 min.
 - **Dual-mode CI**: full E2E suite runs in BOTH standalone and agent-integrated
   configurations on every PR.
 - The MCP server passes the official MCP protocol test suite + conformance tests against
@@ -348,7 +348,7 @@ is non-negotiable for restaurant compliance in EU markets.
 - **Eval gate:** Pre-launch, run a 50-ingredient evaluation against USDA FoodData Central
   + CIA Pro Chef gold values; require ≥95% within 5pp of reference. If fail, swap
   implementation behind the interface.
-- **Operational override:** Env var `OPENTRATTOS_AI_YIELD_MODEL` (default
+- **Operational override:** Env var `NEXANDRO_AI_YIELD_MODEL` (default
   `gpt-oss-20b-rag`) allows ops-time model swap without code change.
 
 **Rationale:** `gpt-oss-20b` is cheapest ($0.075/1M in, $0.30/1M out), already wired
@@ -369,7 +369,7 @@ Escoffier Project Gutenberg) is ingested into LightRAG. The 50-ingredient eval g
 deferred to a post-launch monitoring slice — operationally the iron rule already
 guarantees no un-cited suggestion ships to the chef, and the chef's accept/reject
 pattern in the `ai_suggestions` audit table provides the live signal. Production flag
-`OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED=true` is documented in
+`NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED=true` is documented in
 `apps/api/.env.example`. See `docs/operations/m2-prod-runbook.md`.
 
 ---
@@ -395,11 +395,11 @@ emphasis (bold) is trivially supported.
   HTML template. The component-based approach (AllergenBadge etc.) survives the swap.
 
 **Risk (pre-launch):** EU 1169/2011 compliance is jurisdiction-specific. Ship behind
-`OPENTRATTOS_LABELS_PROD_ENABLED=false` until external legal review confirms the
+`NEXANDRO_LABELS_PROD_ENABLED=false` until external legal review confirms the
 generated label format meets compliance for the target jurisdiction(s).
 
 **Gate clearance 2026-05-06** (`m2-wrap-up`): external legal review filed and approved
-for Spain/EU jurisdiction. Production flag `OPENTRATTOS_LABELS_PROD_ENABLED=true` is
+for Spain/EU jurisdiction. Production flag `NEXANDRO_LABELS_PROD_ENABLED=true` is
 documented in `apps/api/.env.example`. The legal clearance covers Spain/EU only —
 operators deploying to other jurisdictions must repeat the review before flipping the
 flag in those environments. See `docs/operations/m2-prod-runbook.md` (per-jurisdiction
@@ -429,7 +429,7 @@ reminder section).
 
 **Consequence:**
 - New `apps/web/` workspace + expanded `packages/ui-kit/` workspace.
-- New `.github/workflows/storybook.yml` builds Storybook on every PR (advisory) + deploys to GitHub Pages on `master`. URL: `https://wizarck.github.io/openTrattOS/storybook/`.
+- New `.github/workflows/storybook.yml` builds Storybook on every PR (advisory) + deploys to GitHub Pages on `master`. URL: `https://wizarck.github.io/nexandro/storybook/`.
 - Per-component file layout codified in `packages/ui-kit/README.md` (one folder per component: tsx + stories + test + types + index).
 - OKLCH-canonical CSS variables in `packages/ui-kit/src/tokens.css`; hex in `docs/ux/DESIGN.md` YAML frontmatter is a derivation snapshot only.
 - Dev-time CORS handled by Vite proxy (`/api/*` → `http://localhost:3000`); production hits the real API URL via `VITE_API_URL`.
@@ -443,7 +443,7 @@ reminder section).
 
 ## ADR-021: Operational corpus is USDA + EU 1169/2011 + Escoffier (Gutenberg); modern cookbooks deferred
 
-**Decision:** The AI yield/waste suggestion corpus ingested into the openTrattOS RAG store comprises:
+**Decision:** The AI yield/waste suggestion corpus ingested into the nexandro RAG store comprises:
 - **USDA FoodData Central** (Foundation + SR Legacy datasets) — public domain (US Government Work, 17 U.S.C. §105).
 - **EU Reglamento (UE) Nº 1169/2011** consolidated text — free reuse under Commission Decision 2011/833/EU.
 - **Escoffier *Le Guide Culinaire*** Project Gutenberg edition — public domain (>100 years post mortem auctoris).
@@ -467,7 +467,7 @@ Modern copyrighted cookbooks (Larousse Gastronomique, *The Professional Chef* CI
 
 ## ADR-022: rag-proxy as stateless Python service in front of LightRAG (no LightRAG modification)
 
-**Decision:** Translation between LightRAG's prose+references response shape and openTrattOS's canonical `{value, citationUrl, snippet}` AI suggestion contract lives in a separate Python FastAPI service (`tools/rag-proxy/`) sitting in front of an unmodified LightRAG deployment on the VPS. The proxy is stateless — every audit/cache row stays in `apps/api`'s `ai_suggestions` table per Wave 1.7.
+**Decision:** Translation between LightRAG's prose+references response shape and nexandro's canonical `{value, citationUrl, snippet}` AI suggestion contract lives in a separate Python FastAPI service (`tools/rag-proxy/`) sitting in front of an unmodified LightRAG deployment on the VPS. The proxy is stateless — every audit/cache row stays in `apps/api`'s `ai_suggestions` table per Wave 1.7.
 
 The proxy is responsible for:
 - Bearer auth from `apps/api` (`Authorization: Bearer <RAG_PROXY_API_KEY>`).
@@ -477,7 +477,7 @@ The proxy is responsible for:
 - Iron-rule preflight (mirrored from `apps/api/src/ai-suggestions/application/types.ts::applyIronRule`) before responding.
 - Translation to LightRAG's `X-API-Key` auth scheme internally.
 
-`apps/api/`'s `GptOssRagProvider` already speaks the canonical contract; no TypeScript code changes — only `OPENTRATTOS_AI_RAG_BASE_URL` flips at deploy time.
+`apps/api/`'s `GptOssRagProvider` already speaks the canonical contract; no TypeScript code changes — only `NEXANDRO_AI_RAG_BASE_URL` flips at deploy time.
 
 **Rationale:**
 - **No LightRAG fork or upstream PR dependency.** LightRAG's response shape, auth, and storage stay vanilla.
@@ -486,8 +486,8 @@ The proxy is responsible for:
 - **Pluggable per `AI_SUGGESTION_PROVIDER` DI token.** Future providers (Claude Haiku, Hermes, alternative RAG engines) drop in at the apps/api layer; the proxy is one of N possible backends.
 
 **Consequence:**
-- New Docker image `opentrattos/rag-proxy`, ~250 LOC Python, deployed alongside LightRAG on the VPS.
-- ADR-018's "single feature flag controls the surface" still holds: `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED` is the master switch; the proxy URL is a config detail.
+- New Docker image `nexandro/rag-proxy`, ~250 LOC Python, deployed alongside LightRAG on the VPS.
+- ADR-018's "single feature flag controls the surface" still holds: `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED` is the master switch; the proxy URL is a config detail.
 - Operational rollback: stop the proxy container → `apps/api` falls back to "manual entry only" via the existing iron-rule null path.
 
 **Alternatives considered:**
@@ -534,7 +534,7 @@ If the LLM's response cannot be parsed as JSON after one retry (with a stricter 
 **Rationale:**
 - **Citation must be what the LLM committed to**, not what the retrieval layer happens to surface. Otherwise the LLM could cite source-A content while paying lip service to source-B's URL.
 - **`user_prompt` is the only LightRAG hook that doesn't require modification.** ADR-022 forbids LightRAG modification; structured outputs (response_format / tools) would require it.
-- **Acceptable failure mode (~5–10%).** When the LLM ignores the schema, the proxy retries once. If still bad → Brave → null. The chef sees "manual entry" — same UX as Wave 1.7's `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED=false` path. Acceptable per FR19.
+- **Acceptable failure mode (~5–10%).** When the LLM ignores the schema, the proxy retries once. If still bad → Brave → null. The chef sees "manual entry" — same UX as Wave 1.7's `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED=false` path. Acceptable per FR19.
 
 **Consequence:**
 - Corpus ingestion includes `[source_url=… era=… source=…]` metadata header on every chunk so the LLM has it as context.
@@ -655,13 +655,13 @@ Reference implementation: `apps/api/src/agent-chat/application/agent-chat.servic
 
 ## ADR-028: Community distribution = single omnibus Docker image
 
-**Decision:** The community AGPL-3.0 distribution ships as a SINGLE Docker image `ghcr.io/wizarck/opentrattos:latest` containing both the NestJS API (`apps/api/dist`) and the Vite SPA (`apps/web/dist`), served by a single Node process via `@nestjs/serve-static`. NestJS sets a global `/api` prefix so the SPA owns `/` and the backend owns `/api/*`. The image is published with `public` visibility so third parties can `docker pull` without GitHub credentials.
+**Decision:** The community AGPL-3.0 distribution ships as a SINGLE Docker image `ghcr.io/wizarck/nexandro:latest` containing both the NestJS API (`apps/api/dist`) and the Vite SPA (`apps/web/dist`), served by a single Node process via `@nestjs/serve-static`. NestJS sets a global `/api` prefix so the SPA owns `/` and the backend owns `/api/*`. The image is published with `public` visibility so third parties can `docker pull` without GitHub credentials.
 
-**Rationale:** openTrattOS is a modular monolith (ADR-001) targeting self-hosters with single-VPS scale. Single-omnibus is the dominant pattern for this class of product (GitLab CE `gitlab/gitlab-ce`, Mattermost `mattermost-team-edition`, n8n `n8nio/n8n`, Ghost `ghost`, Outline `outlinewiki/outline`). Splitting api/web doubles the GHCR packages, image versions, CI matrix, pull time, and compose complexity for a flexibility (independent scaling, CDN frontend) that has no use case until TrattOS Enterprise SaaS exists. Re-splitting later is a half-day refactor (catalogued in `docs/operations/post-deploy-roadmap.md` as R11).
+**Rationale:** nexandro is a modular monolith (ADR-001) targeting self-hosters with single-VPS scale. Single-omnibus is the dominant pattern for this class of product (GitLab CE `gitlab/gitlab-ce`, Mattermost `mattermost-team-edition`, n8n `n8nio/n8n`, Ghost `ghost`, Outline `outlinewiki/outline`). Splitting api/web doubles the GHCR packages, image versions, CI matrix, pull time, and compose complexity for a flexibility (independent scaling, CDN frontend) that has no use case until Nexandro Enterprise SaaS exists. Re-splitting later is a half-day refactor (catalogued in `docs/operations/post-deploy-roadmap.md` as R11).
 
 **Rules enforced:**
-- No second image for the community AGPL surface. The MCP server image (ADR-013, `packages/mcp-server-opentrattos/Dockerfile`) is a separate concern (Enterprise-consumed) and stays separate.
-- TrattOS Enterprise add-ons (Hermes agent, Hindsight memory, WhatsApp/Telegram bot, LangGraph orchestration per AGENTS.md Appendix) consume the community API via MCP tools (ADR-002). They do NOT bundle into the community image. Same model as GitLab EE plugins on top of CE.
+- No second image for the community AGPL surface. The MCP server image (ADR-013, `packages/mcp-server-nexandro/Dockerfile`) is a separate concern (Enterprise-consumed) and stays separate.
+- Nexandro Enterprise add-ons (Hermes agent, Hindsight memory, WhatsApp/Telegram bot, LangGraph orchestration per AGENTS.md Appendix) consume the community API via MCP tools (ADR-002). They do NOT bundle into the community image. Same model as GitLab EE plugins on top of CE.
 - No license-check code in `apps/api/` or `apps/web/`. Feature flags (`*_DISABLED`, `=noop`) gate external credentials, not paid features. A self-hoster enables S3 archival or real SMTP by providing creds, not by paying.
 - The community quickstart (`docker-compose.yml` at repo root) and the operator deploy (`deploy/docker-compose.prod.yml`) reference the SAME single image with different binds (`0.0.0.0:3000:3001` vs `127.0.0.1:3201:3001`).
 

@@ -57,13 +57,13 @@ Per ADR-028 the dossier PDF reuses `packages/label-renderer/`'s `@react-pdf/rend
 - **`apps/api/src/audit-log/application/audit-log.subscriber.ts`** — 5 new `@OnEvent` handlers (envelope shape; persisted via `persistEnvelope`), 1 per event type. Pattern lifted directly from slice #21 `onPhotoUploaded` / `onPhotoDeleted`.
 - **`apps/api/src/app.module.ts`** — uncomments `RecallModule` from the "Future Bounded Contexts" list near the bottom of the imports.
 
-### MCP capabilities (packages/mcp-server-opentrattos/src/capabilities/write/)
+### MCP capabilities (packages/mcp-server-nexandro/src/capabilities/write/)
 
 - **`recall.ts`** — two new entries in `RECALL_WRITE_CAPABILITIES`:
   - `recall.dispatch-86-flag` → `POST /m3/recall/incidents/:id/dispatch`.
   - `recall.generate-dossier` → re-uses the same endpoint (dispatch generates + emails); a thin alias is acceptable per ADR-MCP-W-REGISTRY.
 - **`index.ts`** — spread `RECALL_WRITE_CAPABILITIES` into the registry.
-- Per-capability kill switches: `OPENTRATTOS_AGENT_RECALL_DISPATCH_86_FLAG_ENABLED` + `OPENTRATTOS_AGENT_RECALL_GENERATE_DOSSIER_ENABLED` (env-flag pattern from M2 ADR-MCP-W-PERCAP-FLAGS).
+- Per-capability kill switches: `NEXANDRO_AGENT_RECALL_DISPATCH_86_FLAG_ENABLED` + `NEXANDRO_AGENT_RECALL_GENERATE_DOSSIER_ENABLED` (env-flag pattern from M2 ADR-MCP-W-PERCAP-FLAGS).
 
 ### Frontend (apps/web/src/ + packages/ui-kit/src/)
 
@@ -142,5 +142,5 @@ Per ADR-028 the dossier PDF reuses `packages/label-renderer/`'s `@react-pdf/rend
   - Long-term PDF archival to cold storage (ADR-029 retention archival follow-up).
   - Cryptographic signature over the dossier root (M4+ regulatory follow-up).
   - APPCC export bundle (slice #14).
-- **Parallelism**: file-path scope = `apps/api/src/recall/**` (except files claimed by slices #11/#12) + `apps/api/src/audit-log/application/types.ts` (extends) + `apps/api/src/audit-log/application/audit-log.subscriber.ts` (extends) + `apps/api/src/app.module.ts` (one-line uncomment) + `packages/mcp-server-opentrattos/src/capabilities/write/recall.ts` (new) + `apps/web/src/screens/RecallInvestigateJ6Screen.tsx` + `apps/web/src/screens/RecallDossierJ7Screen.tsx` + `apps/web/src/layouts/CrisisLayout.tsx` + `apps/web/src/api/recall.ts` + `apps/web/src/hooks/useRecallIncident.ts` + `packages/ui-kit/src/components/{RecallActionBar,RecallConfirmationStrip,DispatchReceiptCard,DossierPreview,AddendumComposer,IncidentChronologyRail,RecipientList}/**`. Conflicts with slice #11 are limited to `recall.module.ts` + `constants.ts` + `recall/types.ts`; conflicts with slice #12 are limited to `recall.module.ts`. Both are mechanical rebase targets.
+- **Parallelism**: file-path scope = `apps/api/src/recall/**` (except files claimed by slices #11/#12) + `apps/api/src/audit-log/application/types.ts` (extends) + `apps/api/src/audit-log/application/audit-log.subscriber.ts` (extends) + `apps/api/src/app.module.ts` (one-line uncomment) + `packages/mcp-server-nexandro/src/capabilities/write/recall.ts` (new) + `apps/web/src/screens/RecallInvestigateJ6Screen.tsx` + `apps/web/src/screens/RecallDossierJ7Screen.tsx` + `apps/web/src/layouts/CrisisLayout.tsx` + `apps/web/src/api/recall.ts` + `apps/web/src/hooks/useRecallIncident.ts` + `packages/ui-kit/src/components/{RecallActionBar,RecallConfirmationStrip,DispatchReceiptCard,DossierPreview,AddendumComposer,IncidentChronologyRail,RecipientList}/**`. Conflicts with slice #11 are limited to `recall.module.ts` + `constants.ts` + `recall/types.ts`; conflicts with slice #12 are limited to `recall.module.ts`. Both are mechanical rebase targets.
 - **Effort estimate**: L (~3800 LOC application + ~1500 LOC tests; matches gate-c slice list "L" sizing for slice #13 at ~15 days nominal).

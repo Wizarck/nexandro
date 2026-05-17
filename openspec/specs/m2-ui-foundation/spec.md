@@ -82,7 +82,7 @@ The system SHALL run a Storybook 8 build via `@storybook/react-vite` framework, 
 
 #### Scenario: master push deploys to Pages
 - **WHEN** a commit is pushed to `master` (or a PR is merged to `master`)
-- **THEN** the workflow builds Storybook AND deploys to `https://wizarck.github.io/openTrattOS/storybook/`, with the PR's components visible at the public URL
+- **THEN** the workflow builds Storybook AND deploys to `https://wizarck.github.io/nexandro/storybook/`, with the PR's components visible at the public URL
 
 #### Scenario: a11y violations are reported
 - **WHEN** Storybook runs the `@storybook/addon-a11y` checks on a story that violates WCAG-AA (e.g., contrast ratio <4.5:1)

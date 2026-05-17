@@ -95,7 +95,7 @@ THEN   AgentSignatureMiddleware verifies the signature against the new public ke
 WHEN   A request signed with the OLD private key arrives with X-Agent-Id=X
        (e.g. an in-flight pre-rotation request)
 THEN   AgentSignatureMiddleware verification fails
-       AND When OPENTRATTOS_AGENT_SIGNATURE_REQUIRED=true for the org,
+       AND When NEXANDRO_AGENT_SIGNATURE_REQUIRED=true for the org,
             the request is rejected with HTTP 401 'AGENT_SIGNATURE_INVALID'
        AND When the flag is off, the legacy unsigned 3a behaviour applies.
 ```

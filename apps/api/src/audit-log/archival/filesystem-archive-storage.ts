@@ -8,8 +8,8 @@ import type { AuditArchiveStorage } from './audit-archive-storage';
  * or a network mount (NFS, EFS) for HA setups.
  *
  * Env:
- *  - `OPENTRATTOS_AUDIT_ARCHIVE_DIR` — root directory; default
- *    `/var/opentrattos/audit-archive`.
+ *  - `NEXANDRO_AUDIT_ARCHIVE_DIR` — root directory; default
+ *    `/var/nexandro/audit-archive`.
  *
  * Layout: `{root}/{organizationId}/{YYYY-MM}/audit-log.jsonl.gz`
  *
@@ -34,8 +34,8 @@ export class FilesystemArchiveStorage implements AuditArchiveStorage {
   constructor(root?: string) {
     this.root =
       root ??
-      process.env.OPENTRATTOS_AUDIT_ARCHIVE_DIR ??
-      '/var/opentrattos/audit-archive';
+      process.env.NEXANDRO_AUDIT_ARCHIVE_DIR ??
+      '/var/nexandro/audit-archive';
   }
 
   async write(

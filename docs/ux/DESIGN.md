@@ -1,5 +1,5 @@
 ---
-title: openTrattOS Design System
+title: nexandro Design System
 status: canonical
 last-updated: 2026-04-27
 parent: docs/ux/
@@ -12,9 +12,9 @@ related:
   - docs/personas-jtbd.md
 ---
 
-# openTrattOS Design System
+# nexandro Design System
 
-The single source of truth for openTrattOS visual language, components, and design rules. Per-journey mocks (`docs/ux/j1.md` … `j5.md`) and the components catalogue (`docs/ux/components.md`) reference this document; they do not redefine its tokens.
+The single source of truth for nexandro visual language, components, and design rules. Per-journey mocks (`docs/ux/j1.md` … `j5.md`) and the components catalogue (`docs/ux/components.md`) reference this document; they do not redefine its tokens.
 
 ## 1. Principles
 
@@ -22,7 +22,7 @@ The single source of truth for openTrattOS visual language, components, and desi
 2. **Trattoria soul without trattoria cliché.** Warmth is carried by the colour temperature and one typographic wink, not by checkered tablecloths, Italian flag stripes, or chef-hat icons. Trust the palette.
 3. **Tablet-first, kitchen-real.** The primary device is a 10″ landscape tablet on slow Wi-Fi, used by people with oily fingers who glance every 30 seconds. Touch targets, contrast, and load time are not negotiable.
 4. **Citations as trust mechanism.** AI-suggested numbers (yields, waste factors, macros, allergens) carry visible provenance — `[USDA]`, `[CIA]`, `[ICN]`, `[OFF]` — readable inline, full source on hover. Without citation the chef has no reason to trust the suggestion.
-5. **Allergen as legal duty.** Per EU 1169/2011 Article 21 (and the openTrattOS supersede in [ADR-017](../architecture-decisions.md)), allergen presence must be emphasised — bold + sufficient contrast + icon + text. Never colour-only. Never optional.
+5. **Allergen as legal duty.** Per EU 1169/2011 Article 21 (and the nexandro supersede in [ADR-017](../architecture-decisions.md)), allergen presence must be emphasised — bold + sufficient contrast + icon + text. Never colour-only. Never optional.
 6. **Live cost is the spine.** Every recipe surface shows the live cost recomputing as the chef edits. The number is the most weighted element on the screen after the recipe title. Recalculation latency budget is 200 ms (NFR).
 7. **Agent-ready, agent-optional.** The same surfaces must be renderable by AI agents (Hermes via MCP) and by human-driven UI. The contract is the API; the visual layer here is the human consumption channel. See [ADR-013](../architecture-decisions.md).
 8. **Boring before clever.** Conventions exist because they reduce cognitive load. Reach for novelty only when the conventional pattern fails the persona — and document why.
@@ -74,7 +74,7 @@ OKLCH is the canonical form — declare colours in OKLCH for perceptual uniformi
 }
 ```
 
-**Why OKLCH, not hex.** OKLCH is perceptually uniform — a 5 % L step looks like a 5 % L step everywhere on the colour wheel, which hex does not guarantee. On wide-gamut displays (P3 / Rec.2020) the OKLCH form preserves saturation; the equivalent hex (clamped to sRGB) renders flatter. All openTrattOS mocks must declare colours in OKLCH so the surfaces match each other on every device.
+**Why OKLCH, not hex.** OKLCH is perceptually uniform — a 5 % L step looks like a 5 % L step everywhere on the colour wheel, which hex does not guarantee. On wide-gamut displays (P3 / Rec.2020) the OKLCH form preserves saturation; the equivalent hex (clamped to sRGB) renders flatter. All nexandro mocks must declare colours in OKLCH so the surfaces match each other on every device.
 
 ### Contrast (WCAG-AA verified)
 
@@ -231,7 +231,7 @@ States: default · loading (PDF compile) · error · ready-to-print.
 
 ### `AgentChatWidget`
 
-Feature-flagged web chat. Renders only when `OPENTRATTOS_AGENT_ENABLED=true`. Per [ADR-013](../architecture-decisions.md), the widget is a separate consumer of the same API contract — visually it is a sidesheet, not the primary surface.
+Feature-flagged web chat. Renders only when `NEXANDRO_AGENT_ENABLED=true`. Per [ADR-013](../architecture-decisions.md), the widget is a separate consumer of the same API contract — visually it is a sidesheet, not the primary surface.
 Tokens: `--surface` background, `--accent` for the user input ring, no celebration animations on response (motion budget applies).
 
 ### Component states (universal)
@@ -378,7 +378,7 @@ Guidance for AI agents (Hermes via MCP, future LLM-driven UI generators) produci
 
 When asking an agent to produce a new component for this system, frame as:
 
-> Produce a `<ComponentName>` for openTrattOS following `docs/ux/DESIGN.md`.
+> Produce a `<ComponentName>` for nexandro following `docs/ux/DESIGN.md`.
 > - Persona: `<persona>`. Device: `<device>`.
 > - Data shape: `<schema or example>`.
 > - States required: default / hover / focus / active / disabled / loading / error / success.

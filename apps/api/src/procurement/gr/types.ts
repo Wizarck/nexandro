@@ -5,7 +5,7 @@ import type { LotUnit } from '../../inventory/lot/domain/lot.entity';
  * Inline shared types for the procurement.gr BC.
  *
  * Per Wave 2.1 lesson (TS6059 + TS2448 cascade): types stay co-located in
- * this file rather than re-exported through `@opentrattos/contracts`.
+ * this file rather than re-exported through `@nexandro/contracts`.
  * Downstream slices (#8 UI, #11 incident search, #14 APPCC) read these
  * directly from `apps/api/src/procurement/gr/types.ts` via the package
  * graph — no contracts dependency from apps/api.

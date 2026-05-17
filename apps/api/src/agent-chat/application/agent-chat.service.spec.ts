@@ -25,9 +25,9 @@ const USER_ID = '22222222-2222-4222-8222-222222222222';
 
 describe('AgentChatService — feature flag + bank id', () => {
   beforeEach(() => {
-    delete process.env.OPENTRATTOS_AGENT_ENABLED;
-    delete process.env.OPENTRATTOS_HERMES_BASE_URL;
-    delete process.env.OPENTRATTOS_HERMES_AUTH_SECRET;
+    delete process.env.NEXANDRO_AGENT_ENABLED;
+    delete process.env.NEXANDRO_HERMES_BASE_URL;
+    delete process.env.NEXANDRO_HERMES_AUTH_SECRET;
   });
 
   it('isEnabled() returns false by default', () => {
@@ -38,50 +38,50 @@ describe('AgentChatService — feature flag + bank id', () => {
   it('isEnabled() honours truthy values', () => {
     const svc = new AgentChatService(makeRepo(null), makeEvents());
     for (const v of ['true', 'TRUE', '1', 'yes', 'Yes']) {
-      process.env.OPENTRATTOS_AGENT_ENABLED = v;
+      process.env.NEXANDRO_AGENT_ENABLED = v;
       expect(svc.isEnabled()).toBe(true);
     }
-    process.env.OPENTRATTOS_AGENT_ENABLED = 'false';
+    process.env.NEXANDRO_AGENT_ENABLED = 'false';
     expect(svc.isEnabled()).toBe(false);
   });
 
   it('resolveBankId derives slug from organization name', async () => {
     const svc = new AgentChatService(makeRepo(makeOrg(ORG_ID, 'Acme Trattoria')), makeEvents());
-    expect(await svc.resolveBankId(ORG_ID)).toBe('opentrattos-acme-trattoria');
+    expect(await svc.resolveBankId(ORG_ID)).toBe('nexandro-acme-trattoria');
   });
 
   it('resolveBankId handles diacritics + non-ASCII', async () => {
     const svc = new AgentChatService(makeRepo(makeOrg(ORG_ID, 'Restaurante La Bohème')), makeEvents());
-    expect(await svc.resolveBankId(ORG_ID)).toBe('opentrattos-restaurante-la-boheme');
+    expect(await svc.resolveBankId(ORG_ID)).toBe('nexandro-restaurante-la-boheme');
   });
 
   it('resolveBankId truncates slug to 32 chars', async () => {
     const longName = 'A Very Long Restaurant Name That Exceeds The Limit Surely';
     const svc = new AgentChatService(makeRepo(makeOrg(ORG_ID, longName)), makeEvents());
     const id = await svc.resolveBankId(ORG_ID);
-    expect(id).toMatch(/^opentrattos-/);
-    const slug = id.replace('opentrattos-', '');
+    expect(id).toMatch(/^nexandro-/);
+    const slug = id.replace('nexandro-', '');
     expect(slug.length).toBeLessThanOrEqual(32);
   });
 
   it('resolveBankId falls back to hash when org name slugifies to empty', async () => {
     const svc = new AgentChatService(makeRepo(makeOrg(ORG_ID, '!!!')), makeEvents());
     const id = await svc.resolveBankId(ORG_ID);
-    expect(id).toMatch(/^opentrattos-[0-9a-f]{8}$/);
+    expect(id).toMatch(/^nexandro-[0-9a-f]{8}$/);
   });
 
   it('resolveBankId falls back to hash when org cannot be loaded', async () => {
     const svc = new AgentChatService(makeRepo(null), makeEvents());
     const id = await svc.resolveBankId(ORG_ID);
-    expect(id).toMatch(/^opentrattos-[0-9a-f]{8}$/);
+    expect(id).toMatch(/^nexandro-[0-9a-f]{8}$/);
   });
 });
 
 describe('AgentChatService — stream() guards', () => {
   beforeEach(() => {
-    delete process.env.OPENTRATTOS_AGENT_ENABLED;
-    delete process.env.OPENTRATTOS_HERMES_BASE_URL;
-    delete process.env.OPENTRATTOS_HERMES_AUTH_SECRET;
+    delete process.env.NEXANDRO_AGENT_ENABLED;
+    delete process.env.NEXANDRO_HERMES_BASE_URL;
+    delete process.env.NEXANDRO_HERMES_AUTH_SECRET;
   });
 
   it('throws NotFoundException when flag is off', () => {
@@ -95,7 +95,7 @@ describe('AgentChatService — stream() guards', () => {
   });
 
   it('throws ServiceUnavailable when Hermes base URL missing', () => {
-    process.env.OPENTRATTOS_AGENT_ENABLED = 'true';
+    process.env.NEXANDRO_AGENT_ENABLED = 'true';
     const svc = new AgentChatService(makeRepo(makeOrg(ORG_ID, 'Acme')), makeEvents());
     expect(() =>
       svc.stream(
@@ -106,8 +106,8 @@ describe('AgentChatService — stream() guards', () => {
   });
 
   it('throws ServiceUnavailable when auth secret missing', () => {
-    process.env.OPENTRATTOS_AGENT_ENABLED = 'true';
-    process.env.OPENTRATTOS_HERMES_BASE_URL = 'http://hermes:8644';
+    process.env.NEXANDRO_AGENT_ENABLED = 'true';
+    process.env.NEXANDRO_HERMES_BASE_URL = 'http://hermes:8644';
     const svc = new AgentChatService(makeRepo(makeOrg(ORG_ID, 'Acme')), makeEvents());
     expect(() =>
       svc.stream(
@@ -123,16 +123,16 @@ describe('AgentChatService — Hermes call via mocked fetch', () => {
 
   beforeEach(() => {
     originalFetch = global.fetch;
-    process.env.OPENTRATTOS_AGENT_ENABLED = 'true';
-    process.env.OPENTRATTOS_HERMES_BASE_URL = 'http://hermes:8644';
-    process.env.OPENTRATTOS_HERMES_AUTH_SECRET = 's3cret';
+    process.env.NEXANDRO_AGENT_ENABLED = 'true';
+    process.env.NEXANDRO_HERMES_BASE_URL = 'http://hermes:8644';
+    process.env.NEXANDRO_HERMES_AUTH_SECRET = 's3cret';
   });
 
   afterEach(() => {
     global.fetch = originalFetch;
-    delete process.env.OPENTRATTOS_AGENT_ENABLED;
-    delete process.env.OPENTRATTOS_HERMES_BASE_URL;
-    delete process.env.OPENTRATTOS_HERMES_AUTH_SECRET;
+    delete process.env.NEXANDRO_AGENT_ENABLED;
+    delete process.env.NEXANDRO_HERMES_BASE_URL;
+    delete process.env.NEXANDRO_HERMES_AUTH_SECRET;
   });
 
   function fakeSseResponse(frames: string[]): Response {
@@ -169,7 +169,7 @@ describe('AgentChatService — Hermes call via mocked fetch', () => {
     expect(url).toBe('http://hermes:8644/web/sess-X');
     expect((init.headers as Record<string, string>)['x-web-auth-secret']).toBe('s3cret');
     const body = JSON.parse(init.body);
-    expect(body.bank_id).toBe('opentrattos-acme-trattoria');
+    expect(body.bank_id).toBe('nexandro-acme-trattoria');
     expect(body.user_attribution).toEqual({ user_id: USER_ID, display_name: 'Lourdes' });
     expect(body.message).toEqual({ type: 'text', content: 'hola' });
 
@@ -247,16 +247,16 @@ describe('AgentChatService — turn audit emission', () => {
 
   beforeEach(() => {
     originalFetch = global.fetch;
-    process.env.OPENTRATTOS_AGENT_ENABLED = 'true';
-    process.env.OPENTRATTOS_HERMES_BASE_URL = 'http://hermes:8644';
-    process.env.OPENTRATTOS_HERMES_AUTH_SECRET = 's3cret';
+    process.env.NEXANDRO_AGENT_ENABLED = 'true';
+    process.env.NEXANDRO_HERMES_BASE_URL = 'http://hermes:8644';
+    process.env.NEXANDRO_HERMES_AUTH_SECRET = 's3cret';
   });
 
   afterEach(() => {
     global.fetch = originalFetch;
-    delete process.env.OPENTRATTOS_AGENT_ENABLED;
-    delete process.env.OPENTRATTOS_HERMES_BASE_URL;
-    delete process.env.OPENTRATTOS_HERMES_AUTH_SECRET;
+    delete process.env.NEXANDRO_AGENT_ENABLED;
+    delete process.env.NEXANDRO_HERMES_BASE_URL;
+    delete process.env.NEXANDRO_HERMES_AUTH_SECRET;
   });
 
   function fakeSseResponse(frames: string[]): Response {

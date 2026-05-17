@@ -64,7 +64,7 @@ This slice is **independent** of every M3 slice except #1 (`m3-lot-aggregate`, a
   - 5-minute cron worst-case alert latency: 5 minutes after the band threshold is crossed. Acceptable per kitchen ops; not a regulatory hot path.
 - **Storage**: `expiry_alerts_fired` grows ~2 rows per expiring lot (one per band). At ~50 lots/day/org × 30 orgs × 2 bands × 365 days = ~1.1M rows/year → ~200 MB/year incl. indexes. Negligible until M4 scale.
 - **Audit**: event TYPE registered in the union via `domain/events.ts`. The `@OnEvent` subscriber registration in `apps/api/src/audit-log/audit-log.subscriber.ts` is **deferred to slice #21** (`m3-audit-log-hash-chain-hardening`) per the same Wave 2.1 pattern slice #1 used (ADR-EXPIRY-NO-EMIT-HERE). The scanner emits via `EventEmitter2`; subscriber wiring lands in batch.
-- **Rollback**: drop the `expiry_alerts_fired` table in a follow-up migration. The scanner cron is idempotent — disabling the env var `OPENTRATTOS_EXPIRY_SCANNER_ENABLED=false` halts emission without code change. Slice #1's lots table is untouched.
+- **Rollback**: drop the `expiry_alerts_fired` table in a follow-up migration. The scanner cron is idempotent — disabling the env var `NEXANDRO_EXPIRY_SCANNER_ENABLED=false` halts emission without code change. Slice #1's lots table is untouched.
 - **Out of scope** (claimed by other slices):
   - Hermes routing of `LotExpiryNearEvent` → WhatsApp / Telegram fan-out. Owned by the existing Hermes BC (Wave 1.13 [3a]+[3b]); this slice emits the event and stops.
   - j8 dashboard widget surfacing alert counts / acknowledgement queue → `m3-ai-obs-ui` (slice #20).

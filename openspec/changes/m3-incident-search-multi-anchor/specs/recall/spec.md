@@ -58,7 +58,7 @@ The system SHALL expose `GET /m3/recall/search?q=<text>&types=<csv>&limit=<n>` d
 
 ### Requirement: MCP capability `recall.search-incident` proxies the REST endpoint
 
-The system SHALL register an MCP capability `recall.search-incident` in `packages/mcp-server-opentrattos/` that forwards `{ query, types?, limit? }` to `GET /m3/recall/search`. The response shape MUST match the REST envelope exactly.
+The system SHALL register an MCP capability `recall.search-incident` in `packages/mcp-server-nexandro/` that forwards `{ query, types?, limit? }` to `GET /m3/recall/search`. The response shape MUST match the REST envelope exactly.
 
 #### Scenario: Capability invocation forwards to REST
 - **WHEN** an agent invokes `recall.search-incident` with `{ query: 'tomate', limit: 8 }`

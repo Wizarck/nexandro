@@ -6,7 +6,7 @@ import {
   type PrintAdapter,
   type PrintJob,
   type PrintResult,
-} from '@opentrattos/label-renderer';
+} from '@nexandro/label-renderer';
 import {
   INGREDIENT_OVERRIDE_CHANGED,
   RECIPE_ALLERGENS_OVERRIDE_CHANGED,
@@ -21,8 +21,8 @@ import {
 
 // Mock the renderer at module load — apps/api unit tests never invoke the
 // real @react-pdf renderer (its transitive dependency tree is ESM-only).
-jest.mock('@opentrattos/label-renderer', () => {
-  const actual = jest.requireActual('@opentrattos/label-renderer');
+jest.mock('@nexandro/label-renderer', () => {
+  const actual = jest.requireActual('@nexandro/label-renderer');
   return {
     ...actual,
     renderLabelToPdf: jest.fn().mockResolvedValue(Buffer.from('%PDF-mock-render')),

@@ -2,11 +2,11 @@
 
 ### Requirement: MCP server registers 43 write capabilities mirroring REST 1:1
 
-The `packages/mcp-server-opentrattos` server SHALL register one MCP tool for each of the 43 REST write endpoints listed in proposal.md, grouped into 12 namespaces (`recipes.*`, `menu-items.*`, `ingredients.*`, `categories.*`, `suppliers.*`, `supplier-items.*`, `labels.*`, `ai-suggestions.*`, `external-catalog.*`, `iam.users.*`, `iam.locations.*`, `iam.organizations.*`). Each tool's invocation SHALL proxy via the existing HTTP client to the corresponding REST endpoint with the same body shape.
+The `packages/mcp-server-nexandro` server SHALL register one MCP tool for each of the 43 REST write endpoints listed in proposal.md, grouped into 12 namespaces (`recipes.*`, `menu-items.*`, `ingredients.*`, `categories.*`, `suppliers.*`, `supplier-items.*`, `labels.*`, `ai-suggestions.*`, `external-catalog.*`, `iam.users.*`, `iam.locations.*`, `iam.organizations.*`). Each tool's invocation SHALL proxy via the existing HTTP client to the corresponding REST endpoint with the same body shape.
 
 #### Scenario: MCP client lists write capabilities
 
-- **WHEN** an MCP client invokes `tools/list` against `opentrattos`
+- **WHEN** an MCP client invokes `tools/list` against `nexandro`
 - **THEN** the response includes 43+ tools (existing reads + 43 writes); each write tool has a name matching `<namespace>.<op>`, a description, and a JSON schema for inputs
 
 #### Scenario: MCP `recipes.create` invocation proxies to POST /recipes
@@ -83,21 +83,21 @@ For every write request whose `req.agentContext.viaAgent === true`, the system S
 
 ### Requirement: per-capability feature flags gate agent writes
 
-The system SHALL define ~43 environment variables `OPENTRATTOS_AGENT_<NAMESPACE>_<OP>_ENABLED` (default `false`) in `apps/api/.env.example`. When a write request arrives with `req.agentContext.viaAgent === true` AND the corresponding flag is `false`, the system SHALL return HTTP 503 with `code: AGENT_CAPABILITY_DISABLED`. Direct REST/UI traffic SHALL NOT be affected by these flags.
+The system SHALL define ~43 environment variables `NEXANDRO_AGENT_<NAMESPACE>_<OP>_ENABLED` (default `false`) in `apps/api/.env.example`. When a write request arrives with `req.agentContext.viaAgent === true` AND the corresponding flag is `false`, the system SHALL return HTTP 503 with `code: AGENT_CAPABILITY_DISABLED`. Direct REST/UI traffic SHALL NOT be affected by these flags.
 
 #### Scenario: disabled capability rejects agent write
 
-- **WHEN** `OPENTRATTOS_AGENT_RECIPES_DELETE_ENABLED=false` AND an agent calls `recipes.delete`
+- **WHEN** `NEXANDRO_AGENT_RECIPES_DELETE_ENABLED=false` AND an agent calls `recipes.delete`
 - **THEN** the response is HTTP 503 with `code: AGENT_CAPABILITY_DISABLED`; no audit row is written; no Recipe is deleted
 
 #### Scenario: enabled capability accepts agent write
 
-- **WHEN** `OPENTRATTOS_AGENT_RECIPES_UPDATE_ENABLED=true` AND an agent calls `recipes.update`
+- **WHEN** `NEXANDRO_AGENT_RECIPES_UPDATE_ENABLED=true` AND an agent calls `recipes.update`
 - **THEN** the request is executed normally; audit row is emitted
 
 #### Scenario: UI traffic ignores the flags
 
-- **WHEN** `OPENTRATTOS_AGENT_RECIPES_DELETE_ENABLED=false` AND a UI user calls `DELETE /recipes/:id` directly (no MCP layer)
+- **WHEN** `NEXANDRO_AGENT_RECIPES_DELETE_ENABLED=false` AND a UI user calls `DELETE /recipes/:id` directly (no MCP layer)
 - **THEN** the request is executed normally; the flag is ignored
 
 #### Scenario: boot-time logging surfaces enabled flags
@@ -107,11 +107,11 @@ The system SHALL define ~43 environment variables `OPENTRATTOS_AGENT_<NAMESPACE>
 
 ### Requirement: trusted-internal-network mode persists until 3c lands
 
-This slice SHALL inherit the trusted-internal-network deployment posture from `m2-mcp-server` (Wave 1.5). The `m2-mcp-server` spec requirement "unsigned agent header → 401" is NOT honoured by this slice; it is deferred to `m2-mcp-agent-registry-bench` (3c). The `apps/api/.env.example` and `packages/mcp-server-opentrattos/README.md` SHALL document this trade-off explicitly.
+This slice SHALL inherit the trusted-internal-network deployment posture from `m2-mcp-server` (Wave 1.5). The `m2-mcp-server` spec requirement "unsigned agent header → 401" is NOT honoured by this slice; it is deferred to `m2-mcp-agent-registry-bench` (3c). The `apps/api/.env.example` and `packages/mcp-server-nexandro/README.md` SHALL document this trade-off explicitly.
 
 #### Scenario: README warns of trusted-network requirement
 
-- **WHEN** an operator reads `packages/mcp-server-opentrattos/README.md`
+- **WHEN** an operator reads `packages/mcp-server-nexandro/README.md`
 - **THEN** a "Trusted-Internal-Network Mode" section warns against external exposure until `m2-mcp-agent-registry-bench` ships
 
 #### Scenario: env example carries the same warning

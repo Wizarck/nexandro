@@ -16,7 +16,7 @@
   - `PhotoUploadNotConfirmedError` (HTTP 422 — S3 object missing or size-mismatch on `HEAD`)
   - `InvalidMimeTypeError`, `InvalidPhotoSizeError`, `InvalidRetentionClassError`
 
-## 3. Events module — inline (no @opentrattos/contracts)
+## 3. Events module — inline (no @nexandro/contracts)
 
 - [ ] 3.1 `apps/api/src/photo-storage/domain/events.ts`:
   - `export const PHOTO_UPLOADED_CHANNEL = 'm3.photo-storage.photo-uploaded' as const`
@@ -48,7 +48,7 @@
   - `runRetention()`: invokes `runPhase1SoftDelete()` then `runPhase2HardDelete()`
   - `runPhase1SoftDelete()`: paginates `findCandidatesForSoftDelete(now - 90d, 100)`; for each row sets `deleted_at`, emits `PHOTO_DELETED` with `reason='retention_90d'`; per-row try/catch (REQ-EX-7-style scheduler resilience)
   - `runPhase2HardDelete()`: paginates `findCandidatesForHardDelete(now - 7d, 100)`; for each row calls `s3DeleteObject(s3Key)` then `repository.hardDelete()`; per-row try/catch
-  - Env flag `OPENTRATTOS_PHOTO_RETENTION_ENABLED=false` short-circuits the cron
+  - Env flag `NEXANDRO_PHOTO_RETENTION_ENABLED=false` short-circuits the cron
 - [ ] 4.4 `apps/api/src/photo-storage/application/sigv4.ts`:
   - Pure functions `canonicalRequest()`, `stringToSign()`, `signingKey()`, `presignUrl()` per AWS Signature V4 spec
   - No NestJS imports; tested in isolation against AWS-documented known vectors
@@ -117,7 +117,7 @@
 ## 10. Documentation + handoff
 
 - [ ] 10.1 `apps/api/src/photo-storage/README.md` — BC purpose, public surface (`PhotoStorageService`), what's claimed by downstream slices (#17 photo-ingest HITL, #13 recall dossier, #15 APPCC export)
-- [ ] 10.2 Update `docs/operations/` with a brief deploy note: env vars `OPENTRATTOS_PHOTO_STORAGE_*` required; MinIO bootstrap snippet for self-hosted
+- [ ] 10.2 Update `docs/operations/` with a brief deploy note: env vars `NEXANDRO_PHOTO_STORAGE_*` required; MinIO bootstrap snippet for self-hosted
 
 ## 11. CI + PR hygiene
 

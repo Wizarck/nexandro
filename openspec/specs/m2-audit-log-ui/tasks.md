@@ -28,12 +28,12 @@
 
 ## Stage 4 — Verification + PR + Gate F (final)
 
-- [ ] `npm run build --workspace=@opentrattos/ui-kit` clean.
+- [ ] `npm run build --workspace=@nexandro/ui-kit` clean.
 - [ ] `npm run build --workspace=apps/web` clean.
-- [ ] `npm test --workspace=@opentrattos/ui-kit` green (current 167 → ≥182, +15).
+- [ ] `npm test --workspace=@nexandro/ui-kit` green (current 167 → ≥182, +15).
 - [ ] `npm test --workspace=apps/web` green (current 4 → ≥9, +5).
 - [ ] `npm run lint` clean across workspaces.
-- [ ] `npm run build-storybook --workspace=@opentrattos/ui-kit` clean.
+- [ ] `npm run build-storybook --workspace=@nexandro/ui-kit` clean.
 - [ ] grep audit confirms no apps/api changes.
 - [ ] PR `proposal(m2-audit-log-ui): Owner+Manager browse UI for audit_log (Wave 1.19)`.
 - [ ] CI green; squash-merge.

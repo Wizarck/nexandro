@@ -11,7 +11,7 @@ import { trace, type Span, type SpanOptions, type Tracer } from '@opentelemetry/
  *
  * - `startSpan(name, options)` — generic helper used by interceptors +
  *   ad-hoc tracing. Accepts an optional `tag` value which is normalized
- *   into the `opentrattos.tag` attribute by `SpanEnricherInterceptor`.
+ *   into the `nexandro.tag` attribute by `SpanEnricherInterceptor`.
  *
  * Per ADR-VISION-OTEL-PRE-BOOTSTRAP, the actual `NodeSDK.start()` call
  * happens in `apps/api/src/otel-bootstrap.ts` BEFORE any NestJS module
@@ -38,14 +38,14 @@ export interface GenAiSpanAttributes {
   inputTokens?: number;
   outputTokens?: number;
   operationName?: string;
-  /** Forwarded to `opentrattos.tag` (must already be normalized by caller). */
+  /** Forwarded to `nexandro.tag` (must already be normalized by caller). */
   tag?: string;
   /** Additional attributes — logged at `warn` level if not in the pinned set. */
   additional?: Record<string, string | number | boolean>;
 }
 
 export interface OpenTrattOsSpanOptions extends SpanOptions {
-  /** Caller-supplied tag — normalized into `opentrattos.tag` attribute. */
+  /** Caller-supplied tag — normalized into `nexandro.tag` attribute. */
   tag?: string;
 }
 
@@ -60,13 +60,13 @@ export class UnknownSemconvAttributeError extends Error {
   }
 }
 
-const TRACER_NAME = 'opentrattos-api';
+const TRACER_NAME = 'nexandro-api';
 
 @Injectable()
 export class OtelService {
   private readonly logger = new Logger(OtelService.name);
 
-  /** Returns the global tracer for `service.name=opentrattos-api`. */
+  /** Returns the global tracer for `service.name=nexandro-api`. */
   getTracer(): Tracer {
     return trace.getTracer(TRACER_NAME);
   }
@@ -92,14 +92,14 @@ export class OtelService {
     if (attrs.operationName !== undefined) span.setAttribute('gen_ai.operation.name', attrs.operationName);
 
     if (attrs.tag !== undefined) {
-      span.setAttribute('opentrattos.tag', attrs.tag);
+      span.setAttribute('nexandro.tag', attrs.tag);
     } else if (options.tag !== undefined) {
-      span.setAttribute('opentrattos.tag', options.tag);
+      span.setAttribute('nexandro.tag', options.tag);
     }
 
     if (attrs.additional) {
       for (const [key, value] of Object.entries(attrs.additional)) {
-        if (!(PINNED_GEN_AI_ATTRIBUTE_KEYS as readonly string[]).includes(key) && !key.startsWith('opentrattos.')) {
+        if (!(PINNED_GEN_AI_ATTRIBUTE_KEYS as readonly string[]).includes(key) && !key.startsWith('nexandro.')) {
           this.logger.warn(
             `gen_ai span "${name}" carries non-pinned attribute "${key}"; bump @opentelemetry/semantic-conventions pin if intentional`,
           );
@@ -115,7 +115,7 @@ export class OtelService {
   startSpan(name: string, options: OpenTrattOsSpanOptions = {}): Span {
     const span = this.getTracer().startSpan(name, options);
     if (options.tag !== undefined) {
-      span.setAttribute('opentrattos.tag', options.tag);
+      span.setAttribute('nexandro.tag', options.tag);
     }
     return span;
   }

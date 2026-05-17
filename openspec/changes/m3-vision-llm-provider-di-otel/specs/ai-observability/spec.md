@@ -5,7 +5,7 @@
 The system SHALL provide a new bounded context at `apps/api/src/ai-observability/` exporting an OpenTelemetry tracer service, a span-enricher interceptor, a vision-LLM provider DI surface, and a typed pricing registry. The BC SHALL NOT include rollup tables, dashboard endpoints, budget enforcement, or vision-LLM call implementations — those are claimed by downstream slices (#17a, #19, #20).
 
 #### Scenario: Module imports satisfy downstream slice consumers
-- **WHEN** slice #17a (`m3-photo-ingest-backend`) imports `VisionLlmProvider` from `@opentrattos/api/ai-observability`
+- **WHEN** slice #17a (`m3-photo-ingest-backend`) imports `VisionLlmProvider` from `@nexandro/api/ai-observability`
 - **THEN** the import resolves; the DI token is bound to the factory; the consumer can `@Inject(VisionLlmProvider)` in its service
 
 #### Scenario: Downstream slice anchors exist as empty placeholders
@@ -14,19 +14,19 @@ The system SHALL provide a new bounded context at `apps/api/src/ai-observability
 
 ### Requirement: OpenTelemetry SDK initializes pre-bootstrap to capture NestJS startup
 
-The system SHALL initialize the OpenTelemetry Node.js SDK (`NodeSDK.start()`) at the top of `apps/api/src/main.ts` BEFORE any other import or NestJS bootstrap call. The init SHALL be guarded by `OPENTRATTOS_OTEL_DISABLED` env (default `false`); when disabled, the SDK initializes a no-op exporter so spans still emit in-process but are discarded.
+The system SHALL initialize the OpenTelemetry Node.js SDK (`NodeSDK.start()`) at the top of `apps/api/src/main.ts` BEFORE any other import or NestJS bootstrap call. The init SHALL be guarded by `NEXANDRO_OTEL_DISABLED` env (default `false`); when disabled, the SDK initializes a no-op exporter so spans still emit in-process but are discarded.
 
 #### Scenario: Startup span captured by exporter on cold boot
-- **WHEN** the API process starts with `OPENTRATTOS_OTEL_DISABLED=false` and a reachable OTLP endpoint
-- **THEN** the exporter receives a span with `name='service.startup'` and resource attributes `service.name=opentrattos-api` within 5s of process start
+- **WHEN** the API process starts with `NEXANDRO_OTEL_DISABLED=false` and a reachable OTLP endpoint
+- **THEN** the exporter receives a span with `name='service.startup'` and resource attributes `service.name=nexandro-api` within 5s of process start
 
 #### Scenario: Disabled exporter still emits spans in-process
-- **WHEN** the API process starts with `OPENTRATTOS_OTEL_DISABLED=true`
+- **WHEN** the API process starts with `NEXANDRO_OTEL_DISABLED=true`
 - **THEN** `OtelService.startSpan()` returns a valid span object that can be sealed without error; the no-op exporter discards the span; no network call is made to any OTLP endpoint
 
 #### Scenario: Pre-bootstrap order is enforced by ESLint rule
 - **WHEN** a developer accidentally moves `NodeSDK.start()` below the NestJS imports in `main.ts`
-- **THEN** the project's ESLint custom rule `opentrattos/otel-pre-bootstrap-order` raises an error and CI blocks merge
+- **THEN** the project's ESLint custom rule `nexandro/otel-pre-bootstrap-order` raises an error and CI blocks merge
 
 ### Requirement: gen_ai.* semantic conventions are pinned to specific OTel SemConv version
 
@@ -40,17 +40,17 @@ The system SHALL import `gen_ai.*` attribute constants from `@opentelemetry/sema
 - **WHEN** caller code adds an attribute key that doesn't appear in the pinned `gen_ai.*` schema (e.g. `gen_ai.unknown.field`)
 - **THEN** the span enricher logs a `warn`-level message naming the offending key; the span still emits (caller may have legitimate vendor extension)
 
-### Requirement: SpanEnricherInterceptor adds opentrattos.tag attribute to every span
+### Requirement: SpanEnricherInterceptor adds nexandro.tag attribute to every span
 
-The system SHALL provide a NestJS interceptor `SpanEnricherInterceptor` registered globally that enriches every emitted span with an `opentrattos.tag` attribute. The tag SHALL be a free-form caller-supplied string (max 64 chars, kebab-case ASCII). When a span seals without an explicit tag, the interceptor SHALL assign `opentrattos.tag='untagged'` and log a `warn`-level message.
+The system SHALL provide a NestJS interceptor `SpanEnricherInterceptor` registered globally that enriches every emitted span with an `nexandro.tag` attribute. The tag SHALL be a free-form caller-supplied string (max 64 chars, kebab-case ASCII). When a span seals without an explicit tag, the interceptor SHALL assign `nexandro.tag='untagged'` and log a `warn`-level message.
 
 #### Scenario: Tag attribute appears on every span by default
 - **WHEN** any code path emits a span via `OtelService.startSpan(name, options)` with `options.tag='photo-ingest-batch'`
-- **THEN** the emitted span has attribute `opentrattos.tag='photo-ingest-batch'`
+- **THEN** the emitted span has attribute `nexandro.tag='photo-ingest-batch'`
 
 #### Scenario: Untagged span falls back to "untagged" with warning
 - **WHEN** a span emits without an `options.tag` value (developer forgot)
-- **THEN** the span emits with `opentrattos.tag='untagged'`; a `warn`-level log entry is emitted naming the span name + module location
+- **THEN** the span emits with `nexandro.tag='untagged'`; a `warn`-level log entry is emitted naming the span name + module location
 
 #### Scenario: Tag value exceeding 64 chars is rejected
 - **WHEN** caller code attempts to emit a span with `options.tag` longer than 64 chars
@@ -62,18 +62,18 @@ The system SHALL provide a NestJS interceptor `SpanEnricherInterceptor` register
 
 ### Requirement: Vision-LLM provider DI surface supports three adapters via factory
 
-The system SHALL provide a `VisionLlmProvider` DI token in `apps/api/src/shared/vision-llm/` and a factory that selects an adapter based on the `OPENTRATTOS_VISION_LLM_PROVIDER` env. Three adapter classes SHALL be registered: `GptOssVisionRagProxyProvider` (default), `ClaudeVisionProvider`, `GptFourVProvider`. Adapter implementations of `extract(input)` SHALL throw `NotImplementedError` in this slice — real implementations land with slice #17a.
+The system SHALL provide a `VisionLlmProvider` DI token in `apps/api/src/shared/vision-llm/` and a factory that selects an adapter based on the `NEXANDRO_VISION_LLM_PROVIDER` env. Three adapter classes SHALL be registered: `GptOssVisionRagProxyProvider` (default), `ClaudeVisionProvider`, `GptFourVProvider`. Adapter implementations of `extract(input)` SHALL throw `NotImplementedError` in this slice — real implementations land with slice #17a.
 
 #### Scenario: Default provider is gpt-oss-vision-rag-proxy
-- **WHEN** the API process starts without `OPENTRATTOS_VISION_LLM_PROVIDER` env set
+- **WHEN** the API process starts without `NEXANDRO_VISION_LLM_PROVIDER` env set
 - **THEN** the factory resolves `VisionLlmProvider` to an instance of `GptOssVisionRagProxyProvider`
 
 #### Scenario: Env-selected provider overrides default
-- **WHEN** the API process starts with `OPENTRATTOS_VISION_LLM_PROVIDER=claude-vision`
+- **WHEN** the API process starts with `NEXANDRO_VISION_LLM_PROVIDER=claude-vision`
 - **THEN** the factory resolves `VisionLlmProvider` to an instance of `ClaudeVisionProvider`
 
 #### Scenario: Unknown provider name throws clear error at boot
-- **WHEN** the API process starts with `OPENTRATTOS_VISION_LLM_PROVIDER=acme-vision` (not a known adapter)
+- **WHEN** the API process starts with `NEXANDRO_VISION_LLM_PROVIDER=acme-vision` (not a known adapter)
 - **THEN** the factory throws `UnknownVisionLlmProviderError('acme-vision; expected one of: gpt-oss-vision-rag-proxy, claude-vision, gpt-four-v')` at bootstrap; the API does NOT start
 
 #### Scenario: Provider.extract() throws NotImplementedError in this slice
@@ -101,7 +101,7 @@ The system SHALL export the following Zod schemas from `packages/contracts/src/m
 - `OpenTrattOsTagAttribute` — free-form tag string with max-64-char + kebab-case-ASCII validation
 
 #### Scenario: Downstream slice imports resolve cleanly
-- **WHEN** slice #17a imports `import { VisionLlmInput, VisionLlmOutput, OpenTrattOsTagAttribute } from '@opentrattos/contracts/m3/ai-obs'`
+- **WHEN** slice #17a imports `import { VisionLlmInput, VisionLlmOutput, OpenTrattOsTagAttribute } from '@nexandro/contracts/m3/ai-obs'`
 - **THEN** the imports resolve; Zod schemas can be used to validate runtime data and infer TS types
 
 #### Scenario: Tag attribute Zod schema validates inputs
@@ -118,7 +118,7 @@ The system SHALL register `SpanEnricherInterceptor` as a global interceptor in `
 
 #### Scenario: Wave 1.7 yield suggestion emits a gen_ai.* span
 - **WHEN** a Manager invokes `POST /ai-suggestions/yield` after this slice's merge
-- **THEN** an OTel span is emitted with `name='ai-suggestions.yield'`, attributes including `gen_ai.request.model`, `gen_ai.usage.input_tokens`, `gen_ai.usage.output_tokens`, `opentrattos.tag='ai-yield-suggestion'`
+- **THEN** an OTel span is emitted with `name='ai-suggestions.yield'`, attributes including `gen_ai.request.model`, `gen_ai.usage.input_tokens`, `gen_ai.usage.output_tokens`, `nexandro.tag='ai-yield-suggestion'`
 
 #### Scenario: Existing M2 behaviour is unchanged
 - **WHEN** the M2 ai-suggestions test suite runs against the post-merge codebase
@@ -126,12 +126,12 @@ The system SHALL register `SpanEnricherInterceptor` as a global interceptor in `
 
 ### Requirement: OTLP/HTTP exporter is backend-agnostic and configured via environment
 
-The system SHALL use the OTLP/HTTP exporter (not gRPC) by default. Configuration SHALL be exclusively environment-based: `OPENTRATTOS_OTEL_EXPORTER_ENDPOINT` (URL), `OPENTRATTOS_OTEL_EXPORTER_HEADERS` (comma-separated `key=value` pairs for tenant auth), `OPENTRATTOS_OTEL_SERVICE_NAME` (resource attribute), `OPENTRATTOS_OTEL_DISABLED` (boolean disable flag). The system SHALL NOT bundle Langfuse, Phoenix, Datadog, or Honeycomb client SDKs — consumers point OTLP at their backend.
+The system SHALL use the OTLP/HTTP exporter (not gRPC) by default. Configuration SHALL be exclusively environment-based: `NEXANDRO_OTEL_EXPORTER_ENDPOINT` (URL), `NEXANDRO_OTEL_EXPORTER_HEADERS` (comma-separated `key=value` pairs for tenant auth), `NEXANDRO_OTEL_SERVICE_NAME` (resource attribute), `NEXANDRO_OTEL_DISABLED` (boolean disable flag). The system SHALL NOT bundle Langfuse, Phoenix, Datadog, or Honeycomb client SDKs — consumers point OTLP at their backend.
 
 #### Scenario: Custom headers reach the exporter
-- **WHEN** the API starts with `OPENTRATTOS_OTEL_EXPORTER_HEADERS='x-langfuse-key=lf-12345,x-tenant=acme'`
+- **WHEN** the API starts with `NEXANDRO_OTEL_EXPORTER_HEADERS='x-langfuse-key=lf-12345,x-tenant=acme'`
 - **THEN** the OTLP exporter includes both headers on every outgoing OTLP HTTP request
 
 #### Scenario: Unset endpoint defaults to localhost:4318
-- **WHEN** the API starts without `OPENTRATTOS_OTEL_EXPORTER_ENDPOINT` set
+- **WHEN** the API starts without `NEXANDRO_OTEL_EXPORTER_ENDPOINT` set
 - **THEN** the exporter targets `http://localhost:4318/v1/traces` (standard OTel Collector default port)

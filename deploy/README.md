@@ -1,6 +1,6 @@
-# Operator deployment — trattos.palafitofood.com
+# Operator deployment — nexandro.palafitofood.com
 
-Step-by-step procedure for deploying the openTrattOS community image to the eligia-prod VPS (`178.104.140.21`) behind the existing cloudflared tunnel.
+Step-by-step procedure for deploying the nexandro community image to the eligia-prod VPS (`178.104.140.21`) behind the existing cloudflared tunnel.
 
 For community / laptop quickstart, use the repo-root `docker-compose.yml` instead — see the project README.
 
@@ -20,16 +20,16 @@ ssh root@178.104.140.21 'ss -ltnp | grep :3201 || echo "3201 free"'
 ## Step 2 — Create the directory + ship the compose + env
 
 ```bash
-ssh root@178.104.140.21 'mkdir -p /opt/opentrattos'
-scp deploy/docker-compose.prod.yml root@178.104.140.21:/opt/opentrattos/docker-compose.yml
-scp deploy/.env.example          root@178.104.140.21:/opt/opentrattos/.env.example
+ssh root@178.104.140.21 'mkdir -p /opt/nexandro'
+scp deploy/docker-compose.prod.yml root@178.104.140.21:/opt/nexandro/docker-compose.yml
+scp deploy/.env.example          root@178.104.140.21:/opt/nexandro/.env.example
 ```
 
 ## Step 3 — Generate the Postgres password and write `.env` on the VPS
 
 ```bash
 ssh root@178.104.140.21 << 'EOF'
-cd /opt/opentrattos
+cd /opt/nexandro
 PWD=$(pwgen -s 32 1)
 sed "s|GENERATE-WITH-PWGEN-32-1|$PWD|" .env.example > .env
 chmod 600 .env
@@ -42,20 +42,20 @@ EOF
 The first time after the GHA workflow publishes the image, set the GHCR package visibility to public via the GitHub UI:
 
 1. Open https://github.com/Wizarck?tab=packages
-2. Click the `opentrattos` package
+2. Click the `nexandro` package
 3. Package settings → Change visibility → Public
 4. Confirm
 
 After that, `docker pull` works without GitHub auth from the VPS:
 
 ```bash
-ssh root@178.104.140.21 'docker pull ghcr.io/wizarck/opentrattos:latest'
+ssh root@178.104.140.21 'docker pull ghcr.io/wizarck/nexandro:latest'
 ```
 
 ## Step 5 — Bring the stack up
 
 ```bash
-ssh root@178.104.140.21 'cd /opt/opentrattos && docker compose up -d'
+ssh root@178.104.140.21 'cd /opt/nexandro && docker compose up -d'
 ```
 
 ## Step 6 — Internal smoke test
@@ -100,10 +100,10 @@ In the Cloudflare dashboard, zone `palafitofood.com`, add a DNS record:
 
 ```bash
 # From your desktop (anywhere with internet):
-curl -s https://trattos.palafitofood.com/health | head -c 200
+curl -s https://nexandro.palafitofood.com/health | head -c 200
 # Expect: {"status":"ok","info":{"database":{"status":"up"}, ...}}
 
-open https://trattos.palafitofood.com
+open https://nexandro.palafitofood.com
 # Expect: SPA loads in browser
 ```
 
@@ -112,7 +112,7 @@ open https://trattos.palafitofood.com
 After a new GHA workflow run publishes a fresh `:latest`:
 
 ```bash
-ssh root@178.104.140.21 'cd /opt/opentrattos && docker compose pull && docker compose up -d'
+ssh root@178.104.140.21 'cd /opt/nexandro && docker compose pull && docker compose up -d'
 ```
 
 ## Rollback
@@ -121,8 +121,8 @@ The image carries a `:sha-<7char>` tag for every published commit. To pin to a s
 
 ```bash
 ssh root@178.104.140.21 << 'EOF'
-cd /opt/opentrattos
-sed -i 's|opentrattos:latest|opentrattos:sha-abc1234|' docker-compose.yml
+cd /opt/nexandro
+sed -i 's|nexandro:latest|nexandro:sha-abc1234|' docker-compose.yml
 docker compose pull && docker compose up -d
 EOF
 ```
@@ -135,8 +135,8 @@ This deployment does NOT yet have automated backups. Until R4 lands, periodicall
 
 ```bash
 ssh root@178.104.140.21 << 'EOF'
-cd /opt/opentrattos
-docker compose exec -T db pg_dump -U opentrattos opentrattos | gzip > /opt/opentrattos/backups/$(date -u +%F-%H%M).sql.gz
+cd /opt/nexandro
+docker compose exec -T db pg_dump -U nexandro nexandro | gzip > /opt/nexandro/backups/$(date -u +%F-%H%M).sql.gz
 EOF
 ```
 

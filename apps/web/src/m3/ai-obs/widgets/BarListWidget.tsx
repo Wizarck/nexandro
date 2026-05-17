@@ -1,4 +1,4 @@
-import { EmptyStateCard, MetricCard } from '@opentrattos/ui-kit';
+import { EmptyStateCard, MetricCard } from '@nexandro/ui-kit';
 import type { BarRow } from '../api/aiObs.types';
 import { formatEur, formatFreshness, formatPctInt } from '../lib/format';
 

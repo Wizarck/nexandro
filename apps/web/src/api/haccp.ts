@@ -4,7 +4,7 @@ import { api } from './client';
  * REST client for the M3 HACCP BC (slice #10 m3-haccp-ui, Wave 2.6).
  *
  * Per ADR-J10-NO-CONTRACTS-IMPORT (design.md): all backend shapes
- * are INLINED here. No import from `@opentrattos/contracts`. No
+ * are INLINED here. No import from `@nexandro/contracts`. No
  * import from `apps/api/src/haccp/*`. The URL paths match slice #9's
  * registration. If slice #9's shapes diverge, the resolver picks up
  * the conflict at master merge.

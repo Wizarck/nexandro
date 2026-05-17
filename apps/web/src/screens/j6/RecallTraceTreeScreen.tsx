@@ -3,7 +3,7 @@ import {
   RecallTraceTree,
   RoleGuard,
   type TraceMode,
-} from '@opentrattos/ui-kit';
+} from '@nexandro/ui-kit';
 import { useForwardTrace, useReverseTrace } from '../../hooks/useRecallTrace';
 import { useCurrentOrgId, useCurrentRole } from '../../lib/currentUser';
 

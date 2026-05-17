@@ -2,7 +2,7 @@
  * Inline types for the procurement.po BC.
  *
  * Per Wave 2.1 lessons codified in [[feedback_subagent_apply_typing_fix_cascade]],
- * apps/api MUST NOT import from `@opentrattos/contracts` (TS6059 risk under
+ * apps/api MUST NOT import from `@nexandro/contracts` (TS6059 risk under
  * rootDir=./src). This file mirrors the shapes that `packages/contracts/src/m3/po.ts`
  * publishes for cross-package callers; the contracts package owns the Zod
  * validators. Keep these in lockstep.

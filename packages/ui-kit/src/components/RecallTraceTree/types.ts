@@ -4,7 +4,7 @@
  *
  * Duplicated per ADR-TRACE-NODE-SHAPE (design.md, m3-trace-tree-forward-
  * reverse, Wave 2.5 slice #12) — Wave 2.1 hard constraint bans
- * `@opentrattos/contracts` imports in apps/api (TS6059 `rootDir`
+ * `@nexandro/contracts` imports in apps/api (TS6059 `rootDir`
  * cascade). The two copies are structurally identical; the controller
  * serialises to JSON and the frontend deserialises into the local
  * shape. A future slice promotes the shape to `packages/contracts/`

@@ -42,11 +42,11 @@ Three pre-locked decisions from architecture-m3.md (ADR-028 + ADR-039) constrain
 
 - The label renderer's `LabelData` shape and the recall dossier shape diverge significantly (ingredient table vs. chronology + lot tree + signature block). Stuffing them into one package would force a discriminated-union LabelData that bloats the existing API.
 - The pattern reused is the *dynamic-import discipline* documented in `packages/label-renderer/src/render.ts` — `@react-pdf/renderer` is loaded lazily so apps/api Jest tests don't transitively pull the ESM-only dependency at import time. The module signature is `renderRecallDossierToPdf(data: RecallDossierShape): Promise<Buffer>`.
-- If a future slice wants to move the renderer into `@opentrattos/recall-renderer`, the local module is one file (≤300 LOC). The move would be a follow-up.
+- If a future slice wants to move the renderer into `@nexandro/recall-renderer`, the local module is one file (≤300 LOC). The move would be a follow-up.
 
 **Alternatives considered.**
 
-- *Add a `dossier/` sub-package to `@opentrattos/label-renderer`.* Rejected: package fan-out + a release cut of `@opentrattos/label-renderer` for a recall change. Both touch SemVer for the wrong reasons.
+- *Add a `dossier/` sub-package to `@nexandro/label-renderer`.* Rejected: package fan-out + a release cut of `@nexandro/label-renderer` for a recall change. Both touch SemVer for the wrong reasons.
 - *Inline-PDF via pdfkit/jspdf.* Rejected: tooling sprawl. `@react-pdf/renderer` already exists in the workspace and the patterns are battle-tested.
 
 **Trade-offs.**

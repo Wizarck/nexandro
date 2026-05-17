@@ -170,7 +170,7 @@ The system SHALL declare three new event types in the `AuditEventEnvelope` union
 This slice SHALL NOT register these events with `apps/api/src/audit-log/audit-log.subscriber.ts`. Subscriber registration is reserved for slice #21 (`m3-audit-log-hash-chain-hardening`), per the slice-#1 ADR-LOT-NO-EVENT-EMIT-HERE pattern.
 
 #### Scenario: Event types exported from contracts package
-- **WHEN** a downstream slice imports `import { GrConfirmedEvent, GrLineQtyVarianceEvent, GrLinePriceVarianceEvent } from '@opentrattos/contracts/m3/procurement-gr'`
+- **WHEN** a downstream slice imports `import { GrConfirmedEvent, GrLineQtyVarianceEvent, GrLinePriceVarianceEvent } from '@nexandro/contracts/m3/procurement-gr'`
 - **THEN** the imports resolve; each event type includes `eventType`, `aggregateType='goods_receipt'`, `aggregateId`, and a typed payload
 
 #### Scenario: No audit_log row written by this slice

@@ -1,6 +1,6 @@
 ## 1. Backend DTOs + Zod schemas
 
-- [ ] 1.1 `apps/api/src/ai-observability/dashboard/dto/ai-obs.dto.ts` — Zod schemas for `OverviewQueryDto`, `CostByTagQueryDto`, `FailuresQueryDto` (input) and `OverviewResponseDto`, `CostByTagResponseDto`, `FailuresResponseDto` (output). Use `.min(1)` over `.nonempty()`; no `@opentrattos/contracts` imports.
+- [ ] 1.1 `apps/api/src/ai-observability/dashboard/dto/ai-obs.dto.ts` — Zod schemas for `OverviewQueryDto`, `CostByTagQueryDto`, `FailuresQueryDto` (input) and `OverviewResponseDto`, `CostByTagResponseDto`, `FailuresResponseDto` (output). Use `.min(1)` over `.nonempty()`; no `@nexandro/contracts` imports.
 - [ ] 1.2 Define `PERIODS = ['24h','7d','30d','this_month','last_month'] as const` and `FAILURE_RANGES = ['24h','7d'] as const`.
 - [ ] 1.3 Define `SEVERITY = ['P1','P2','P3'] as const`; severity classification table `SEVERITY_BY_EVENT_TYPE: Record<string, Severity>` covering `VISION_LLM_CALL_FAILED` (P1), `PRICING_ROW_NOT_FOUND` (P2), `CONFIDENCE_BAND_AMBIGUOUS` (P2), `OTLP_EXPORTER_503` (P3), `RATE_LIMIT_HIT` (P3).
 - [ ] 1.4 Export inferred TypeScript types via `z.infer<typeof ...>` for controller use.
@@ -17,7 +17,7 @@
   - Compute blast radius: GROUP BY model with `SUM(calls_count)` + dependent capabilities list + fallback note (hardcoded per ADR-030 known providers).
   - If rollup is empty → return `{ status: 'empty', period, ... zero placeholders }`.
 - [ ] 2.4 `getCostByTag(orgId: string, period: Period): Promise<CostByTagResponseDto>`:
-  - Reads from rollup table with `GROUP BY (payload_after->>'opentrattos.tag')` (slice #19 stores tag in payload jsonb).
+  - Reads from rollup table with `GROUP BY (payload_after->>'nexandro.tag')` (slice #19 stores tag in payload jsonb).
   - Sort descending; cap at 10 rows; aggregate `NULL` tag under `(sin tag)`.
 - [ ] 2.5 `getFailures(orgId: string, range: FailureRange): Promise<FailuresResponseDto>`:
   - Query `audit_log` with `event_type IN (failure set)` AND `organization_id = orgId` AND `created_at >= now() - interval`.
@@ -42,7 +42,7 @@
 - [ ] 5.1 `apps/api/src/ai-observability/dashboard/ai-obs-query.service.spec.ts` — unit tests on `getOverview`, `getCostByTag`, `getFailures`. Mock the TypeORM `DataSource.query` + `AuditLog` repo. Use `@CreateDateColumn` mock pattern from prior slices.
 - [ ] 5.2 Cover: happy path (populated), empty-rollup path (status='empty'), period boundary (`24h` vs `this_month`), tag aggregation (`null` tag → `(sin tag)`), severity classification (P1/P2/P3).
 - [ ] 5.3 `apps/api/src/ai-observability/dashboard/dashboard.controller.spec.ts` — covers 3 endpoints + RBAC meta-test + 422 validation error.
-- [ ] 5.4 Run `pnpm --filter @opentrattos/api test ai-observability/dashboard` and verify all green.
+- [ ] 5.4 Run `pnpm --filter @nexandro/api test ai-observability/dashboard` and verify all green.
 
 ## 6. ui-kit primitive — Sparkline
 
@@ -82,7 +82,7 @@
 ## 10. Frontend API + types
 
 - [ ] 10.1 `apps/web/src/m3/ai-obs/api/aiObs.ts` — fetch wrappers for the 3 endpoints. Reuses the shared `api<T>()` from `apps/web/src/api/client.ts`. Defines `AppliedAiObsFilter`, `Period`, `FailureRange` types.
-- [ ] 10.2 `apps/web/src/m3/ai-obs/api/aiObs.types.ts` — TypeScript shapes mirroring the backend response DTOs. May import from `@opentrattos/contracts` (frontend is the intended consumer pattern).
+- [ ] 10.2 `apps/web/src/m3/ai-obs/api/aiObs.types.ts` — TypeScript shapes mirroring the backend response DTOs. May import from `@nexandro/contracts` (frontend is the intended consumer pattern).
 
 ## 11. Frontend TanStack Query hooks
 

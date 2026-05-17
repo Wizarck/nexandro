@@ -42,8 +42,8 @@
 
 ## §7 MCP capabilities
 
-- [x] `packages/mcp-server-opentrattos/src/capabilities/write/recall.ts` — `RECALL_WRITE_CAPABILITIES` (2 entries).
-- [x] Update `packages/mcp-server-opentrattos/src/capabilities/write/index.ts` — spread `RECALL_WRITE_CAPABILITIES` into `WRITE_CAPABILITIES`.
+- [x] `packages/mcp-server-nexandro/src/capabilities/write/recall.ts` — `RECALL_WRITE_CAPABILITIES` (2 entries).
+- [x] Update `packages/mcp-server-nexandro/src/capabilities/write/index.ts` — spread `RECALL_WRITE_CAPABILITIES` into `WRITE_CAPABILITIES`.
 - [x] Unit spec: `recall.spec.ts` covering shape + restPathTemplate + restBodyExtractor.
 
 ## §8 Wire RecallModule into AppModule

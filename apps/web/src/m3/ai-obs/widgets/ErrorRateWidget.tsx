@@ -1,4 +1,4 @@
-import { MetricCard, Sparkline } from '@opentrattos/ui-kit';
+import { MetricCard, Sparkline } from '@nexandro/ui-kit';
 import type { ErrorRateWidget as ErrorRateData } from '../api/aiObs.types';
 import { formatFreshness, formatPct } from '../lib/format';
 

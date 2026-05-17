@@ -34,7 +34,7 @@ secret with the Hermes `web_via_http_sse` platform). All defaults are off.
    ```bash
    openssl rand -hex 32
    ```
-   The same value is used on both sides as `OPENTRATTOS_HERMES_AUTH_SECRET`
+   The same value is used on both sides as `NEXANDRO_HERMES_AUTH_SECRET`
    (apps/api) and `WEB_VIA_HTTP_SSE_AUTH_SECRET` (Hermes container).
 
 2. **Hermes overlay rebuild** (only when bringing up a new VPS or rotating
@@ -65,14 +65,14 @@ secret with the Hermes `web_via_http_sse` platform). All defaults are off.
 
 4. **apps/api env**:
    ```env
-   OPENTRATTOS_AGENT_ENABLED=true
-   OPENTRATTOS_HERMES_BASE_URL=http://127.0.0.1:8644
-   OPENTRATTOS_HERMES_AUTH_SECRET=<same value as Hermes>
+   NEXANDRO_AGENT_ENABLED=true
+   NEXANDRO_HERMES_BASE_URL=http://127.0.0.1:8644
+   NEXANDRO_HERMES_AUTH_SECRET=<same value as Hermes>
    ```
 
 5. **apps/web env (compile-time, Vite)**:
    ```env
-   VITE_OPENTRATTOS_AGENT_ENABLED=true
+   VITE_NEXANDRO_AGENT_ENABLED=true
    ```
    Vite compiles this into the bundle, so a rebuild is needed after a flip.
 
@@ -87,7 +87,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" \
   -H "X-Web-Auth-Secret: $SECRET" \
   -X POST \
   http://127.0.0.1:8644/web/smoke-1 \
-  -d '{"message":{"type":"text","content":"hi"},"bank_id":"opentrattos-smoke","user_attribution":{"user_id":"u","display_name":"Smoke"}}'
+  -d '{"message":{"type":"text","content":"hi"},"bank_id":"nexandro-smoke","user_attribution":{"user_id":"u","display_name":"Smoke"}}'
 # Expect HTTP 200
 ```
 
@@ -105,7 +105,7 @@ curl -N -X POST http://localhost:3000/agent-chat/stream \
 
 1. Deploy the apps/api with the env vars set.
 2. Restart apps/api container.
-3. Build apps/web with `VITE_OPENTRATTOS_AGENT_ENABLED=true` baked in;
+3. Build apps/web with `VITE_NEXANDRO_AGENT_ENABLED=true` baked in;
    deploy the static bundle.
 4. Verify in the browser: open the app, see the FAB bottom-right, click
    it, send a test message, observe streaming reply.
@@ -117,12 +117,12 @@ get 404s and surface "agent chat not enabled" as an inline error:
 
 ```bash
 # apps/api side
-OPENTRATTOS_AGENT_ENABLED=false
+NEXANDRO_AGENT_ENABLED=false
 # restart apps/api
 ```
 
 To remove the FAB from the UI entirely, also rebuild apps/web with
-`VITE_OPENTRATTOS_AGENT_ENABLED=false` and redeploy.
+`VITE_NEXANDRO_AGENT_ENABLED=false` and redeploy.
 
 The Hermes platform itself stays running — it is generic and harmless
 when no consumer is sending traffic.
@@ -134,7 +134,7 @@ The shared secret rotates in three steps:
 1. Generate the new value: `openssl rand -hex 32`.
 2. Update `WEB_VIA_HTTP_SSE_AUTH_SECRET` in the Hermes compose (or the SOPS
    secret backing it) and restart the Hermes container.
-3. Update `OPENTRATTOS_HERMES_AUTH_SECRET` in the apps/api env and restart
+3. Update `NEXANDRO_HERMES_AUTH_SECRET` in the apps/api env and restart
    apps/api.
 
 There is a brief window between steps 2 and 3 where apps/api → Hermes
@@ -144,13 +144,13 @@ user; subsequent retries succeed once both ends carry the new value.
 ## Troubleshooting
 
 ### Browser sees the FAB but `/agent-chat/stream` returns 404
-- `OPENTRATTOS_AGENT_ENABLED` is unset / false in apps/api. Flip it on
+- `NEXANDRO_AGENT_ENABLED` is unset / false in apps/api. Flip it on
   + restart.
 - Or apps/api is on a stale image without the `agent-chat` module —
   rebuild and redeploy.
 
 ### Streaming starts but never completes / hangs
-- Check `OPENTRATTOS_HERMES_BASE_URL` resolves to the Hermes container.
+- Check `NEXANDRO_HERMES_BASE_URL` resolves to the Hermes container.
   In the eligia VPS overlay it's `http://127.0.0.1:8644`; from a different
   network, use a tunnel.
 - The relay enforces a 60 s deadline per turn (see

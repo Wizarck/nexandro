@@ -14,7 +14,7 @@ import { AgentChatEnabledGuard } from './interface/agent-chat-enabled.guard';
  * tenant slug for the Hindsight `bank_id`). SharedModule is `@Global` —
  * gives us the audit + idempotency wiring for free.
  *
- * Feature flag: `OPENTRATTOS_AGENT_ENABLED`. Read at request time (not at
+ * Feature flag: `NEXANDRO_AGENT_ENABLED`. Read at request time (not at
  * module configure time) so the flag can be flipped without a restart.
  */
 @Module({

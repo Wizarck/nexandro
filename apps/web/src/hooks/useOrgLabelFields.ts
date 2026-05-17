@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { LabelFieldsFormValues } from '@opentrattos/ui-kit';
+import type { LabelFieldsFormValues } from '@nexandro/ui-kit';
 import { ApiError } from '../api/client';
 import { getOrgLabelFields, putOrgLabelFields } from '../api/orgLabelFields';
 

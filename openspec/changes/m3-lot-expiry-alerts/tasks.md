@@ -40,7 +40,7 @@
   - `@Injectable()` decorated; constructor injects `LotRepository` (read-only `findByExpiryWindow` method — see task 4.2), `ExpiryAlertsFiredRepository`, `EventEmitter2`, `Logger`
   - `@Cron(CronExpression.EVERY_5_MINUTES)` decorator on `runTick()` method (per design.md ADR-EXPIRY-SCHEDULE-CADENCE)
   - `runTick()` body:
-    1. Short-circuit if `OPENTRATTOS_EXPIRY_SCANNER_ENABLED !== 'true'` (per REQ-EX-7 scenario 3)
+    1. Short-circuit if `NEXANDRO_EXPIRY_SCANNER_ENABLED !== 'true'` (per REQ-EX-7 scenario 3)
     2. For each band `['t-72h', 't-24h']`:
        - Query lots in the band window (delegates to repo per task 4.2)
        - For each lot: check dedup (`findRecentFor(..., withinHours: 23)`); skip if a row exists
@@ -63,7 +63,7 @@
   - Add `ExpiryModule` to imports + exports (re-export so downstream callers can inject via `InventoryModule`)
 - [ ] 5.3 `apps/api/src/app.module.ts`:
   - Add `ScheduleModule.forRoot()` to imports if not already present (idempotent — slice #16 may have already added it for AI-obs cron; check before adding)
-  - Confirm M3 feature flag gating: scanner runs only when `M3_ENABLED=true` AND `OPENTRATTOS_EXPIRY_SCANNER_ENABLED=true`
+  - Confirm M3 feature flag gating: scanner runs only when `M3_ENABLED=true` AND `NEXANDRO_EXPIRY_SCANNER_ENABLED=true`
 
 ## 6. Unit tests — domain + repository (mocked DB)
 
@@ -82,7 +82,7 @@
   - Lot with `quantity_remaining=0`: no emit (REQ-EX-5)
   - Lot with `expires_at <= now()`: no emit (REQ-EX-6)
   - Scanner exception during lot N: logged + skipped; lots N+1 onward still process (REQ-EX-7 scenario 1)
-  - `OPENTRATTOS_EXPIRY_SCANNER_ENABLED=false`: scanner is no-op (REQ-EX-7 scenario 3)
+  - `NEXANDRO_EXPIRY_SCANNER_ENABLED=false`: scanner is no-op (REQ-EX-7 scenario 3)
 - [ ] 6.4 `lot.repository.spec.ts` extension: assert `findByExpiryWindow` filters on `expires_at IS NOT NULL`, `expires_at > now()`, `quantity_remaining > 0`, `organization_id`
 
 ## 7. Integration tests (real Postgres via VPS-postgres or testcontainer)
@@ -97,7 +97,7 @@
 
 ## 8. Documentation + ADR persistence
 
-- [ ] 8.1 Add `apps/api/src/inventory/expiry/README.md` — BC purpose, public surface (1 read-only repo for consumption by slice #20), event type emitted, env flags (`OPENTRATTOS_EXPIRY_SCANNER_ENABLED`), what's claimed by downstream slices (#21 subscriber, #20 widget)
+- [ ] 8.1 Add `apps/api/src/inventory/expiry/README.md` — BC purpose, public surface (1 read-only repo for consumption by slice #20), event type emitted, env flags (`NEXANDRO_EXPIRY_SCANNER_ENABLED`), what's claimed by downstream slices (#21 subscriber, #20 widget)
 - [ ] 8.2 Update `docs/architecture-decisions.md` with the 5 local ADRs: ADR-EXPIRY-SCHEDULE-CADENCE, ADR-EXPIRY-DEDUPLICATION, ADR-EXPIRY-EVENT-PAYLOAD, ADR-EXPIRY-NO-EMIT-HERE, ADR-EXPIRY-INDEX-USE (extending the canonical M3 ADR list)
 - [ ] 8.3 Open follow-up tracking issue for slice #21 referencing the `LOT_EXPIRY_NEAR` event type (so the batch subscriber registration includes it)
 

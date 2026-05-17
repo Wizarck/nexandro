@@ -190,7 +190,7 @@ The system SHALL allow cancellation only from `draft`, `sent`, or `partially_rec
 The system SHALL declare six new event types in the `AuditEventEnvelope` union under `packages/contracts/src/m3/po.ts`: `PO_CREATED`, `PO_SENT`, `PO_RECEIVED_PARTIAL`, `PO_RECEIVED_FULL`, `PO_CANCELLED`, `PO_CLOSED`. This slice SHALL NOT register these events with the M2 `AuditLogSubscriber` — that registration is claimed by slice #21.
 
 #### Scenario: Event types are exported from contracts package
-- **WHEN** a downstream slice imports `import { PoCreatedEvent, PoSentEvent, PoCancelledEvent } from '@opentrattos/contracts/m3/po'`
+- **WHEN** a downstream slice imports `import { PoCreatedEvent, PoSentEvent, PoCancelledEvent } from '@nexandro/contracts/m3/po'`
 - **THEN** the imports resolve; each event type carries `eventType`, `aggregateType='purchase_order'`, `aggregateId`, and the typed payload defined in design.md
 
 #### Scenario: Subscriber registration is NOT in this slice

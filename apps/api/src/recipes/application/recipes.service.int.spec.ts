@@ -53,10 +53,10 @@ describe('RecipesService (integration)', () => {
           type: 'postgres',
           url:
             process.env.DATABASE_URL ??
-            'postgres://opentrattos_test:opentrattos_test@localhost:5433/opentrattos_test',
+            'postgres://nexandro_test:nexandro_test@localhost:5433/nexandro_test',
           entities: ALL_ENTITIES,
           migrations: [`${__dirname}/../../migrations/*.{ts,js}`],
-          migrationsTableName: 'opentrattos_migrations',
+          migrationsTableName: 'nexandro_migrations',
           synchronize: false,
         }),
         TypeOrmModule.forFeature(ALL_ENTITIES),

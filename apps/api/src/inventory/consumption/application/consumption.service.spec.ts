@@ -142,7 +142,7 @@ describe('ConsumptionService', () => {
       expect(emitter.emit).toHaveBeenCalledTimes(1);
     });
 
-    it('opentrattos_tag propagates to the payload', async () => {
+    it('nexandro_tag propagates to the payload', async () => {
       const lot = makeLot();
       lotRepo.findById.mockResolvedValue(lot);
 
@@ -150,11 +150,11 @@ describe('ConsumptionService', () => {
         lotId: lot.id,
         qtyConsumed: 2,
         menuItemId: menuItemA,
-        opentrattosTag: 'recall-investigation',
+        nexandroTag: 'recall-investigation',
         idempotencyKey: randomUUID(),
       });
 
-      expect(ev.payloadAfter.opentrattos_tag).toBe('recall-investigation');
+      expect(ev.payloadAfter.nexandro_tag).toBe('recall-investigation');
     });
   });
 

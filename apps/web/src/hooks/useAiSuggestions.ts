@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import type { AiSuggestionShape } from '@opentrattos/ui-kit';
+import type { AiSuggestionShape } from '@nexandro/ui-kit';
 import { ApiError, api } from '../api/client';
 
 export interface SuggestionEnvelope {

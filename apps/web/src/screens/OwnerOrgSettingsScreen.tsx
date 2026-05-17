@@ -4,7 +4,7 @@ import {
   RoleGuard,
   type LabelFieldsFormErrors,
   type LabelFieldsFormValues,
-} from '@opentrattos/ui-kit';
+} from '@nexandro/ui-kit';
 import { ApiError } from '../api/client';
 import { useCurrentOrgId, useCurrentRole } from '../lib/currentUser';
 import { useOrgLabelFieldsMutation, useOrgLabelFieldsQuery } from '../hooks/useOrgLabelFields';

@@ -1,4 +1,4 @@
-import { EmptyStateCard, Heatmap, MetricCard } from '@opentrattos/ui-kit';
+import { EmptyStateCard, Heatmap, MetricCard } from '@nexandro/ui-kit';
 import type { HeatmapWidget as HeatmapData } from '../api/aiObs.types';
 import { DAY_LABELS, HOUR_LABELS, formatFreshness } from '../lib/format';
 

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../api/client';
-import type { MacroRollup } from '@opentrattos/ui-kit';
+import type { MacroRollup } from '@nexandro/ui-kit';
 
 export function useRecipeMacros(
   organizationId: string | undefined,

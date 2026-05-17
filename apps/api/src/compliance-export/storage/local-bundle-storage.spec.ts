@@ -10,15 +10,15 @@ describe('LocalBundleStorage', () => {
   let root: string;
 
   beforeEach(async () => {
-    root = await fs.mkdtemp(join(tmpdir(), 'opentrattos-bundle-test-'));
-    process.env.OPENTRATTOS_BUNDLE_STORAGE_ROOT = root;
-    process.env.OPENTRATTOS_BUNDLE_SIGNING_SECRET = 'test-secret';
+    root = await fs.mkdtemp(join(tmpdir(), 'nexandro-bundle-test-'));
+    process.env.NEXANDRO_BUNDLE_STORAGE_ROOT = root;
+    process.env.NEXANDRO_BUNDLE_SIGNING_SECRET = 'test-secret';
   });
 
   afterEach(async () => {
     await fs.rm(root, { recursive: true, force: true });
-    delete process.env.OPENTRATTOS_BUNDLE_STORAGE_ROOT;
-    delete process.env.OPENTRATTOS_BUNDLE_SIGNING_SECRET;
+    delete process.env.NEXANDRO_BUNDLE_STORAGE_ROOT;
+    delete process.env.NEXANDRO_BUNDLE_SIGNING_SECRET;
   });
 
   it('round-trips put → read for both pdf and csv assets', async () => {
@@ -43,7 +43,12 @@ describe('LocalBundleStorage', () => {
     const token = parsed.searchParams.get('token')!;
     expect(storage.verify(path, exp, token)).toBe(true);
     expect(storage.verify(path, exp - 1, token)).toBe(false);
-    expect(storage.verify(path, exp, token.slice(0, -1) + '0')).toBe(false);
+    // Flip the last char to one guaranteed-different from itself —
+    // hex token ending in '0' would collide with the previous '+ "0"'
+    // and pass verify (~1/16 flake). Use any non-equal char.
+    const last = token[token.length - 1];
+    const tampered = token.slice(0, -1) + (last === '0' ? '1' : '0');
+    expect(storage.verify(path, exp, tampered)).toBe(false);
   });
 
   it('rejects an expired signed URL', async () => {

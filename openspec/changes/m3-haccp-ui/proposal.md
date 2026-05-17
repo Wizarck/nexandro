@@ -15,7 +15,7 @@ This slice is **UI-heavy + backend ZERO**. We never write to `apps/api/src/haccp
 - **`packages/ui-kit/src/components/RecentReadingsStrip/`** — right sidebar (or bottom drawer on phone). Last 5 readings as read-only rows: timestamp + value + actor + in/out-of-spec glyph.
 - **`packages/ui-kit/src/components/OutOfSpecStickyWarning/`** — sticky `--destructive` banner at top of surface. Mounts only when `lastOutOfSpecWithoutAction` is true.
 - **`apps/web/src/screens/j10/HaccpRecordScreen.tsx`** — new page mounted at `/haccp/record`. Composes the 6 components above; manages state machine (pick CCP → enter reading → conditional corrective-action → sign); persists draft to `localStorage` with 10 min TTL; calls `POST /m3/haccp/readings` via TanStack mutation on submit.
-- **`apps/web/src/api/haccp.ts`** — REST client wrapping `api()` for the 5 slice-#9 endpoints. INLINE shapes (`CcpReading`, `CorrectiveAction`, `FsmsStandardSummary`, `Ccp`, etc.) — no `@opentrattos/contracts` import; no import from `apps/api/src/haccp/*`.
+- **`apps/web/src/api/haccp.ts`** — REST client wrapping `api()` for the 5 slice-#9 endpoints. INLINE shapes (`CcpReading`, `CorrectiveAction`, `FsmsStandardSummary`, `Ccp`, etc.) — no `@nexandro/contracts` import; no import from `apps/api/src/haccp/*`.
 - **`apps/web/src/hooks/useHaccp.ts`** — TanStack hooks: `useCcps`, `useRecentReadings`, `useLastOutOfSpecUnresolved`, `useRecordReading` (mutation), `useCorrectiveActions`.
 - **`apps/web/src/main.tsx`** — register `/haccp/record` route + lazy import.
 - **BREAKING**: none. New components + new route + new client. No schema changes. Wave 1.19 audit-log UI stays untouched; slice #9 owns all backend.

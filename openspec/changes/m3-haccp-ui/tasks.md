@@ -63,7 +63,7 @@
 ## 9. Screen — HaccpRecordScreen
 
 - [ ] 9.1 `apps/web/src/screens/j10/HaccpRecordScreen.tsx` — composes the 6 components above + state machine + draft persistence + submit mutation.
-- [ ] 9.2 Draft persistence: `localStorage` keyed by `opentrattos.haccp.draft.v1.<orgId>.<ccpId>.<actorUserId>`. 10 min TTL. Stale drafts discarded on mount. Successful submit clears.
+- [ ] 9.2 Draft persistence: `localStorage` keyed by `nexandro.haccp.draft.v1.<orgId>.<ccpId>.<actorUserId>`. 10 min TTL. Stale drafts discarded on mount. Successful submit clears.
 - [ ] 9.3 State machine: pick CCP → enter reading (live readback) → conditional corrective-action mount → primary CTA gated.
 - [ ] 9.4 On submit, calls `useRecordReading().mutateAsync({...})`; invalidates the strip + sticky-warning queries; renders confirmation interstitial.
 - [ ] 9.5 `HaccpRecordScreen.test.tsx` — integration test: render → pick CCP → enter out-of-spec value → corrective-action picker mounts → fill → submit → assert mutation called.

@@ -39,7 +39,7 @@ import { AI_YIELD_SUGGESTIONS_ENABLED } from '../application/types';
 /**
  * REST surface for AI yield + waste suggestions per FR16-19.
  *
- * Feature-flag guard: when `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED=false`
+ * Feature-flag guard: when `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED=false`
  * every endpoint returns 404 (the surface is invisible to clients).
  *
  * RBAC: Owner + Manager only. Staff blocked at 403 by the global RolesGuard.

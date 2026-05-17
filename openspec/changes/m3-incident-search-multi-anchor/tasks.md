@@ -48,11 +48,11 @@
 
 ## 6. Interface — MCP capability `recall.search-incident`
 
-- [ ] 6.1 `packages/mcp-server-opentrattos/src/capabilities/recall.ts`:
+- [ ] 6.1 `packages/mcp-server-nexandro/src/capabilities/recall.ts`:
   - `registerRecallCapabilities(server, rest)` — registers `recall.search-incident` with zod input schema (query string, optional types string[], optional limit number 1..8)
   - Forwards to `GET /m3/recall/search` with `X-Agent-Capability: recall.search-incident`
   - Read-only (no `WRITE_CAPABILITIES` entry; no kill-switch env)
-- [ ] 6.2 `packages/mcp-server-opentrattos/src/index.ts` — register the capability in `buildServer`
+- [ ] 6.2 `packages/mcp-server-nexandro/src/index.ts` — register the capability in `buildServer`
 
 ## 7. Module wiring (NestJS)
 
@@ -105,7 +105,7 @@
   - Mouse click selects
   - Empty hits → empty-state copy
   - Controlled `value` prop syncs
-- [ ] 10.4 `packages/mcp-server-opentrattos/src/capabilities/recall.spec.ts`:
+- [ ] 10.4 `packages/mcp-server-nexandro/src/capabilities/recall.spec.ts`:
   - `registerRecallCapabilities` registers `recall.search-incident` (assert via `server.listTools()`-style spy)
   - Capability invocation forwards `query` + `types` + `limit` to `OpenTrattosRestClient` with capability header
 

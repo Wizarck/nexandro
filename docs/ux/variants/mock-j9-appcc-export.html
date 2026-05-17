@@ -1,0 +1,476 @@
+<!doctype html>
+<!--
+  nexandro · APPCC export · Module 3 / Journey 9
+  Compliance export trigger surface. Owner generates; inspector consumes offline.
+  Laptop reference (1280 × 800). Standard AppLayout (top nav + breadcrumb).
+
+  typography (DESIGN.md §3): UI on system sans. Headline carries Fraunces (one-serif-
+    wink). tabular-nums on every number (date inputs, file sizes, page counts, hashes).
+
+  color (DESIGN.md §2):
+    --ink on --bg                  → ~14:1 (AA+)
+    --mute on --bg / --surface     → ~5.0 / 4.6:1 (AA body)
+    --accent on --bg               → ~4.8:1 (AA — primary CTA + active chips + progress fill)
+    --success on --bg              → ~4.6:1 (AA — step-complete states + delivered email)
+    --destructive on --bg          → ~5.6:1 (AA — failure state only)
+    Spend bars + chips use --accent. --destructive ONLY on generation failure.
+
+  spatial (DESIGN.md §5/§6): 4pt scale. Single column layout for the trigger form,
+    then a flat archive table below. Form panel is one bordered card (NOT nested).
+
+  motion (DESIGN.md §7): 150 ms ease-out-quart. Progress step morphs use opacity
+    fade only; prefers-reduced-motion swaps state instantly.
+
+  Anti-patterns avoided: modal-as-first-thought (progress is inline strip), nested-
+    cards, hero-metric, decorative-red, marketing-copy-on-compliance-surface (the
+    transparency banner reads as contract, not marketing).
+
+  Accessibility: progress strip uses role="status" + aria-live="polite". Locale
+    chips are buttons (not radios — chip pattern, but keyboard reachable). Scope
+    list uses native checkboxes for screen-reader compatibility.
+
+  Capabilities satisfied: FR21, FR22, FR23, FR24, FR25, FR19, NFR-OBS-1.
+-->
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Exportación APPCC · nexandro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" />
+  <style>
+    :root {
+      --bg:           oklch(94.5% 0.012 70);
+      --surface:      oklch(91.5% 0.014 70);
+      --surface-2:    oklch(88.5% 0.014 70);
+      --border:       oklch(83%   0.018 70);
+      --border-strong: oklch(73%  0.020 70);
+      --ink:          oklch(20%   0.010 60);
+      --mute:         oklch(48%   0.012 70);
+      --accent:       oklch(54%   0.072 190);
+      --accent-press: oklch(46%   0.072 190);
+      --accent-fg:    oklch(99%   0.003 190);
+      --accent-soft:  oklch(91%   0.025 190);
+      --success:      oklch(53%   0.080 130);
+      --destructive:  oklch(48%   0.150 32);
+
+      --space-xs:  8px;
+      --space-sm:  12px;
+      --space-md:  16px;
+      --space-lg:  24px;
+      --space-xl:  32px;
+
+      --fs-xs: 13px;
+      --fs-sm: 14px;
+      --fs-md: 16px;
+      --fs-lg: 20px;
+      --fs-xl: 28px;
+      --fs-2xl: 36px;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: oklch(20% 0.012 70); --surface: oklch(24% 0.014 70); --surface-2: oklch(28% 0.014 70);
+        --ink: oklch(94% 0.010 60); --mute: oklch(70% 0.012 70);
+        --border: oklch(32% 0.018 70); --border-strong: oklch(40% 0.020 70);
+        --accent-soft: oklch(35% 0.025 190);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: var(--fs-md); line-height: 1.5;
+      font-variant-numeric: tabular-nums lining-nums;
+    }
+    button, input { font-family: inherit; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; }
+    }
+
+    .nav {
+      height: 56px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 var(--space-lg); gap: var(--space-lg);
+    }
+    .nav .brand { font-family: "Newsreader", Georgia, serif; font-variation-settings: "opsz" 32; font-weight: 600; font-size: var(--fs-lg); }
+    .nav .breadcrumb { font-size: var(--fs-sm); color: var(--mute); }
+    .nav .breadcrumb .here { color: var(--ink); }
+
+    .container { max-width: 960px; margin: 0 auto; padding: var(--space-lg); }
+
+    h1 {
+      font-family: "Newsreader", Georgia, serif;
+      font-variation-settings: "opsz" 36;
+      font-weight: 600;
+      font-size: var(--fs-2xl);
+      margin: 0 0 var(--space-xs);
+      letter-spacing: -0.005em;
+    }
+
+    .eyebrow {
+      font-size: var(--fs-xs); color: var(--mute);
+      letter-spacing: 0.04em; text-transform: uppercase;
+    }
+
+    .transparency {
+      margin: var(--space-md) 0 var(--space-xl);
+      padding: var(--space-md) var(--space-lg);
+      background: var(--surface);
+      border-left: 3px solid var(--accent);
+      font-size: var(--fs-sm);
+      color: var(--ink);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    }
+
+    .transparency em { font-style: italic; color: var(--mute); }
+
+    /* Form panel */
+    .form-panel {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--bg);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-xl);
+    }
+
+    .field-group { margin-bottom: var(--space-lg); }
+    .field-group:last-child { margin-bottom: 0; }
+
+    .field-label {
+      font-size: var(--fs-sm);
+      color: var(--mute);
+      letter-spacing: 0.02em;
+      margin-bottom: var(--space-xs);
+      font-weight: 500;
+    }
+
+    .field-desc {
+      font-size: var(--fs-xs);
+      color: var(--mute);
+      margin-top: var(--space-xs);
+    }
+
+    /* Date range */
+    .date-row {
+      display: flex; gap: var(--space-sm); align-items: center; margin-bottom: var(--space-sm);
+    }
+    .date-row label { font-size: var(--fs-sm); color: var(--mute); }
+    .date-input {
+      height: 40px; padding: 0 var(--space-sm);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--surface); color: var(--ink); font-size: var(--fs-md);
+      font-variant-numeric: tabular-nums;
+    }
+    .date-input:focus { outline: none; border-color: var(--accent-press); box-shadow: 0 0 0 2px var(--accent-soft); }
+
+    .chip-row { display: flex; gap: var(--space-xs); flex-wrap: wrap; }
+    .chip {
+      padding: 6px 14px; border: 1px solid var(--border); border-radius: 999px;
+      background: transparent; color: var(--mute); font-size: var(--fs-sm);
+      cursor: pointer; min-height: 36px;
+    }
+    .chip[aria-pressed="true"] {
+      border-color: var(--accent); color: var(--ink); background: var(--accent-soft);
+    }
+
+    /* Scope checkboxes */
+    .scope-list { list-style: none; padding: 0; margin: 0; }
+    .scope-row {
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      gap: var(--space-sm);
+      padding: var(--space-sm) 0;
+      border-top: 1px solid var(--border);
+      align-items: flex-start;
+    }
+    .scope-row:first-of-type { border-top: none; padding-top: 0; }
+    .scope-row input[type="checkbox"] {
+      width: 18px; height: 18px;
+      accent-color: var(--accent);
+      margin-top: 2px;
+    }
+    .scope-row .label { font-size: var(--fs-md); color: var(--ink); }
+    .scope-row .label .desc { display: block; font-size: var(--fs-xs); color: var(--mute); margin-top: 2px; }
+    .scope-row .label .info-cue { display: inline-block; margin-left: 4px; padding: 0 5px; border-radius: 50%; background: var(--surface-2); color: var(--mute); font-size: 10px; font-weight: 600; cursor: help; vertical-align: middle; line-height: 14px; }
+
+    /* Recipient strip */
+    .recipient-strip {
+      margin-top: var(--space-md); padding: var(--space-sm) var(--space-md);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); font-size: var(--fs-sm);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    /* Action row */
+    .action-row {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: var(--space-lg); padding-top: var(--space-lg);
+      border-top: 1px solid var(--border);
+    }
+    .action-meta { font-size: var(--fs-sm); color: var(--mute); }
+    .cta {
+      height: 48px; padding: 0 var(--space-lg);
+      background: var(--accent); color: var(--accent-fg);
+      border: none; border-radius: var(--radius-md);
+      font-size: var(--fs-md); font-weight: 600; cursor: pointer;
+    }
+    .cta:hover { background: var(--accent-press); }
+    .cta:focus-visible { outline: 2px solid var(--accent-press); outline-offset: 2px; }
+
+    /* Progress strip */
+    .progress {
+      margin-top: var(--space-md);
+      padding: var(--space-md) var(--space-lg);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+    .progress-steps {
+      display: flex; gap: var(--space-md); flex-wrap: wrap;
+      font-size: var(--fs-sm);
+    }
+    .progress-step { display: inline-flex; align-items: center; gap: var(--space-xs); color: var(--mute); }
+    .progress-step.done { color: var(--success); font-weight: 500; }
+    .progress-step.active { color: var(--ink); font-weight: 500; }
+    .progress-step .dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--surface-2); border: 1px solid var(--border-strong);
+    }
+    .progress-step.done .dot { background: var(--success); border-color: var(--success); }
+    .progress-step.active .dot { background: var(--accent); border-color: var(--accent); }
+    .progress-meta { margin-top: var(--space-sm); font-size: var(--fs-sm); color: var(--mute); }
+
+    /* Download row */
+    .download-row {
+      margin-top: var(--space-md);
+      padding: var(--space-md) var(--space-lg);
+      background: var(--surface); border: 1px solid var(--success);
+      border-left-width: 3px;
+      border-radius: var(--radius-md);
+      display: none;
+    }
+    .download-row.active { display: block; }
+    .download-row .row { display: flex; gap: var(--space-sm); margin-top: var(--space-sm); }
+    .download-row .meta { font-size: var(--fs-sm); color: var(--mute); margin-top: var(--space-xs); }
+    .ghost {
+      height: 40px; padding: 0 var(--space-md);
+      background: transparent; color: var(--ink);
+      border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+      cursor: pointer; font-size: var(--fs-sm);
+    }
+    .ghost:hover { background: var(--accent-soft); }
+    .ghost:focus-visible { outline: 2px solid var(--accent-press); outline-offset: 2px; }
+
+    /* Archive table */
+    .archive { margin-top: var(--space-xl); }
+    .archive h2 { font-size: var(--fs-lg); margin: 0 0 var(--space-sm); }
+    .archive table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+    .archive th, .archive td {
+      text-align: left; padding: var(--space-sm); border-top: 1px solid var(--border);
+    }
+    .archive th { color: var(--mute); font-weight: 500; border-top: none; border-bottom: 1px solid var(--border-strong); }
+    .archive a { color: var(--accent-press); text-decoration: none; }
+    .archive a:hover { text-decoration: underline; }
+    .archive td.hash { font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; font-size: 12px; color: var(--mute); }
+  </style>
+</head>
+<body>
+  <header class="nav" role="navigation">
+    <span class="brand">nexandro</span>
+    <nav class="breadcrumb" aria-label="Migas">
+      Compliance · <span class="here">Exportación APPCC</span>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="eyebrow">Exportación APPCC · expediente para autoridad sanitaria</div>
+    <h1>Generar bundle de auditoría</h1>
+
+    <div class="transparency" role="note">
+      <em>"El expediente contiene el audit_log sin editar como capítulo 0; el resto son vistas estructuradas sobre ese mismo registro. No producimos resumen ejecutivo."</em>
+    </div>
+
+    <!-- Quick-export 1-click + Schedule recurring -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-md); margin: var(--space-md) 0 var(--space-lg);">
+      <div style="background: var(--accent-soft); border: 1px solid var(--accent); border-radius: var(--radius-md); padding: var(--space-md) var(--space-lg); display: flex; justify-content: space-between; align-items: center; gap: var(--space-md);">
+        <div>
+          <div style="font-size: var(--fs-xs); color: var(--mute); letter-spacing: 0.04em; text-transform: uppercase;">Quick export · 1-click</div>
+          <strong style="display: block; margin-top: 2px;">Últimos 90 d · es-ES · HACCP + Lot</strong>
+          <div style="font-size: var(--fs-xs); color: var(--mute); margin-top: 2px;">Usa tu configuración preferida. ~48 páginas · 12 s.</div>
+          <div style="font-size: 11px; color: var(--mute); margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--accent);">
+            <span style="color: var(--success); font-weight: 600;">✓</span> Última exportación: <strong style="color: var(--ink);">10 feb 2026 09:14</strong> · 47 págs · 11 s
+          </div>
+        </div>
+        <button class="cta" type="button" style="white-space: nowrap;">Generar ahora →</button>
+      </div>
+      <div style="background: var(--surface); border: 1px dashed var(--border-strong); border-radius: var(--radius-md); padding: var(--space-md); display: flex; flex-direction: column; gap: 4px;">
+        <div style="font-size: var(--fs-xs); color: var(--mute); letter-spacing: 0.04em; text-transform: uppercase;">Schedule</div>
+        <strong style="font-size: var(--fs-sm);">📅 Auto-export trimestral</strong>
+        <div style="font-size: var(--fs-xs); color: var(--mute);">Q2 2026: <strong style="color: var(--ink);">activo</strong> · próximo: 30 jun 2026 09:00.</div>
+        <button class="ghost" type="button" style="height: 28px; padding: 0 8px; font-size: 11px; align-self: flex-start; margin-top: 4px;">Configurar recurrencia →</button>
+      </div>
+    </div>
+
+    <details style="margin-bottom: var(--space-md);">
+      <summary style="cursor: pointer; font-size: var(--fs-sm); color: var(--mute); padding: var(--space-xs) 0;">Configurar manualmente (rango, idioma, alcance, destinatarios) ▾</summary>
+    <section class="form-panel" aria-label="Configuración del bundle">
+      <!-- Date range -->
+      <div class="field-group">
+        <div class="field-label">Rango de fechas</div>
+        <div class="date-row">
+          <label for="from">Desde</label>
+          <input class="date-input" type="date" id="from" value="2026-02-12" />
+          <label for="to">Hasta</label>
+          <input class="date-input" type="date" id="to" value="2026-05-13" />
+        </div>
+        <div class="chip-row">
+          <button class="chip" type="button" aria-pressed="false">Últimos 30d</button>
+          <button class="chip" type="button" aria-pressed="true">Últimos 90d</button>
+          <button class="chip" type="button" aria-pressed="false">Año natural en curso</button>
+          <button class="chip" type="button" aria-pressed="false">Trimestre cerrado</button>
+        </div>
+      </div>
+
+      <!-- Locale -->
+      <div class="field-group">
+        <div class="field-label">Idioma del expediente</div>
+        <div class="chip-row" role="group" aria-label="Idioma">
+          <button class="chip" type="button" aria-pressed="true"><span style="margin-right: 6px;">ES</span>Castellano (es-ES)</button>
+          <button class="chip" type="button" aria-pressed="false"><span style="margin-right: 6px;">CA</span>Català (ca-ES)</button>
+          <button class="chip" type="button" aria-pressed="false"><span style="margin-right: 6px;">EU</span>Euskara (eu-ES)</button>
+          <button class="chip" type="button" aria-pressed="false"><span style="margin-right: 6px;">GL</span>Galego (gl-ES)</button>
+        </div>
+        <div class="field-desc">La localización determina el idioma de los encabezados, etiquetas, y vocabulario de alérgenos (EU 1169 Annex II).</div>
+      </div>
+
+      <!-- Scope -->
+      <div class="field-group">
+        <div class="field-label">Alcance</div>
+        <ul class="scope-list">
+          <li class="scope-row">
+            <input type="checkbox" id="s1" checked />
+            <label class="label" for="s1">HACCP records (CCP readings + correctivas)<span class="desc">Capítulo HACCP completo con vinculación CCP → acción correctiva → reentrenamiento.</span></label>
+          </li>
+          <li class="scope-row">
+            <input type="checkbox" id="s2" checked />
+            <label class="label" for="s2">Lot lifecycle (recepción → consumo)<span class="desc">Trazabilidad completa de cada lote desde recepción hasta consumo final.</span></label>
+          </li>
+          <li class="scope-row">
+            <input type="checkbox" id="s3" />
+            <label class="label" for="s3">Procurement (PO + GR + reconciliación)<span class="desc">Órdenes de compra, recepciones, discrepancias resueltas.</span></label>
+          </li>
+          <li class="scope-row">
+            <input type="checkbox" id="s4" />
+            <label class="label" for="s4">Photo-ingestion provenance<span class="desc">Origen de cada lote/producto creado por ingestión vía foto.</span></label>
+          </li>
+          <li class="scope-row">
+            <input type="checkbox" id="s5" />
+            <label class="label" for="s5">AI observability footprint<span class="desc">Huella de uso AI durante el rango (capacidades, modelos, coste).</span></label>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Recipient -->
+      <div class="recipient-strip">
+        <div>
+          <strong>Enviar también por email</strong>
+          <div style="color: var(--mute); font-size: var(--fs-xs);">2 destinatarios pre-configurados disponibles.</div>
+        </div>
+        <button class="ghost" type="button">Configurar →</button>
+      </div>
+
+      <!-- Action row -->
+      <div class="action-row">
+        <div class="action-meta">Estimado: ~48 páginas · ~2.3 MB · 12 segundos</div>
+        <button class="cta" type="button">Generar bundle</button>
+      </div>
+
+      <!-- Progress strip -->
+      <div class="progress" role="status" aria-live="polite">
+        <div class="progress-steps">
+          <span class="progress-step done"><span class="dot"></span> Indexando audit_log</span>
+          <span class="progress-step done"><span class="dot"></span> Componiendo capítulo 0</span>
+          <span class="progress-step active"><span class="dot"></span> Renderizando vistas derivativas</span>
+          <span class="progress-step"><span class="dot"></span> Sellando hash de bundle</span>
+          <span class="progress-step"><span class="dot"></span> Listo</span>
+        </div>
+        <div class="progress-meta">~48 páginas · ~2.3 MB · ~5 s restantes</div>
+      </div>
+
+      <!-- Download row + integrity check + preview cover + template version -->
+      <div class="download-row active">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-md);">
+          <strong>Bundle generado</strong>
+          <span style="font-size: var(--fs-xs); color: var(--mute);">Plantilla: <strong style="color: var(--ink);">Formato 2026-Q2 v4</strong> (validada por colegio APPCC)</span>
+        </div>
+        <div class="meta" style="display: flex; gap: var(--space-sm); align-items: center; flex-wrap: wrap;">
+          <span>Generado 14:32 CEST · audit_log <code style="font-family: ui-monospace, Menlo, monospace;">AL-2026-189554</code></span>
+        </div>
+        <div class="meta" style="display: flex; gap: var(--space-sm); align-items: center; flex-wrap: wrap; margin-top: 4px;">
+          <span>SHA-256:</span>
+          <code style="font-family: ui-monospace, Menlo, monospace; color: var(--ink); background: var(--bg); padding: 1px 6px; border-radius: 3px; border: 1px solid var(--border);">a9f3 b7c4 1e02 8d56 4a91 fc83 7b29 5e0d 3c4f 8a17 9bd4 e602 0f15 7c83 a945 b274</code>
+          <button type="button" class="ghost" style="height: 26px; padding: 0 8px; font-size: 11px;">Copiar</button>
+        </div>
+        <div class="row">
+          <button class="ghost" type="button">↓ Descargar PDF (es-ES) · 2.3 MB · 48 páginas</button>
+          <button class="ghost" type="button">↓ Descargar CSV companion · 412 KB</button>
+          <button class="ghost" type="button">👁 Previsualizar cover + índice</button>
+          <button class="ghost" type="button">✓ Verificar integridad bytes ↔ hash</button>
+        </div>
+      </div>
+    </section>
+    </details>
+
+    <!-- Archive table -->
+    <section class="archive" aria-label="Archivo de bundles">
+      <h2>Bundles anteriores</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Rango</th>
+            <th>Idioma</th>
+            <th>Alcance</th>
+            <th>Generó</th>
+            <th>SHA-256</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2026-05-13 14:32</td>
+            <td>12 feb – 13 may 2026</td>
+            <td>es-ES · v4</td>
+            <td>HACCP + Lot</td>
+            <td>Iker Arana</td>
+            <td class="hash" title="Click para copiar el hash completo">a9f3…b274 ⎘</td>
+            <td><a href="#">Descargar</a> · <a href="#">✓ Verificar</a></td>
+          </tr>
+          <tr>
+            <td>2026-02-10 09:14</td>
+            <td>10 nov 2025 – 10 feb 2026</td>
+            <td>es-ES · v4</td>
+            <td>HACCP + Lot + Procurement</td>
+            <td>Iker Arana</td>
+            <td class="hash" title="Click para copiar el hash completo">7c2a…91ee ⎘</td>
+            <td><a href="#">Descargar</a> · <a href="#">✓ Verificar</a></td>
+          </tr>
+          <tr>
+            <td>2025-11-12 11:48</td>
+            <td>12 ago – 12 nov 2025</td>
+            <td>eu-ES · v3</td>
+            <td>HACCP + Lot</td>
+            <td>Iker Arana</td>
+            <td class="hash" title="Click para copiar">3f81…b520 ⎘</td>
+            <td><span style="color: var(--mute); font-size: var(--fs-xs);">cold storage</span> · <a href="#">Restaurar</a> · <a href="#">✓ Verificar</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+</body>
+</html>

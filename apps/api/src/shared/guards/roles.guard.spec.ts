@@ -75,6 +75,6 @@ describe('RolesGuard', () => {
 
 describe('@Roles metadata key', () => {
   it('uses the canonical metadata key (RolesGuard reads this exact key)', () => {
-    expect(ROLES_METADATA_KEY).toBe('opentrattos:roles');
+    expect(ROLES_METADATA_KEY).toBe('nexandro:roles');
   });
 });

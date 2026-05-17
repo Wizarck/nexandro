@@ -19,7 +19,7 @@ export function buildDataSourceOptions(): DataSourceOptions {
     url: process.env.DATABASE_URL,
     entities: [`${__dirname}/**/domain/*.entity.{ts,js}`],
     migrations: [`${__dirname}/migrations/*.{ts,js}`],
-    migrationsTableName: 'opentrattos_migrations',
+    migrationsTableName: 'nexandro_migrations',
     synchronize: false,
     logging: process.env.TYPEORM_LOGGING === 'true',
   };

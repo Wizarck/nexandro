@@ -14,7 +14,7 @@ The system SHALL provide a `ConsumptionService.recordConsumption(organizationId,
 
 ### Requirement: LotConsumed event payload is Zod-validated at the boundary
 
-The system SHALL define `LotConsumedPayloadSchema` (Zod) in `packages/contracts/src/m3/consumption.ts` with these fields: `organization_id (uuid, required)`, `lot_id (uuid, required)`, `stock_move_id (uuid, required)`, `qty_consumed (positive number, required)`, `unit (enum kg|g|L|ml|un, required)`, `recipe_id (uuid, nullable)`, `menu_item_id (uuid, nullable)`, `consumed_at (datetime, required)`, `consumed_by_user_id (uuid, required)`, `opentrattos_tag (string, nullable)`, `reason (string, nullable)`. The service SHALL invoke `LotConsumedPayloadSchema.parse(payload)` BEFORE emitting on the bus. Malformed payloads SHALL throw `ZodError`, which the controller layer SHALL surface as HTTP 400.
+The system SHALL define `LotConsumedPayloadSchema` (Zod) in `packages/contracts/src/m3/consumption.ts` with these fields: `organization_id (uuid, required)`, `lot_id (uuid, required)`, `stock_move_id (uuid, required)`, `qty_consumed (positive number, required)`, `unit (enum kg|g|L|ml|un, required)`, `recipe_id (uuid, nullable)`, `menu_item_id (uuid, nullable)`, `consumed_at (datetime, required)`, `consumed_by_user_id (uuid, required)`, `nexandro_tag (string, nullable)`, `reason (string, nullable)`. The service SHALL invoke `LotConsumedPayloadSchema.parse(payload)` BEFORE emitting on the bus. Malformed payloads SHALL throw `ZodError`, which the controller layer SHALL surface as HTTP 400.
 
 #### Scenario: Missing top-level organization_id rejects at boundary
 - **WHEN** a payload omits `organization_id` and `LotConsumedPayloadSchema.parse()` runs
@@ -29,7 +29,7 @@ The system SHALL define `LotConsumedPayloadSchema` (Zod) in `packages/contracts/
 - **THEN** Zod validation fails; the event is NOT emitted
 
 #### Scenario: Optional fields accept null but reject malformed types
-- **WHEN** a payload sets `recipe_id = null` or `opentrattos_tag = null`
+- **WHEN** a payload sets `recipe_id = null` or `nexandro_tag = null`
 - **THEN** validation passes; AND **WHEN** the same fields are set to a non-uuid string or a number, validation fails
 
 ### Requirement: Every event payload carries organization_id at the top level for multi-tenant isolation

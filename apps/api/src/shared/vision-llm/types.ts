@@ -20,7 +20,7 @@ import { z } from 'zod';
  */
 
 /**
- * `opentrattos.tag` attribute value. Caller-supplied label that drives the
+ * `nexandro.tag` attribute value. Caller-supplied label that drives the
  * cost-by-tag drill-down in slice #20.
  *
  * Rules (mirrored by `SpanEnricherInterceptor` normalization):
@@ -63,8 +63,8 @@ export const OtelSpanAttributes = z.object({
   'gen_ai.usage.output_tokens': z.number().int().nonnegative().optional(),
   /** `gen_ai.operation.name` — `chat`, `text_completion`, `embeddings`, etc. */
   'gen_ai.operation.name': z.string().min(1).optional(),
-  /** `opentrattos.tag` — see {@link OpenTrattOsTagAttribute}. */
-  'opentrattos.tag': OpenTrattOsTagAttribute.optional(),
+  /** `nexandro.tag` — see {@link OpenTrattOsTagAttribute}. */
+  'nexandro.tag': OpenTrattOsTagAttribute.optional(),
 });
 
 export type OtelSpanAttributesValue = z.infer<typeof OtelSpanAttributes>;

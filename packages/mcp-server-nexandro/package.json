@@ -1,0 +1,50 @@
+{
+  "name": "@nexandro/mcp-server-nexandro",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MCP server `nexandro` exposing Recipe / MenuItem / Ingredient read-only capabilities to MCP-compatible clients (Hermes, Claude Desktop, OpenCode, custom). Per ADR-013 / m2-mcp-server: separate Docker image / npm module with zero compile-time coupling to apps/api/.",
+  "license": "AGPL-3.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "mcp-server-nexandro": "./dist/server.js"
+  },
+  "files": [
+    "dist/**",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "echo 'no lint configured for mcp-server-nexandro yet'",
+    "test": "jest --passWithNoTests"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^22.0.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "jest": {
+    "moduleFileExtensions": ["js", "json", "ts"],
+    "rootDir": ".",
+    "roots": ["<rootDir>/src", "<rootDir>/test"],
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": ["ts-jest", { "tsconfig": "tsconfig.test.json", "useESM": false }]
+    },
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
+    "testEnvironment": "node"
+  }
+}

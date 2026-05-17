@@ -1,7 +1,7 @@
 ## 1. Hash chain integrity INT spec
 
 - [ ] 1.1 New file `apps/api/src/audit-log/application/audit-log-hash-chain-integrity.int.spec.ts`
-- [ ] 1.2 Test module setup: `Test.createTestingModule()` with `TypeOrmModule.forRoot({ url: process.env.DATABASE_URL ?? 'postgres://opentrattos_test:opentrattos_test@localhost:5433/opentrattos_test', entities, migrations, synchronize: false })` — providers include `AuditLogService` + `AuditLogIdempotencyCache`
+- [ ] 1.2 Test module setup: `Test.createTestingModule()` with `TypeOrmModule.forRoot({ url: process.env.DATABASE_URL ?? 'postgres://nexandro_test:nexandro_test@localhost:5433/nexandro_test', entities, migrations, synchronize: false })` — providers include `AuditLogService` + `AuditLogIdempotencyCache`
 - [ ] 1.3 `beforeAll`: `dataSource.runMigrations()`
 - [ ] 1.4 `beforeEach`: `TRUNCATE TABLE audit_log RESTART IDENTITY CASCADE`
 - [ ] 1.5 `afterAll`: `dataSource.destroy()` + `app.close()`

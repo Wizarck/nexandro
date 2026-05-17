@@ -1,0 +1,362 @@
+<!doctype html>
+<!--
+  nexandro · HACCP CCP reading · Module 3 / Journey 10
+  Kitchen tablet 10″ landscape. Carmen logs cooling-curve reading at end of service.
+
+  typography (DESIGN.md §3): UI on system sans. CCP name carries Fraunces (one-serif-
+    wink, opsz 36). tabular-nums on the input value, spec range, all timestamps.
+
+  color (DESIGN.md §2):
+    --ink on --bg                  → ~14:1 (AA+)
+    --mute on --bg / --surface     → ~5.0 / 4.6:1 (AA)
+    --success on --bg              → ~4.6:1 (AA — in-spec readback)
+    --destructive on --bg          → ~5.6:1 (AA — out-of-spec readback + sticky warning)
+    --accent on --bg               → ~4.8:1 (AA — primary CTA + picker selected)
+    Readback colour rule: --success/--destructive ONLY for the in/out-of-spec line.
+      Input border + CTA stay --accent regardless of spec status (input is data
+      input, not danger).
+
+  spatial (DESIGN.md §5/§6): 4pt scale. Two-column tablet layout: form left, recent-
+    readings strip right. Touch targets ≥ 48 px (input 60 px, CTA 64 px). No nested
+    cards; form is one bordered panel.
+
+  motion (DESIGN.md §7): 150 ms ease-out-quart. Live readback fades between states.
+    prefers-reduced-motion swaps instantly.
+
+  Anti-patterns avoided: modal-as-first-thought (corrective picker mounts inline),
+    nested cards, hover-only affordances (kitchen tablet is pointer:coarse), tiny-
+    text on touch surface, decorative-red (red is reserved for out-of-spec data).
+
+  Accessibility: live readback uses aria-live="polite" + colour+glyph (✓/⚠). Sticky
+    warning uses role="alert" for prior-out-of-spec gap. Native date inputs.
+
+  Capabilities satisfied: FR9, FR10, FR11, FR12, FR13.
+-->
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Registrar lectura HACCP · nexandro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" />
+  <style>
+    :root {
+      --bg: oklch(94.5% 0.012 70); --surface: oklch(91.5% 0.014 70); --surface-2: oklch(88.5% 0.014 70);
+      --border: oklch(83% 0.018 70); --border-strong: oklch(73% 0.020 70);
+      --ink: oklch(20% 0.010 60); --mute: oklch(48% 0.012 70);
+      --accent: oklch(54% 0.072 190); --accent-press: oklch(46% 0.072 190);
+      --accent-fg: oklch(99% 0.003 190); --accent-soft: oklch(91% 0.025 190);
+      --success: oklch(53% 0.080 130); --destructive: oklch(48% 0.150 32);
+      --warn-bg: oklch(91% 0.045 80);
+      --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 32px;
+      --fs-xs: 13px; --fs-sm: 14px; --fs-md: 16px; --fs-lg: 20px; --fs-xl: 28px; --fs-2xl: 36px;
+      --radius-sm: 6px; --radius-md: 10px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: oklch(20% 0.012 70); --surface: oklch(24% 0.014 70); --surface-2: oklch(28% 0.014 70);
+        --ink: oklch(94% 0.010 60); --mute: oklch(70% 0.012 70);
+        --border: oklch(32% 0.018 70); --border-strong: oklch(40% 0.020 70);
+        --accent-soft: oklch(35% 0.025 190); --warn-bg: oklch(32% 0.045 80);
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: var(--fs-md); line-height: 1.5; font-variant-numeric: tabular-nums lining-nums;
+    }
+    button, input, textarea, select { font-family: inherit; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
+
+    .nav { height: 56px; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 var(--space-lg); gap: var(--space-lg); }
+    .nav .brand { font-family: "Newsreader", Georgia, serif; font-variation-settings: "opsz" 32; font-weight: 600; font-size: var(--fs-lg); }
+    .nav .breadcrumb { font-size: var(--fs-sm); color: var(--mute); }
+    .nav .breadcrumb .here { color: var(--ink); }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: var(--space-lg); }
+
+    /* Sticky warning for prior out-of-spec */
+    .sticky-warn {
+      background: var(--warn-bg); border: 1px solid var(--destructive); border-left-width: 4px;
+      border-radius: var(--radius-md); padding: var(--space-sm) var(--space-md);
+      font-size: var(--fs-sm); color: var(--destructive);
+      margin-bottom: var(--space-md);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: var(--space-xl);
+    }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+    .eyebrow { font-size: var(--fs-xs); color: var(--mute); letter-spacing: 0.04em; text-transform: uppercase; }
+    .headline {
+      font-family: "Newsreader", Georgia, serif; font-variation-settings: "opsz" 36;
+      font-weight: 600; font-size: var(--fs-2xl); margin: var(--space-xs) 0;
+    }
+    .sub { font-size: var(--fs-sm); color: var(--mute); }
+    .sub a { color: var(--accent-press); text-decoration: none; }
+    .sub a:hover { text-decoration: underline; }
+
+    /* CCP picker collapsed */
+    .ccp-picker {
+      margin-top: var(--space-md);
+      padding: var(--space-sm) var(--space-md);
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: var(--fs-sm);
+    }
+    .ccp-picker .change { background: none; border: none; color: var(--accent-press); cursor: pointer; font: inherit; }
+
+    /* Form panel */
+    .form-panel {
+      margin-top: var(--space-lg);
+      padding: var(--space-lg);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+
+    .field-label { font-size: var(--fs-sm); color: var(--mute); margin-bottom: var(--space-xs); font-weight: 500; }
+
+    .reading-row {
+      display: inline-flex; align-items: stretch;
+      border: 1px solid var(--border); border-radius: var(--radius-md);
+      background: var(--surface); overflow: hidden;
+    }
+    .reading-row:focus-within { border-color: var(--accent-press); box-shadow: 0 0 0 2px var(--accent-soft); }
+    .reading-input {
+      width: 260px; height: 80px;
+      padding: 0 var(--space-md);
+      background: transparent; border: none; outline: none;
+      color: var(--ink); font-size: var(--fs-2xl); font-weight: 600;
+      font-variant-numeric: tabular-nums lining-nums; text-align: center;
+    }
+    .unit {
+      display: inline-flex; align-items: center;
+      padding: 0 var(--space-md);
+      background: var(--surface-2);
+      border-left: 1px solid var(--border);
+      font-size: var(--fs-lg); color: var(--mute); font-weight: 500;
+    }
+
+    /* Spec readback */
+    .readback {
+      margin-top: var(--space-sm);
+      font-size: var(--fs-md);
+      color: var(--mute);
+      display: inline-flex; align-items: center; gap: var(--space-xs);
+      transition: color 150ms cubic-bezier(0.2, 0.7, 0.3, 1);
+    }
+    .readback.in-spec { color: var(--success); font-weight: 500; }
+    .readback.out-of-spec { color: var(--destructive); font-weight: 600; }
+
+    /* Corrective-action section (conditional) */
+    .corrective {
+      margin-top: var(--space-lg);
+      padding: var(--space-md) var(--space-lg);
+      background: var(--warn-bg);
+      border: 1px solid var(--destructive); border-left-width: 3px;
+      border-radius: var(--radius-md);
+      display: none;
+    }
+    .corrective.active { display: block; }
+
+    .corrective .ref { font-size: var(--fs-xs); color: var(--mute); margin-bottom: var(--space-xs); }
+    .corrective-picker {
+      width: 100%; height: 48px; padding: 0 var(--space-sm);
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+      color: var(--ink); font-size: var(--fs-md);
+    }
+    .corrective-notes {
+      width: 100%; min-height: 80px; margin-top: var(--space-sm);
+      padding: var(--space-sm); background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      color: var(--ink); font-size: var(--fs-md); resize: vertical;
+    }
+
+    /* Confirm row */
+    .confirm-row {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: var(--space-xl); padding-top: var(--space-lg);
+      border-top: 1px solid var(--border);
+    }
+    .ghost {
+      height: 64px; padding: 0 var(--space-lg);
+      background: transparent; color: var(--mute);
+      border: 1px solid var(--border-strong); border-radius: var(--radius-md);
+      cursor: pointer; font-size: var(--fs-md);
+    }
+    .cta {
+      height: 64px; padding: 0 var(--space-xl);
+      background: var(--accent); color: var(--accent-fg);
+      border: none; border-radius: var(--radius-md);
+      font-size: var(--fs-lg); font-weight: 600; cursor: pointer;
+    }
+    .cta:hover { background: var(--accent-press); }
+    .cta:disabled { background: var(--surface-2); color: var(--mute); cursor: not-allowed; }
+
+    /* Recent readings strip */
+    .recent {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: var(--space-md) var(--space-lg);
+      align-self: start; position: sticky; top: var(--space-lg);
+    }
+    .recent h3 { font-size: var(--fs-xs); color: var(--mute); letter-spacing: 0.04em; text-transform: uppercase; margin: 0 0 var(--space-sm); }
+    .recent ul { list-style: none; padding: 0; margin: 0; }
+    .recent li {
+      display: grid;
+      grid-template-columns: 70px 16px 1fr auto;
+      column-gap: var(--space-sm);
+      padding: var(--space-sm) 0; border-top: 1px solid var(--border);
+      font-size: var(--fs-sm); align-items: center;
+    }
+    .recent li:first-child { border-top: none; }
+    .recent .ts { color: var(--mute); font-size: var(--fs-xs); }
+    .recent .actor { color: var(--mute); font-size: var(--fs-xs); }
+    .recent .value { font-weight: 500; font-variant-numeric: tabular-nums; }
+    .recent li.out-of-range .value { color: var(--destructive); font-weight: 700; }
+    .recent .glyph { font-weight: 700; text-align: center; }
+    .recent .glyph.ok { color: var(--success); }
+    .recent .glyph.bad { color: var(--destructive); font-size: 16px; }
+  </style>
+</head>
+<body>
+  <header class="nav" role="navigation">
+    <span class="brand">nexandro</span>
+    <nav class="breadcrumb" aria-label="Migas">
+      HACCP · <span class="here">Registrar lectura</span>
+    </nav>
+  </header>
+
+  <div class="container">
+    <!-- Sticky warning (prior out-of-spec without corrective) -->
+    <div class="sticky-warn" role="alert" style="display: flex; justify-content: space-between; align-items: center; gap: var(--space-md);">
+      <span>⚠ Lectura previa fuera de rango sin acción correctiva · revisar antes de firmar nueva lectura.</span>
+      <button type="button" style="padding: 6px 14px; background: transparent; color: var(--destructive); border: 1px solid var(--destructive); border-radius: var(--radius-sm); cursor: pointer; font-size: var(--fs-sm); font-weight: 500; white-space: nowrap;">Ver previa →</button>
+    </div>
+
+    <div class="grid">
+      <main role="main">
+        <div class="eyebrow">HACCP · Lectura de PCC</div>
+        <h1 class="headline" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-weight: 700; font-size: 42px; letter-spacing: -0.02em; line-height: 1.05;">Cooling curve · cámara entrante</h1>
+        <p class="sub">
+          Carmen Aldai · Casa Aitona Bilbao · 15:32 CEST · referencia
+          <a href="#">FSMS-2026-v2</a>
+          · <span style="background: var(--accent-soft); color: var(--accent-press); border: 1px solid var(--accent); padding: 1px 8px; border-radius: 999px; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600;">CCP 3 de 5 hoy</span>
+        </p>
+
+        <!-- CCP picker (collapsed) -->
+        <div class="ccp-picker">
+          <span>Cooling curve · cámara entrante</span>
+          <button class="change" type="button">cambiar →</button>
+        </div>
+
+        <!-- Form -->
+        <form class="form-panel" novalidate>
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--space-xs);">
+            <div class="field-label" style="margin-bottom: 0;">Lectura</div>
+            <div style="display: inline-flex; gap: var(--space-xs);">
+              <button type="button" aria-label="Dictado por voz" title="Mantén para dictar la lectura por voz" style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; font-size: var(--fs-sm); color: var(--ink);">
+                🎤 Dictar
+              </button>
+              <button type="button" aria-label="Capturar foto del termómetro" title="Adjunta foto del display del termómetro como evidencia visual" style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; font-size: var(--fs-sm); color: var(--ink);">
+                📷 Foto termómetro
+              </button>
+            </div>
+          </div>
+          <div class="reading-row">
+            <input class="reading-input" type="number" inputmode="decimal" step="0.1" placeholder="-2 a 2" value="1.2" aria-label="Valor de la lectura en grados Celsius" />
+            <span class="unit">°C</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-sm); gap: var(--space-md);">
+            <div class="readback in-spec" style="margin-top: 0;" role="status" aria-live="polite">
+              <strong>✓</strong> Dentro de rango (-2 a 2 °C)
+            </div>
+            <div style="font-size: var(--fs-xs); color: var(--mute); text-align: right;">
+              Ayer mismo hora: <strong style="color: var(--ink); font-variant-numeric: tabular-nums;">1.5 °C</strong>
+              <span style="color: var(--success);">↓ 0.3 °C</span>
+            </div>
+          </div>
+
+          <!-- Corrective-action section (shown when out-of-spec) -->
+          <div class="corrective">
+            <div class="ref">Esto crea una entrada vinculada en audit_log con tu lectura como contexto.</div>
+            <div class="field-label">Acción correctiva (FR12)</div>
+            <select class="corrective-picker" aria-label="Acción correctiva pre-definida">
+              <option>— Selecciona acción —</option>
+              <option>Re-enfriar producto en cámara secundaria</option>
+              <option>Descartar producto + revisar refrigeración</option>
+              <option>Alertar Manager y aislar lote</option>
+              <option>Otra (especificar en notas)</option>
+            </select>
+            <textarea class="corrective-notes" placeholder="Notas opcionales: contexto, producto afectado, hora de la acción…"></textarea>
+            <div style="margin-top: var(--space-sm); padding-top: var(--space-sm); border-top: 1px dashed var(--border); font-size: var(--fs-xs); color: var(--mute);">
+              <details>
+                <summary style="cursor: pointer; color: var(--mute);">¿Razón documentada sin corrective? (ej. defrost programado)</summary>
+                <div style="margin-top: var(--space-xs); padding: var(--space-xs) var(--space-sm); background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);">
+                  <label style="display: flex; gap: var(--space-xs); align-items: flex-start;">
+                    <input type="radio" name="override" style="margin-top: 2px;" />
+                    <span>Override "out-of-spec" sin corrective · requiere razón + aprobación Owner</span>
+                  </label>
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <div class="confirm-row" style="flex-wrap: wrap; gap: var(--space-xs);">
+            <button class="ghost" type="button">Cancelar</button>
+            <div style="display: inline-flex; gap: var(--space-xs);">
+              <button class="cta" type="submit" style="background: var(--surface); color: var(--ink); border: 1px solid var(--accent);">Firmar lectura</button>
+              <button class="cta" type="submit" style="white-space: nowrap;">Firmar + siguiente CCP →</button>
+            </div>
+          </div>
+          <div style="font-size: var(--fs-xs); color: var(--mute); margin-top: var(--space-xs); text-align: right;">
+            Próxima CCP: <strong style="color: var(--ink);">Hot-hold ensalada</strong> · vence en 12 min
+          </div>
+        </form>
+      </main>
+
+      <!-- Recent readings strip -->
+      <aside class="recent" aria-label="Últimas 5 lecturas">
+        <h3>Últimas lecturas · este PCC</h3>
+        <ul>
+          <li>
+            <span class="value">1.5 °C</span>
+            <span class="glyph ok">✓</span>
+            <span class="ts">Lun 15:28</span>
+            <span class="actor">Carmen</span>
+          </li>
+          <li>
+            <span class="value">1.8 °C</span>
+            <span class="glyph ok">✓</span>
+            <span class="ts">Dom 15:33</span>
+            <span class="actor">Carmen</span>
+          </li>
+          <li class="out-of-range">
+            <span class="value">3.2 °C</span>
+            <span class="glyph bad">⚠</span>
+            <span class="ts">Sáb 15:51 · fuera de rango</span>
+            <span class="actor">Iñaki</span>
+          </li>
+          <li>
+            <span class="value">1.4 °C</span>
+            <span class="glyph ok">✓</span>
+            <span class="ts">Vie 15:14</span>
+            <span class="actor">Carmen</span>
+          </li>
+          <li>
+            <span class="value">1.6 °C</span>
+            <span class="glyph ok">✓</span>
+            <span class="ts">Jue 15:30</span>
+            <span class="actor">Carmen</span>
+          </li>
+        </ul>
+      </aside>
+    </div>
+  </div>
+</body>
+</html>

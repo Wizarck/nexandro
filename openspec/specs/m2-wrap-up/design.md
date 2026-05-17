@@ -2,8 +2,8 @@
 
 M2 development is complete: 16 slices merged across 8 waves (Wave 1.0 — `m2-data-model`, `m2-recipes-core`, `m2-off-mirror` — through Wave 1.8 — `m2-ai-yield-corpus`). Two feature flags have been gating the external production surface, by design — both regulated artefacts whose risk surface required external clearance before flipping on:
 
-- **Labels** (Wave 1.6, `m2-labels-rendering`): `OPENTRATTOS_LABELS_PROD_ENABLED` per ADR-019 §Risk. Generates EU 1169/2011-compliant nutritional labels; pre-launch external legal review required to confirm the label format meets compliance for the operator's jurisdiction(s).
-- **AI yield/waste suggestions** (Wave 1.7, `m2-ai-yield-suggestions`): `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED` per ADR-018. Iron-rule citations require a real RAG corpus + proxy translation layer; both delivered by `m2-ai-yield-corpus` (Wave 1.8).
+- **Labels** (Wave 1.6, `m2-labels-rendering`): `NEXANDRO_LABELS_PROD_ENABLED` per ADR-019 §Risk. Generates EU 1169/2011-compliant nutritional labels; pre-launch external legal review required to confirm the label format meets compliance for the operator's jurisdiction(s).
+- **AI yield/waste suggestions** (Wave 1.7, `m2-ai-yield-suggestions`): `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED` per ADR-018. Iron-rule citations require a real RAG corpus + proxy translation layer; both delivered by `m2-ai-yield-corpus` (Wave 1.8).
 
 The Owner declares both gates cleared. This slice is the formal milestone.
 

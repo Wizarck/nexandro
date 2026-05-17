@@ -7,12 +7,12 @@ skills_sources:
   - Wizarck/ai-playbook@v0.14.0
   - Wizarck/eligia-skills@v0.3.0
 updated: 2026-05-15
-project: openTrattOS
+project: nexandro
 owner: arturo6ramirez@gmail.com
 capabilities_map: true
 ---
 
-# openTrattOS — AGENTS.md
+# nexandro — AGENTS.md
 
 > Project dispatcher. Lean. For universal norms see `.ai-playbook/specs/*`.
 
@@ -21,18 +21,18 @@ capabilities_map: true
 Before responding to ANY task:
 
 1. Read `.ai-playbook/specs/dispatcher-chain.md` — universal norms and override semantics.
-2. Consult `.claude/injected-context.md` — populated by the SessionStart hook from `hindsight.recall(query="openTrattOS <topic>")` against bank `opentrattos`. If absent or showing `DEGRADED_CONTEXT`, announce + proceed without prior recall.
+2. Consult `.claude/injected-context.md` — populated by the SessionStart hook from `hindsight.recall(query="nexandro <topic>")` against bank `nexandro`. If absent or showing `DEGRADED_CONTEXT`, announce + proceed without prior recall.
 3. Check `openspec/changes/*/` for active work on the topic. If a change is live and open, extend it — don't start parallel work.
 4. Only then respond.
 
 ## 1 Project identity
 
-openTrattOS — open-source **Back-of-House (BOH) and kitchen traceability OS** for restaurants. Replaces closed-source incumbents (Apicbase, MarketMan, tSpoonLab, Gstock).
+nexandro — open-source **Back-of-House (BOH) and kitchen traceability OS** for restaurants. Replaces closed-source incumbents (Apicbase, MarketMan, tSpoonLab, Gstock).
 
 - Business model: **open-core**. Community (this repo) = AGPL-3.0, Docker-self-hosted. Enterprise (separate private repo) = paid SaaS with AI agents, WhatsApp/Telegram bot, managed cloud.
-- Repo: https://github.com/Wizarck/openTrattOS.
+- Repo: https://github.com/Wizarck/nexandro.
 - Tech: Turborepo (npm workspaces) + Vite + React 18 SPA + NestJS (DDD modular monolith) + PostgreSQL (TypeORM) + Redis + MinIO.
-- Distribution: single omnibus Docker image `ghcr.io/wizarck/opentrattos` per ADR-028 (GitLab CE / Mattermost / n8n pattern). NestJS serves the SPA via `@nestjs/serve-static` under `/`, API under `/api/*`. Never propose api/web split by default — re-split criteria in `docs/operations/post-deploy-roadmap.md` R11.
+- Distribution: single omnibus Docker image `ghcr.io/wizarck/nexandro` per ADR-028 (GitLab CE / Mattermost / n8n pattern). NestJS serves the SPA via `@nestjs/serve-static` under `/`, API under `/api/*`. Never propose api/web split by default — re-split criteria in `docs/operations/post-deploy-roadmap.md` R11.
 
 Module roadmap:
 
@@ -63,7 +63,7 @@ Module roadmap:
 **M1 Ingredients — in progress.** OpenSpec change `module-1-ingredients-implementation`:
 
 - `proposal.md` is the next artifact to write. After approval, `design.md` + `specs/*.md` unlock, then `tasks.md`, then `openspec apply`.
-- `apps/api/` scaffolded with Turborepo + NestJS, Swagger wired, `@opentrattos/types` complete. Domain entities / use-cases / TypeORM repositories are empty shells (TODO comments).
+- `apps/api/` scaffolded with Turborepo + NestJS, Swagger wired, `@nexandro/types` complete. Domain entities / use-cases / TypeORM repositories are empty shells (TODO comments).
 - `apps/web/` (Next.js 14 frontend) — not yet created.
 - `npm install` not yet run locally.
 - Docker Compose not yet created.
@@ -76,7 +76,7 @@ These extend (do not duplicate) universal norms in `.ai-playbook/specs/*`.
 
 **Architecture:**
 - **Modular monolith with DDD (ADR-001).** Each bounded context (`ingredients`, `costing`, `haccp`, `operations`) lives under `apps/api/src/<ctx>/` with `domain/ | application/ | infrastructure/ | interface/`. Cross-module communication via published interfaces only; **never** direct entity imports.
-- **API-first for MCP agents (ADR-002).** Every endpoint: semantic name (no `/process`, `/handle`), `@ApiOperation` summary + description, explicitly typed DTOs from `@opentrattos/types` (**no `any` ever**), cursor-based pagination on list endpoints. Design so an LLM can pick the tool from name + description alone.
+- **API-first for MCP agents (ADR-002).** Every endpoint: semantic name (no `/process`, `/handle`), `@ApiOperation` summary + description, explicitly typed DTOs from `@nexandro/types` (**no `any` ever**), cursor-based pagination on list endpoints. Design so an LLM can pick the tool from name + description alone.
 - **Multi-tenant from day one (ADR-004).** Every table carries `organizationId` FK.
 - **RBAC (ADR-006)**: three roles — `OWNER | MANAGER | STAFF`. Full permission matrix in `docs/personas-jtbd.md`.
 - **Single currency per org (ADR-007).** `currencyCode` set once on org creation, immutable after.
@@ -92,7 +92,7 @@ These extend (do not duplicate) universal norms in `.ai-playbook/specs/*`.
 - **Never edit `openspec/specs/*.md` manually** — changes only land via `openspec archive` of a completed change.
 - **Apply phase goes through `openspec-apply-change` skill.** Manual `Edit`/`Write`/`MultiEdit` on a slice's declared `write_paths` is blocked by the PreToolUse hook at [`.claude/hooks/openspec-apply-enforce.py`](.claude/hooks/openspec-apply-enforce.py). Contract: [`.ai-playbook/specs/apply-skill-enforcement.md`](.ai-playbook/specs/apply-skill-enforcement.md). Break-glass: `AIPLAYBOOK_APPLY_ENFORCE_OVERRIDE="<≥10-char reason>"` (audited).
 - **Conventional commits** (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`).
-- **Dual repo strategy (ADR-010).** GitHub Issues = community (this AGPL-3.0 repo, `@opentrattos/*` npm packages). Jira (private) = enterprise (TrattOS closed-source, consumes via `npm update`). No ticket mirroring.
+- **Dual repo strategy (ADR-010).** GitHub Issues = community (this AGPL-3.0 repo, `@nexandro/*` npm packages). Jira (private) = enterprise (Nexandro closed-source, consumes via `npm update`). No ticket mirroring.
 
 ## 5 Capability map
 
@@ -107,7 +107,7 @@ These extend (do not duplicate) universal norms in `.ai-playbook/specs/*`.
 | Adversarial critique | `bmad-review-adversarial-general` | `.claude/skills/` |
 | Implementation readiness | `bmad-check-implementation-readiness` | `.claude/skills/` |
 | Validate OpenSpec change | `python .ai-playbook/scripts/openspec_validate.py` | playbook |
-| Render MCP configs | `python .ai-playbook/scripts/mcp/render.py --project openTrattOS` | playbook |
+| Render MCP configs | `python .ai-playbook/scripts/mcp/render.py --project nexandro` | playbook |
 | Secrets scan | `python .ai-playbook/scripts/secrets_scan.py` | playbook |
 | Schema-validate this file | `python .ai-playbook/scripts/schema_validate.py AGENTS.md` | playbook |
 | Refresh projects registry | `python .ai-playbook/scripts/discover_projects.py` | playbook |
@@ -116,11 +116,11 @@ These extend (do not duplicate) universal norms in `.ai-playbook/specs/*`.
 
 Snapshot (≤10 lines):
 
-- `hindsight` — project memory. `bank_id: opentrattos`.
+- `hindsight` — project memory. `bank_id: nexandro`.
 - `atlassian-geeplo` — Jira tenant for enterprise side; this community repo is read-only on that side.
-- Planned: `guardrails-mcp` (T10 + Phase 5 T26), `opentrattos-api` (when enterprise MCP lands).
+- Planned: `guardrails-mcp` (T10 + Phase 5 T26), `nexandro-api` (when enterprise MCP lands).
 
-Full source of truth: `mcp-servers.yaml` (project layer) merged with `.ai-playbook/mcp-servers-base.yaml` + personal layer via `python .ai-playbook/scripts/mcp/render.py --project openTrattOS`. See `.ai-playbook/specs/mcp-servers-schema.md`.
+Full source of truth: `mcp-servers.yaml` (project layer) merged with `.ai-playbook/mcp-servers-base.yaml` + personal layer via `python .ai-playbook/scripts/mcp/render.py --project nexandro`. See `.ai-playbook/specs/mcp-servers-schema.md`.
 
 ## 7 Overrides inherited from playbook
 
@@ -132,7 +132,7 @@ Empty at v1.0.0. Populate as operational knowledge accrues. Format: `- YYYY-MM-D
 
 ## Appendix — Enterprise vision (context only, DO NOT IMPLEMENT)
 
-TrattOS Enterprise (separate private repo, paid SaaS) will add:
+Nexandro Enterprise (separate private repo, paid SaaS) will add:
 - AI agents (Hermes / OpenClaw) consuming this API via MCP tools.
 - Hindsight memory for contextual conversations.
 - WhatsApp / Telegram bot for kitchen staff.

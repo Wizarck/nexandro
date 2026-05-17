@@ -88,7 +88,7 @@ The system SHALL create three indexes on the `lots` table within migration 0026:
 The system SHALL declare two new event types in the `AuditEventEnvelope` union: `LOT_CREATED` (payload: full Lot read model) and `STOCK_MOVE_CREATED` (payload: full StockMove read model). The types SHALL be exported from `packages/contracts/src/m3/lots.ts` for use by downstream slices. This slice SHALL NOT register the events with the M2 `AuditLogSubscriber` — that registration is claimed by slice #21 (`m3-audit-log-hash-chain-hardening`).
 
 #### Scenario: Event types are exported from contracts package
-- **WHEN** a downstream slice imports `import { LotCreatedEvent, StockMoveCreatedEvent } from '@opentrattos/contracts/m3/lots'`
+- **WHEN** a downstream slice imports `import { LotCreatedEvent, StockMoveCreatedEvent } from '@nexandro/contracts/m3/lots'`
 - **THEN** the import resolves; the types include `eventType`, `aggregateType`, `aggregateId`, and the typed payload
 
 #### Scenario: Subscriber registration is NOT in this slice

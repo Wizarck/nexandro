@@ -8,7 +8,7 @@ import {
   SpecRangeReadback,
   type Ccp,
   type RecentReadingRow,
-} from '@opentrattos/ui-kit';
+} from '@nexandro/ui-kit';
 import { useCurrentOrgId, useCurrentRole } from '../../lib/currentUser';
 import {
   useCcps,
@@ -45,7 +45,7 @@ export function HaccpRecordScreen() {
 }
 
 const DRAFT_TTL_MS = 10 * 60_000;
-const DRAFT_KEY_PREFIX = 'opentrattos.haccp.draft.v1';
+const DRAFT_KEY_PREFIX = 'nexandro.haccp.draft.v1';
 
 interface DraftV1 {
   value: string;

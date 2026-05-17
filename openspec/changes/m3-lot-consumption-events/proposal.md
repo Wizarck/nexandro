@@ -26,7 +26,7 @@ Per architecture-m3.md line 306: "ADR-031 (indexing) MUST land before recall sli
   - Verification: `EXPLAIN ANALYZE` snapshot for both indexes committed to `docs/architecture-decisions.md` ADR-031.
 - **`apps/api/src/inventory/consumption/`** new BC (sibling of `inventory/lot/` from slice #1):
   - `domain/events.ts` — `LotConsumedEvent` typed `AuditEventEnvelope` shape; Zod validator at the boundary.
-  - `domain/consumption-input.ts` — `RecordConsumptionInput` value object (qty, lot_id, recipe_id?, menu_item_id?, opentrattos_tag?, reason?).
+  - `domain/consumption-input.ts` — `RecordConsumptionInput` value object (qty, lot_id, recipe_id?, menu_item_id?, nexandro_tag?, reason?).
   - `application/consumption.service.ts` — single public method `recordConsumption(organizationId, actorUserId, input)` that (a) loads the lot, (b) appends a `stock_moves` row with `move_type='outbound'` via the slice #1 `StockMoveRepository.append()`, (c) builds the typed `LotConsumedEvent` envelope and emits it through `EventEmitter2` (the M2 event bus from Wave 1.9).
   - `application/forward-trace.query.ts` — `findConsumptionsByLot(organizationId, lotId, limit, offset)` read-side helper that slice #11/#12 consume.
   - `consumption.module.ts` — NestJS module wiring; imported by the inventory module.

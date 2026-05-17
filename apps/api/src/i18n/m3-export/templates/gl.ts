@@ -66,5 +66,5 @@ export const GL_TEMPLATE: Readonly<Record<string, string>> = Object.freeze({
     'Sen accións correctivas rexistradas neste rango.',
   'footer.page': 'Páxina {page} de {total}',
   'footer.legal':
-    'Documento xerado por openTrattOS · trazable por audit_log',
+    'Documento xerado por nexandro · trazable por audit_log',
 });

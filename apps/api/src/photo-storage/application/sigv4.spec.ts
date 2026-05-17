@@ -65,7 +65,7 @@ describe('AWS Sigv4 primitives', () => {
   describe('presignUrl', () => {
     const baseInputs = {
       method: 'PUT' as const,
-      bucket: 'opentrattos-photos-test',
+      bucket: 'nexandro-photos-test',
       objectKey: 'org/aaa/photos/photo-1.jpg',
       host: 'minio.local:9000',
       region: 'us-east-1',
@@ -88,7 +88,7 @@ describe('AWS Sigv4 primitives', () => {
 
     it('encodes the bucket + object key in the path', () => {
       const url = presignUrl(baseInputs);
-      expect(url).toContain('/opentrattos-photos-test/org/aaa/photos/photo-1.jpg');
+      expect(url).toContain('/nexandro-photos-test/org/aaa/photos/photo-1.jpg');
     });
 
     it('is deterministic for identical inputs (signature stability)', () => {

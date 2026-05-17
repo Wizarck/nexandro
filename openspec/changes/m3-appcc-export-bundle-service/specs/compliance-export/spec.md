@@ -145,7 +145,7 @@ The mappings are asserted in `apps/api/src/audit-log/application/types.spec.ts`.
 
 ### AC-COMP-12 — MCP capability `compliance.generate-export`
 
-`compliance.generate-export` is registered in the `WRITE_CAPABILITIES` registry. It proxies `POST /m3/compliance/exports`. The per-capability env flag `OPENTRATTOS_AGENT_COMPLIANCE_GENERATE_EXPORT_ENABLED` gates Hermes access — when `false`, the `AgentCapabilityGuard` rejects with 403 even if the agent is otherwise authorised.
+`compliance.generate-export` is registered in the `WRITE_CAPABILITIES` registry. It proxies `POST /m3/compliance/exports`. The per-capability env flag `NEXANDRO_AGENT_COMPLIANCE_GENERATE_EXPORT_ENABLED` gates Hermes access — when `false`, the `AgentCapabilityGuard` rejects with 403 even if the agent is otherwise authorised.
 
 The capability schema includes `rangeStart`, `rangeEnd`, `locale`, `scope`, optional `recipientEmails`, optional `idempotencyKey`. The schema is non-empty + every entry includes an optional `idempotencyKey` field per the smoke-test invariants in `write/index.spec.ts`.
 

@@ -33,7 +33,7 @@ const POOL_ACQUIRE_TIMEOUT_MS = 5000;
  * SMTP adapter (default AGPL build) per ADR-039.
  *
  * Uses `nodemailer.createTransport` with `pool: true`. Pool size is
- * configurable via `OPENTRATTOS_SMTP_POOL_SIZE` (default 5). Maps
+ * configurable via `NEXANDRO_SMTP_POOL_SIZE` (default 5). Maps
  * `nodemailer` errors onto `EmailAdapterError`:
  *
  *   - 5xx SMTP response code → retryable
@@ -82,15 +82,15 @@ export class SmtpEmailAdapter implements EmailDispatchService {
   }
 
   static fromEnv(env: NodeJS.ProcessEnv = process.env): SmtpEmailAdapter {
-    const host = env.OPENTRATTOS_SMTP_HOST ?? 'localhost';
-    const port = Number(env.OPENTRATTOS_SMTP_PORT ?? DEFAULT_SMTP_PORT);
-    const user = env.OPENTRATTOS_SMTP_USER;
-    const pass = env.OPENTRATTOS_SMTP_PASS;
+    const host = env.NEXANDRO_SMTP_HOST ?? 'localhost';
+    const port = Number(env.NEXANDRO_SMTP_PORT ?? DEFAULT_SMTP_PORT);
+    const user = env.NEXANDRO_SMTP_USER;
+    const pass = env.NEXANDRO_SMTP_PASS;
     const poolSize = Number(
-      env.OPENTRATTOS_SMTP_POOL_SIZE ?? DEFAULT_SMTP_POOL_SIZE,
+      env.NEXANDRO_SMTP_POOL_SIZE ?? DEFAULT_SMTP_POOL_SIZE,
     );
     const from =
-      env.OPENTRATTOS_EMAIL_FROM ?? 'notifications@opentrattos.local';
+      env.NEXANDRO_EMAIL_FROM ?? 'notifications@nexandro.local';
     return new SmtpEmailAdapter({
       host,
       port: Number.isFinite(port) ? port : DEFAULT_SMTP_PORT,
@@ -170,8 +170,8 @@ export class SmtpEmailAdapter implements EmailDispatchService {
         contentType: a.contentType,
       })),
       headers: {
-        'X-OpenTrattOS-Tag': input.tag,
-        'X-OpenTrattOS-Organization-Id': input.organizationId,
+        'X-Nexandro-Tag': input.tag,
+        'X-Nexandro-Organization-Id': input.organizationId,
       },
     };
     try {

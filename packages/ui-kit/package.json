@@ -1,9 +1,9 @@
 {
-  "name": "@opentrattos/ui-kit",
+  "name": "@nexandro/ui-kit",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "openTrattOS shared UI components. Tailwind 4 + shadcn primitives + Storybook 8. Design tokens consumed from docs/ux/DESIGN.md.",
+  "description": "nexandro shared UI components. Tailwind 4 + shadcn primitives + Storybook 8. Design tokens consumed from docs/ux/DESIGN.md.",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {

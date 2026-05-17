@@ -42,7 +42,7 @@
 
 - [ ] 6.1 `apps/api/src/ai-observability/budget/domain/events.ts`:
   - `AI_BUDGET_TIER_CROSSED_CHANNEL = 'ai-observability.budget-tier-crossed' as const`
-  - `interface AiBudgetTierCrossedPayload` inline (NO `@opentrattos/contracts` import per Wave 2.1+2.2+2.3 hard constraint):
+  - `interface AiBudgetTierCrossedPayload` inline (NO `@nexandro/contracts` import per Wave 2.1+2.2+2.3 hard constraint):
     - `organizationId: string`
     - `aggregateType: 'ai_usage_rollup'`
     - `aggregateId: string` (composite `<orgId>:<period>`)
@@ -90,7 +90,7 @@
 
 - [ ] 11.1 `apps/api/src/ai-observability/budget/application/rollup-scheduler.service.ts`:
   - `@Injectable()` with `@Cron('*/5 * * * *', { name: 'ai-budget-rollup' })`
-  - Env-flag gate: `if (process.env.OPENTRATTOS_AI_BUDGET_SCHEDULER_ENABLED !== 'true') return;`
+  - Env-flag gate: `if (process.env.NEXANDRO_AI_BUDGET_SCHEDULER_ENABLED !== 'true') return;`
   - For each active org:
     1. Compute aggregate (sum of spans for current period; SOURCE: read from OTel exporter sink — implementation note: stub via injected `SpanAggregatorPort` interface for testability; concrete impl reads from rollup table itself for MVP, refining when slice #20 attaches a real span source).
     2. Upsert via `repository.upsertAggregate(orgId, period, aggregate)` — wrap in try/catch; on failure, log + fall back to `lruCache.get(key)`.
@@ -150,9 +150,9 @@
 ## 16. Module wiring + smoke test
 
 - [ ] 16.1 Verify `pnpm --filter apps/api build` succeeds (run only after pushed; do not pnpm install locally)
-- [ ] 16.2 Smoke-import budget module from `ai-observability.module.ts`; verify NestJS DI graph resolves at app load without `OPENTRATTOS_AI_BUDGET_SCHEDULER_ENABLED` set
+- [ ] 16.2 Smoke-import budget module from `ai-observability.module.ts`; verify NestJS DI graph resolves at app load without `NEXANDRO_AI_BUDGET_SCHEDULER_ENABLED` set
 
 ## 17. Docs follow-ups (post-merge, OUT OF SCOPE for this slice's commits)
 
-- [ ] 17.1 `docs/operations/ai-observability.md` — `OPENTRATTOS_AI_BUDGET_SCHEDULER_ENABLED` + `OPENTRATTOS_AI_FX_RATE_USD_TO_EUR` env flags + tier severity table
+- [ ] 17.1 `docs/operations/ai-observability.md` — `NEXANDRO_AI_BUDGET_SCHEDULER_ENABLED` + `NEXANDRO_AI_FX_RATE_USD_TO_EUR` env flags + tier severity table
 - [ ] 17.2 NFR-OBS-10 row in `prd-m3.md` NFR table (documentation cleanup follow-up per architecture-m3.md note)

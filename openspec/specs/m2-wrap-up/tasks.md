@@ -1,7 +1,7 @@
 ## 1. Configuration documentation
 
-- [ ] 1.1 `apps/api/.env.example` — flip `OPENTRATTOS_LABELS_PROD_ENABLED` to `true` with comment block referencing legal-review clearance + ADR-019 footnote
-- [ ] 1.2 `apps/api/.env.example` — flip `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED` to `true` with comment block referencing rag-proxy + corpus deploy
+- [ ] 1.1 `apps/api/.env.example` — flip `NEXANDRO_LABELS_PROD_ENABLED` to `true` with comment block referencing legal-review clearance + ADR-019 footnote
+- [ ] 1.2 `apps/api/.env.example` — flip `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED` to `true` with comment block referencing rag-proxy + corpus deploy
 - [ ] 1.3 `tools/rag-proxy/.env.example` — document the production env shape (LIGHTRAG_BASE_URL points at internal LightRAG; RAG_PROXY_API_KEY required; BRAVE_API_KEY for fallback)
 
 ## 2. ADR notes

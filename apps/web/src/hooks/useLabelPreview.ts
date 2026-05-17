@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { LabelPreviewLocale } from '@opentrattos/ui-kit';
+import type { LabelPreviewLocale } from '@nexandro/ui-kit';
 
 /**
  * Builds the preview URL pointed at the streaming label PDF endpoint. The

@@ -1,4 +1,4 @@
-# openTrattOS — single omnibus image per ADR-028 + ADR-SINGLE-IMAGE-OMNIBUS.
+# nexandro — single omnibus image per ADR-028 + ADR-SINGLE-IMAGE-OMNIBUS.
 #
 # Slice m3.x-app-bootstrap-and-vps-deploy §2.1.
 #
@@ -34,9 +34,9 @@ COPY apps/web ./apps/web
 COPY packages ./packages
 
 # Build api and web (turbo will respect the workspace dependency graph
-# so @opentrattos/types, contracts, label-renderer, ui-kit get built
+# so @nexandro/types, contracts, label-renderer, ui-kit get built
 # transitively before consumers).
-RUN npx turbo run build --filter=@opentrattos/api... --filter=@opentrattos/web...
+RUN npx turbo run build --filter=@nexandro/api... --filter=@nexandro/web...
 
 # Prune dev deps now that the build is complete.
 RUN npm prune --omit=dev

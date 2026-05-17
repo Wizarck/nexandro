@@ -1,4 +1,4 @@
-import { MetricCard } from '@opentrattos/ui-kit';
+import { MetricCard } from '@nexandro/ui-kit';
 import type { BlastRadiusModel, Criticality } from '../api/aiObs.types';
 import { formatPctInt } from '../lib/format';
 

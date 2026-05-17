@@ -1,5 +1,5 @@
 import { useSearchParams } from 'react-router-dom';
-import { CostDeltaTable } from '@opentrattos/ui-kit';
+import { CostDeltaTable } from '@nexandro/ui-kit';
 import { useRecipeCostDelta } from '../hooks/useRecipeCostDelta';
 
 /**

@@ -17,7 +17,7 @@
 ## 3. Domain layer — Consumption BC scaffolding
 
 - [ ] 3.1 `apps/api/src/inventory/consumption/domain/events.ts` — re-export `LotConsumedEvent` from contracts; declare BC-local `LOT_CONSUMED_EVENT` injection token for EventEmitter2
-- [ ] 3.2 `apps/api/src/inventory/consumption/domain/consumption-input.ts` — `RecordConsumptionInput` value object: `{ lotId, qtyConsumed, recipeId?, menuItemId?, opentrattosTag?, reason?, idempotencyKey }`
+- [ ] 3.2 `apps/api/src/inventory/consumption/domain/consumption-input.ts` — `RecordConsumptionInput` value object: `{ lotId, qtyConsumed, recipeId?, menuItemId?, nexandroTag?, reason?, idempotencyKey }`
 - [ ] 3.3 `apps/api/src/inventory/consumption/domain/errors.ts`:
   - `InvalidConsumptionInputError` — qty <= 0, both recipe_id + menu_item_id populated, lot not found
   - `LotInsufficientQuantityError` — `qty_consumed > lot.quantity_remaining`
@@ -52,7 +52,7 @@
   - Boundary: both `recipe_id` and `menu_item_id` populated → ZodError (or service-level rejection — pick one and document)
   - Boundary: `qty_consumed=0` → ZodError (positive number required)
   - Boundary: `qty_consumed` negative → ZodError (positive number required — sign normalisation happens at StockMove layer)
-  - Boundary: `opentrattos_tag` empty string → accepted (tag is optional and free-form)
+  - Boundary: `nexandro_tag` empty string → accepted (tag is optional and free-form)
 - [ ] 6.2 `consumption.service.spec.ts` (mocked repos + bus):
   - Happy path: valid input → stock_moves.append called with correct signed qty → bus emit called with correct envelope
   - Validation: qty > quantity_remaining → throws `LotInsufficientQuantityError`; no repo write; no bus emit

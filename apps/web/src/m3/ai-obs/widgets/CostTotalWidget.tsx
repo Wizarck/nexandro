@@ -1,4 +1,4 @@
-import { MetricCard } from '@opentrattos/ui-kit';
+import { MetricCard } from '@nexandro/ui-kit';
 import type { CostTotalWidget as CostTotalData } from '../api/aiObs.types';
 import { formatEur, formatFreshness, formatPct } from '../lib/format';
 

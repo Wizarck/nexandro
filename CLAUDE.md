@@ -1,4 +1,4 @@
-# openTrattOS — CLAUDE.md
+# nexandro — CLAUDE.md
 
 Claude Code: read [AGENTS.md](AGENTS.md) first. That is the project dispatcher.
 

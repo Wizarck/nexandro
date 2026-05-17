@@ -25,7 +25,7 @@ const TIMESTAMP_SKEW_MS = 5 * 60 * 1000;
 /** LRU cap for nonce tracking. Each entry is ~50 bytes; 10k = ~500 KB. */
 const NONCE_LRU_CAP = 10_000;
 
-const FLAG_ENV = 'OPENTRATTOS_AGENT_SIGNATURE_REQUIRED';
+const FLAG_ENV = 'NEXANDRO_AGENT_SIGNATURE_REQUIRED';
 
 function readHeader(req: Request, name: string): string | null {
   const raw = req.headers[name];
@@ -93,7 +93,7 @@ class NonceLRU {
  * marker — downstream code can trust this, including
  * `BeforeAfterAuditInterceptor`'s before-handler phase.
  *
- * Default-OFF posture: when `OPENTRATTOS_AGENT_SIGNATURE_REQUIRED` is unset
+ * Default-OFF posture: when `NEXANDRO_AGENT_SIGNATURE_REQUIRED` is unset
  * or "false", this middleware is a no-op for missing-signature requests
  * (legacy 3a unsigned path stays). When the flag includes the calling org
  * id (or is "true" globally), missing signature on an agent-flagged

@@ -39,7 +39,7 @@ Foundation: `#5 m2-ingredients-extension` provides allergens + macros + the firs
 - **Refusal-on-incomplete**: explicit list of mandatory fields per Article 9 (food name, ingredient list with allergens, net quantity, mandatory particulars, allergens emphasised, business name + address). The renderer validates pre-emit and returns `{code: "MISSING_MANDATORY_FIELDS", missing: [...]}` rather than emitting an incomplete PDF.
 - **Page size = Org config** (`a4 | thermal-4x6 | thermal-50x80`). **Rationale**: thermal label printers (PM-344-WF) need 4x6"; office printers need A4. Same renderer, different page geometry. Stored in `Organization.labelFields.pageSize`.
 - **`Recipe.portions integer`** new column for "net quantity per portion" derivation. Total mass / portions = per-portion. Default 1 (single-portion). Filed migration as part of this slice (no separate migration slice needed).
-- **`OPENTRATTOS_LABELS_PROD_ENABLED` flag** is a deploy gate, not a code gate. CI runs everything; production deploy of `/recipes/:id/label` + `/print` requires the legal sign-off, recorded in the change retro.
+- **`NEXANDRO_LABELS_PROD_ENABLED` flag** is a deploy gate, not a code gate. CI runs everything; production deploy of `/recipes/:id/label` + `/print` requires the legal sign-off, recorded in the change retro.
 - **Locale set ES + EN + IT** (Gate D fork 5a). String bundles cheap; legal review covers all three at once.
 - **Cache: 5-min TTL in-memory** keyed `(recipeId, locale, recipeUpdatedAt, orgUpdatedAt)`, `@OnEvent` invalidation on Recipe/Org changes (Gate D fork 3a, mirrors `DashboardService` pattern).
 
@@ -50,7 +50,7 @@ Foundation: `#5 m2-ingredients-extension` provides allergens + macros + the firs
 - [Risk] PDF generation latency. **Mitigation**: react-pdf renders ~200-500ms for typical recipe; cache identical inputs (recipe + locale + page-size) for 5 min server-side; client preview is cached via HTTP cache headers.
 - [Risk] Walker refactor regresses cost.service perf-spec. **Mitigation**: `cost.service.perf.spec.ts` runs on every CI; refactor preserves semantics (same memoization, same currency aggregation, same `unresolved` fallback path) — fold helper is the same recursive shape.
 - [Risk] `IppPrintAdapter` doesn't cover Phomemo PM-344-WF. **Mitigation**: explicit — that's the exact reason the abstraction exists. PM-344-WF gets its own slice. This slice doesn't claim to print on PM-344-WF; it claims to render the PDF + dispatch via abstraction + ship one validated adapter.
-- [Risk] `OPENTRATTOS_LABELS_PROD_ENABLED` flag drift. **Mitigation**: dev/CI mode flag-on by default; prod mode flag-off until legal sign-off recorded in retro. ADR-013 pattern (same as `OPENTRATTOS_AGENT_ENABLED`).
+- [Risk] `NEXANDRO_LABELS_PROD_ENABLED` flag drift. **Mitigation**: dev/CI mode flag-on by default; prod mode flag-off until legal sign-off recorded in retro. ADR-013 pattern (same as `NEXANDRO_AGENT_ENABLED`).
 
 ## Migration Plan
 

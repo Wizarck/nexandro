@@ -22,23 +22,23 @@
 ## 3. OtelService — gen_ai.* span helpers
 
 - [ ] 3.1 `apps/api/src/ai-observability/otel-tracer.service.ts` — class `OtelService` with:
-  - `getTracer(): Tracer` — returns the global OTel tracer for `service.name=opentrattos-api`
+  - `getTracer(): Tracer` — returns the global OTel tracer for `service.name=nexandro-api`
   - `startGenAiSpan(name, attrs, options)` — creates a span with `gen_ai.*` semconv attributes from the pinned schema; throws `UnknownSemconvAttributeError` if `attrs` contains keys not in the pinned set
-  - `startSpan(name, options)` — generic span creation; takes optional `tag` for `opentrattos.tag` attribute
+  - `startSpan(name, options)` — generic span creation; takes optional `tag` for `nexandro.tag` attribute
 - [ ] 3.2 `otel-tracer.service.spec.ts`:
   - happy path: `startGenAiSpan('test', { model: 'claude-3.5-sonnet', inputTokens: 100, outputTokens: 50 })` emits a span with correctly-mapped attributes
   - boundary: unknown attribute key throws `UnknownSemconvAttributeError`
 
-## 4. SpanEnricherInterceptor — opentrattos.tag attribute
+## 4. SpanEnricherInterceptor — nexandro.tag attribute
 
 - [ ] 4.1 `apps/api/src/ai-observability/span-enricher.interceptor.ts` — NestJS `@Injectable() @UseInterceptors` global interceptor:
   - intercepts every outgoing span at `onSpanEnd`
-  - assigns `opentrattos.tag` from `RequestContext.tag` if set, else `untagged`
+  - assigns `nexandro.tag` from `RequestContext.tag` if set, else `untagged`
   - normalizes tag to lowercase kebab-case ASCII, max 64 chars (truncates + warn-logs)
   - emits `warn` log if tag was missing or required normalization
 - [ ] 4.2 `span-enricher.interceptor.spec.ts`:
-  - tagged span keeps `opentrattos.tag=<value>`
-  - untagged span falls back to `opentrattos.tag='untagged'` + warn log
+  - tagged span keeps `nexandro.tag=<value>`
+  - untagged span falls back to `nexandro.tag='untagged'` + warn log
   - oversized tag (>64 chars) is truncated + warn log
   - capitalized/spaced tag normalized to kebab-case
 - [ ] 4.3 Register `SpanEnricherInterceptor` as `APP_INTERCEPTOR` global provider in `AiObservabilityModule`
@@ -52,20 +52,20 @@
   import './otel-bootstrap';
   ```
 - [ ] 5.2 Create `apps/api/src/otel-bootstrap.ts`:
-  - reads env: `OPENTRATTOS_OTEL_DISABLED`, `OPENTRATTOS_OTEL_EXPORTER_ENDPOINT`, `OPENTRATTOS_OTEL_EXPORTER_HEADERS`, `OPENTRATTOS_OTEL_SERVICE_NAME`
+  - reads env: `NEXANDRO_OTEL_DISABLED`, `NEXANDRO_OTEL_EXPORTER_ENDPOINT`, `NEXANDRO_OTEL_EXPORTER_HEADERS`, `NEXANDRO_OTEL_SERVICE_NAME`
   - constructs `NodeSDK` with `OTLPTraceExporter` (HTTP, not gRPC)
   - calls `sdk.start()` immediately at module-load (no awaitable)
   - registers a process `SIGTERM` / `SIGINT` handler for clean span flush
 - [ ] 5.3 `otel-bootstrap.spec.ts`:
-  - `OPENTRATTOS_OTEL_DISABLED=true` → exporter is no-op
-  - `OPENTRATTOS_OTEL_DISABLED=false` + reachable endpoint → spans flow to exporter
+  - `NEXANDRO_OTEL_DISABLED=true` → exporter is no-op
+  - `NEXANDRO_OTEL_DISABLED=false` + reachable endpoint → spans flow to exporter
   - custom headers parse from comma-separated env
-- [ ] 5.4 INT test: cold boot under `OPENTRATTOS_OTEL_DISABLED=false` emits a `service.startup` span captured by a stub exporter (Jest-mocked OTLP endpoint)
+- [ ] 5.4 INT test: cold boot under `NEXANDRO_OTEL_DISABLED=false` emits a `service.startup` span captured by a stub exporter (Jest-mocked OTLP endpoint)
 
 ## 6. ESLint custom rule — pre-bootstrap order enforcement
 
 - [ ] 6.1 `packages/eslint-config/rules/otel-pre-bootstrap-order.ts` — custom rule asserting that `apps/api/src/main.ts` begins with `import './otel-bootstrap'` AS THE FIRST IMPORT
-- [ ] 6.2 Register rule in `packages/eslint-config/index.js` under `opentrattos/otel-pre-bootstrap-order`
+- [ ] 6.2 Register rule in `packages/eslint-config/index.js` under `nexandro/otel-pre-bootstrap-order`
 - [ ] 6.3 Test the rule: modify `main.ts` to reorder imports; assert lint fails
 
 ## 7. Vision-LLM provider DI surface (ADR-038)
@@ -87,7 +87,7 @@
   - structured OpenAI SDK adapter stub
   - `extract()` throws `NotImplementedError(...)` same message
 - [ ] 7.6 `apps/api/src/shared/vision-llm/vision-llm.factory.ts`:
-  - factory class with `onModuleInit()` reading `OPENTRATTOS_VISION_LLM_PROVIDER` (default: `gpt-oss-vision-rag-proxy`)
+  - factory class with `onModuleInit()` reading `NEXANDRO_VISION_LLM_PROVIDER` (default: `gpt-oss-vision-rag-proxy`)
   - resolves to one of 3 adapter instances
   - throws `UnknownVisionLlmProviderError` on unknown env value
 - [ ] 7.7 `apps/api/src/shared/vision-llm/shared-vision-llm.module.ts` — NestJS module exporting the factory + DI bindings
@@ -96,8 +96,8 @@
 
 - [ ] 8.1 `vision-llm.factory.spec.ts`:
   - default selects `GptOssVisionRagProxyProvider`
-  - `OPENTRATTOS_VISION_LLM_PROVIDER=claude-vision` selects `ClaudeVisionProvider`
-  - `OPENTRATTOS_VISION_LLM_PROVIDER=gpt-four-v` selects `GptFourVProvider`
+  - `NEXANDRO_VISION_LLM_PROVIDER=claude-vision` selects `ClaudeVisionProvider`
+  - `NEXANDRO_VISION_LLM_PROVIDER=gpt-four-v` selects `GptFourVProvider`
   - unknown value throws `UnknownVisionLlmProviderError` at bootstrap (factory init), NOT at first call
 - [ ] 8.2 `vision-llm.providers.spec.ts`:
   - all 3 adapter `extract()` throw `NotImplementedError`
@@ -129,14 +129,14 @@
 ## 11. AppModule wiring
 
 - [ ] 11.1 `apps/api/src/app.module.ts` — import `AiObservabilityModule` + `SharedVisionLlmModule`; register `SpanEnricherInterceptor` as `APP_INTERCEPTOR` global provider
-- [ ] 11.2 Smoke test: API boots cleanly with `OPENTRATTOS_OTEL_DISABLED=true` (default for dev) and serves the existing M2 endpoints
+- [ ] 11.2 Smoke test: API boots cleanly with `NEXANDRO_OTEL_DISABLED=true` (default for dev) and serves the existing M2 endpoints
 
 ## 12. Documentation + handoff
 
 - [ ] 12.1 `apps/api/src/ai-observability/README.md` — BC purpose, public surface, downstream slice anchors (#17a, #19, #20)
 - [ ] 12.2 `apps/api/src/shared/vision-llm/README.md` — provider DI contract, factory selection, iron-rule null fallback (slice #17a owner)
 - [ ] 12.3 `docs/architecture-decisions.md` — add ADR-VISION-OTEL-PRE-BOOTSTRAP, ADR-VISION-OTEL-SEMCONV-PINNED, ADR-VISION-TAG-ATTRIBUTE, ADR-VISION-PROVIDER-FACTORY, ADR-VISION-NO-CALLS-HERE, ADR-VISION-EXPORTER-CONFIG (extending architecture-m3.md decisions into canonical ADR doc)
-- [ ] 12.4 Update `.env.example` with the 4 new `OPENTRATTOS_OTEL_*` env vars + 1 `OPENTRATTOS_VISION_LLM_PROVIDER` env var
+- [ ] 12.4 Update `.env.example` with the 4 new `NEXANDRO_OTEL_*` env vars + 1 `NEXANDRO_VISION_LLM_PROVIDER` env var
 
 ## 13. CI + PR hygiene
 

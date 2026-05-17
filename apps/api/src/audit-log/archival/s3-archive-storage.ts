@@ -1,7 +1,7 @@
 import type { AuditArchiveStorage } from './audit-archive-storage';
 
 // `@aws-sdk/client-s3` is `import type`d at the top level so that the
-// runtime require() is lazy — when `OPENTRATTOS_AUDIT_ARCHIVE_BACKEND`
+// runtime require() is lazy — when `NEXANDRO_AUDIT_ARCHIVE_BACKEND`
 // is `filesystem` (default), the SDK does NOT load and the app starts
 // without any S3 env vars set.
 type S3ClientCtor = new (config: Record<string, unknown>) => {
@@ -19,11 +19,11 @@ interface S3Module {
  * S3-API-compatible service (Cloudflare R2, Backblaze B2,
  * Azure-Blob-via-S3-compat). Env:
  *
- *  - `OPENTRATTOS_AUDIT_ARCHIVE_S3_BUCKET`   (required)
- *  - `OPENTRATTOS_AUDIT_ARCHIVE_S3_ENDPOINT` (optional — MinIO / R2 /
+ *  - `NEXANDRO_AUDIT_ARCHIVE_S3_BUCKET`   (required)
+ *  - `NEXANDRO_AUDIT_ARCHIVE_S3_ENDPOINT` (optional — MinIO / R2 /
  *    Azure custom endpoint URL; omit for AWS S3)
- *  - `OPENTRATTOS_AUDIT_ARCHIVE_S3_REGION`   (default `us-east-1`)
- *  - `OPENTRATTOS_AUDIT_ARCHIVE_S3_ACCESS_KEY` + `_SECRET_KEY`
+ *  - `NEXANDRO_AUDIT_ARCHIVE_S3_REGION`   (default `us-east-1`)
+ *  - `NEXANDRO_AUDIT_ARCHIVE_S3_ACCESS_KEY` + `_SECRET_KEY`
  *    (optional — falls back to default AWS credential chain when
  *    omitted)
  *
@@ -44,10 +44,10 @@ export class S3CompatibleArchiveStorage implements AuditArchiveStorage {
   private readonly bucket: string;
 
   constructor() {
-    const bucket = process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_BUCKET;
+    const bucket = process.env.NEXANDRO_AUDIT_ARCHIVE_S3_BUCKET;
     if (!bucket) {
       throw new Error(
-        'S3CompatibleArchiveStorage: OPENTRATTOS_AUDIT_ARCHIVE_S3_BUCKET is required',
+        'S3CompatibleArchiveStorage: NEXANDRO_AUDIT_ARCHIVE_S3_BUCKET is required',
       );
     }
     this.bucket = bucket;
@@ -81,12 +81,12 @@ export class S3CompatibleArchiveStorage implements AuditArchiveStorage {
     // Lazy require — avoids breaking app startup when backend=filesystem.
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const sdk = require('@aws-sdk/client-s3') as S3Module;
-    const endpoint = process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_ENDPOINT;
+    const endpoint = process.env.NEXANDRO_AUDIT_ARCHIVE_S3_ENDPOINT;
     const region =
-      process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_REGION ?? 'us-east-1';
-    const accessKeyId = process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_ACCESS_KEY;
+      process.env.NEXANDRO_AUDIT_ARCHIVE_S3_REGION ?? 'us-east-1';
+    const accessKeyId = process.env.NEXANDRO_AUDIT_ARCHIVE_S3_ACCESS_KEY;
     const secretAccessKey =
-      process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_SECRET_KEY;
+      process.env.NEXANDRO_AUDIT_ARCHIVE_S3_SECRET_KEY;
     const config: Record<string, unknown> = { region };
     if (endpoint) {
       config.endpoint = endpoint;

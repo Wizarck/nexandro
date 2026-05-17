@@ -1,6 +1,6 @@
 ## 1. Shared INT harness
 
-- [ ] 1.1 `apps/api/src/audit-log/application/__helpers__/audit-log-int-harness.ts` — module that builds a NestJS TestingModule with `EventEmitterModule.forRoot()` + `TypeOrmModule.forRoot()` (DATABASE_URL fallback to `postgres://opentrattos_test:opentrattos_test@localhost:5433/opentrattos_test`)
+- [ ] 1.1 `apps/api/src/audit-log/application/__helpers__/audit-log-int-harness.ts` — module that builds a NestJS TestingModule with `EventEmitterModule.forRoot()` + `TypeOrmModule.forRoot()` (DATABASE_URL fallback to `postgres://nexandro_test:nexandro_test@localhost:5433/nexandro_test`)
 - [ ] 1.2 Same module: register `AuditLogSubscriber`, `AuditLogService`, `AuditLogIdempotencyCache` in providers (per `feedback_event_subscriber_int_specs` Hindsight memory — EventEmitterModule alone is insufficient; subscriber class must be in providers list)
 - [ ] 1.3 Same module: expose `truncate()`, `emitAndWait(channel, payload)` (uses `emitter.emitAsync()` + `await` — no setTimeout), `fetchRows(orgId)`, `clearCache()` helpers
 - [ ] 1.4 Same module: set `process.env.AUDIT_LOG_HASH_CHAIN_ENABLED='false'` in setup so chain validation does not couple this slice's tests to sibling H2b's contract
@@ -49,8 +49,8 @@
 - [ ] 7.1 `npm install` from repo root
 - [ ] 7.2 `npm run typecheck` clean
 - [ ] 7.3 `npm run lint` clean
-- [ ] 7.4 `npm run test --workspace=@opentrattos/api` — unit tests still pass; INT tests not part of this command
-- [ ] 7.5 (Optional) `npm run test:int --workspace=@opentrattos/api` if local Postgres at 5433 available; otherwise rely on CI / future docker INT run
+- [ ] 7.4 `npm run test --workspace=@nexandro/api` — unit tests still pass; INT tests not part of this command
+- [ ] 7.5 (Optional) `npm run test:int --workspace=@nexandro/api` if local Postgres at 5433 available; otherwise rely on CI / future docker INT run
 
 ## §Deferred
 

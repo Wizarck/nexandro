@@ -63,13 +63,13 @@ Per the slicing artefact (`master/docs/openspec-slice-module-3.md` line 123), th
 
 ### MCP capabilities
 
-- **`packages/mcp-server-opentrattos/src/capabilities/write/inventory.ts`** — three capabilities:
+- **`packages/mcp-server-nexandro/src/capabilities/write/inventory.ts`** — three capabilities:
   - `inventory.ingest-invoice-photo` → POST /m3/photo-ingest/items (kind pinned in `restBodyExtractor`).
   - `inventory.ingest-product-photo` → POST /m3/photo-ingest/items (kind pinned).
   - `inventory.sign-photo-ingestion` → POST /m3/photo-ingest/items/:itemId/sign.
-- **`packages/mcp-server-opentrattos/src/capabilities/write/index.ts`** — spread `INVENTORY_WRITE_CAPABILITIES` into `WRITE_CAPABILITIES`.
-- **`packages/mcp-server-opentrattos/src/capabilities/write/index.spec.ts`** — count 49 → 52; namespace count 15 → 16 (`inventory` added).
-- **`packages/mcp-server-opentrattos/test/smoke.spec.ts`** — registered-tools count 56 → 59.
+- **`packages/mcp-server-nexandro/src/capabilities/write/index.ts`** — spread `INVENTORY_WRITE_CAPABILITIES` into `WRITE_CAPABILITIES`.
+- **`packages/mcp-server-nexandro/src/capabilities/write/index.spec.ts`** — count 49 → 52; namespace count 15 → 16 (`inventory` added).
+- **`packages/mcp-server-nexandro/test/smoke.spec.ts`** — registered-tools count 56 → 59.
 
 ### Wire into AppModule
 
@@ -135,5 +135,5 @@ Per the slicing artefact (`master/docs/openspec-slice-module-3.md` line 123), th
   - Retroactive-correction emit path.
   - Bounding-box overlay rendering integration.
   - Real INT test against the live `VisionLlmProvider` adapter.
-- **Parallelism**: file-path scope = `apps/api/src/photo-ingestion/**` (new BC, no existing files) + `apps/api/src/migrations/0039_create_photo_ingestion_items_table.ts` (new) + extends `apps/api/src/audit-log/application/{types,audit-log.subscriber,types.spec}.ts` (mechanical 7-entry adds) + `apps/api/src/app.module.ts` (one-line import) + `packages/mcp-server-opentrattos/src/capabilities/write/{inventory.ts,inventory.spec.ts,index.ts,index.spec.ts}` + `packages/mcp-server-opentrattos/test/smoke.spec.ts` (count bump). Conflicts with slice #17b are zero (#17b lives in `apps/web` + `packages/ui-kit`).
+- **Parallelism**: file-path scope = `apps/api/src/photo-ingestion/**` (new BC, no existing files) + `apps/api/src/migrations/0039_create_photo_ingestion_items_table.ts` (new) + extends `apps/api/src/audit-log/application/{types,audit-log.subscriber,types.spec}.ts` (mechanical 7-entry adds) + `apps/api/src/app.module.ts` (one-line import) + `packages/mcp-server-nexandro/src/capabilities/write/{inventory.ts,inventory.spec.ts,index.ts,index.spec.ts}` + `packages/mcp-server-nexandro/test/smoke.spec.ts` (count bump). Conflicts with slice #17b are zero (#17b lives in `apps/web` + `packages/ui-kit`).
 - **Effort estimate**: M (~1800 LOC application + ~750 LOC tests; matches gate-c "M" sizing for slice #17a).

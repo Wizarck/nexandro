@@ -29,7 +29,7 @@ import {
  * Schedule: `@Cron(CronExpression.EVERY_DAY_AT_8AM)` (UTC by default;
  * matches operators' Spain morning routine).
  *
- * Env flag `OPENTRATTOS_REVIEW_QUEUE_STALE_NOTIFIER_ENABLED=true`
+ * Env flag `NEXANDRO_REVIEW_QUEUE_STALE_NOTIFIER_ENABLED=true`
  * gates the tick — matches the disabled-by-default pattern from
  * `ExpiryScannerService` so the cron only runs where intended.
  *
@@ -49,7 +49,7 @@ export class ReviewQueueStaleScanner {
   @Cron(CronExpression.EVERY_DAY_AT_8AM, { name: 'review-queue-stale-notifier' })
   async runTick(): Promise<void> {
     if (
-      process.env.OPENTRATTOS_REVIEW_QUEUE_STALE_NOTIFIER_ENABLED !== 'true'
+      process.env.NEXANDRO_REVIEW_QUEUE_STALE_NOTIFIER_ENABLED !== 'true'
     ) {
       return;
     }

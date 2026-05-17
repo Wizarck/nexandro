@@ -30,7 +30,7 @@ This slice closes the UI gap with the narrowest viable scope.
 - **Brand-mark file upload** — Operators paste a URL today; an upload endpoint with `Org.brandMarkUrl` storage in S3-compatible bucket is filed as `m2-labels-brand-mark-upload`. Not blocking.
 - **Multi-printer support** — Today one printer per org. Multi-printer (per-location, per-recipe-channel) is filed as `m2-labels-multi-printer`. The current `printerId?: string` field on `POST /recipes/:id/print` is forward-compat noise.
 - **`printAdapter.config` discriminated union (apps/api side)** — Wave 1.6 retro flagged tightening from `Record<string, unknown>` to a union once a 2nd adapter ships. We match that recommendation: stay loose until Phomemo or the next adapter lands.
-- **i18n of form labels** — apps/web does not currently consume `@opentrattos/ui-kit` translations; form labels render in Spanish per the Wave 1.6 default locale. i18n consolidation is M3 scope.
+- **i18n of form labels** — apps/web does not currently consume `@nexandro/ui-kit` translations; form labels render in Spanish per the Wave 1.6 default locale. i18n consolidation is M3 scope.
 - **Audit emission** — `PUT /organizations/:id/label-fields` already carries `@AuditAggregate('organization')` from Wave 1.13 [3a], so an Owner save lands in `audit_log` automatically when called via agent flow. Direct REST (browser session) does not emit; the request-anchored attribution row would have to come from a future agent integration. Out of scope here.
 
 ## What changes (high level)

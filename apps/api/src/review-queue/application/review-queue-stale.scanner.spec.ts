@@ -42,9 +42,9 @@ describe('ReviewQueueStaleScanner.runTick', () => {
     jest.clearAllMocks();
   });
 
-  it('short-circuits when OPENTRATTOS_REVIEW_QUEUE_STALE_NOTIFIER_ENABLED !== "true"', async () => {
+  it('short-circuits when NEXANDRO_REVIEW_QUEUE_STALE_NOTIFIER_ENABLED !== "true"', async () => {
     const { scanner, repo, emitter } = buildScanner();
-    delete process.env.OPENTRATTOS_REVIEW_QUEUE_STALE_NOTIFIER_ENABLED;
+    delete process.env.NEXANDRO_REVIEW_QUEUE_STALE_NOTIFIER_ENABLED;
     await scanner.runTick();
     expect(repo.findStaleAggregatesGroupedByOrg).not.toHaveBeenCalled();
     expect(emitter.emitAsync).not.toHaveBeenCalled();
@@ -52,7 +52,7 @@ describe('ReviewQueueStaleScanner.runTick', () => {
 
   it('reads REVIEW_QUEUE_STALE_THRESHOLD_DAYS from env when set to a valid positive integer', async () => {
     const { scanner, repo } = buildScanner();
-    process.env.OPENTRATTOS_REVIEW_QUEUE_STALE_NOTIFIER_ENABLED = 'true';
+    process.env.NEXANDRO_REVIEW_QUEUE_STALE_NOTIFIER_ENABLED = 'true';
     process.env.REVIEW_QUEUE_STALE_THRESHOLD_DAYS = '14';
     repo.findStaleAggregatesGroupedByOrg.mockResolvedValueOnce([]);
     await scanner.runTick();
@@ -61,7 +61,7 @@ describe('ReviewQueueStaleScanner.runTick', () => {
 
   it('falls back to the default threshold when the env var is malformed', async () => {
     const { scanner, repo } = buildScanner();
-    process.env.OPENTRATTOS_REVIEW_QUEUE_STALE_NOTIFIER_ENABLED = 'true';
+    process.env.NEXANDRO_REVIEW_QUEUE_STALE_NOTIFIER_ENABLED = 'true';
     process.env.REVIEW_QUEUE_STALE_THRESHOLD_DAYS = 'abc';
     repo.findStaleAggregatesGroupedByOrg.mockResolvedValueOnce([]);
     await scanner.runTick();
@@ -72,7 +72,7 @@ describe('ReviewQueueStaleScanner.runTick', () => {
 
   it('swallows + logs when the repository throws so the next tick re-runs', async () => {
     const { scanner, repo, emitter } = buildScanner();
-    process.env.OPENTRATTOS_REVIEW_QUEUE_STALE_NOTIFIER_ENABLED = 'true';
+    process.env.NEXANDRO_REVIEW_QUEUE_STALE_NOTIFIER_ENABLED = 'true';
     repo.findStaleAggregatesGroupedByOrg.mockRejectedValueOnce(
       new Error('DB outage'),
     );

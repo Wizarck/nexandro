@@ -35,21 +35,21 @@ describe('S3CompatibleArchiveStorage', () => {
     sendCalls.length = 0;
     clientConfigs.length = 0;
     prevEnv = {
-      bucket: process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_BUCKET,
-      endpoint: process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_ENDPOINT,
-      region: process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_REGION,
-      access: process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_ACCESS_KEY,
-      secret: process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_SECRET_KEY,
+      bucket: process.env.NEXANDRO_AUDIT_ARCHIVE_S3_BUCKET,
+      endpoint: process.env.NEXANDRO_AUDIT_ARCHIVE_S3_ENDPOINT,
+      region: process.env.NEXANDRO_AUDIT_ARCHIVE_S3_REGION,
+      access: process.env.NEXANDRO_AUDIT_ARCHIVE_S3_ACCESS_KEY,
+      secret: process.env.NEXANDRO_AUDIT_ARCHIVE_S3_SECRET_KEY,
     };
   });
 
   afterEach(() => {
     for (const [key, prev] of Object.entries({
-      OPENTRATTOS_AUDIT_ARCHIVE_S3_BUCKET: prevEnv.bucket,
-      OPENTRATTOS_AUDIT_ARCHIVE_S3_ENDPOINT: prevEnv.endpoint,
-      OPENTRATTOS_AUDIT_ARCHIVE_S3_REGION: prevEnv.region,
-      OPENTRATTOS_AUDIT_ARCHIVE_S3_ACCESS_KEY: prevEnv.access,
-      OPENTRATTOS_AUDIT_ARCHIVE_S3_SECRET_KEY: prevEnv.secret,
+      NEXANDRO_AUDIT_ARCHIVE_S3_BUCKET: prevEnv.bucket,
+      NEXANDRO_AUDIT_ARCHIVE_S3_ENDPOINT: prevEnv.endpoint,
+      NEXANDRO_AUDIT_ARCHIVE_S3_REGION: prevEnv.region,
+      NEXANDRO_AUDIT_ARCHIVE_S3_ACCESS_KEY: prevEnv.access,
+      NEXANDRO_AUDIT_ARCHIVE_S3_SECRET_KEY: prevEnv.secret,
     })) {
       if (prev === undefined) delete process.env[key];
       else process.env[key] = prev;
@@ -57,20 +57,20 @@ describe('S3CompatibleArchiveStorage', () => {
   });
 
   it('throws on construction when bucket env is missing', () => {
-    delete process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_BUCKET;
+    delete process.env.NEXANDRO_AUDIT_ARCHIVE_S3_BUCKET;
     expect(() => new S3CompatibleArchiveStorage()).toThrow(
-      /OPENTRATTOS_AUDIT_ARCHIVE_S3_BUCKET is required/,
+      /NEXANDRO_AUDIT_ARCHIVE_S3_BUCKET is required/,
     );
   });
 
   it('lazy-inits the S3 client only on first write()', () => {
-    process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_BUCKET = 'my-bucket';
+    process.env.NEXANDRO_AUDIT_ARCHIVE_S3_BUCKET = 'my-bucket';
     new S3CompatibleArchiveStorage();
     expect(clientConfigs).toEqual([]);
   });
 
   it('PutObject contract: Key = {org}/{ym}/audit-log.jsonl.gz, ContentEncoding=gzip, ContentType=application/x-ndjson', async () => {
-    process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_BUCKET = 'my-bucket';
+    process.env.NEXANDRO_AUDIT_ARCHIVE_S3_BUCKET = 'my-bucket';
     const storage = new S3CompatibleArchiveStorage();
     const gz = Buffer.from('gz-payload');
 
@@ -90,8 +90,8 @@ describe('S3CompatibleArchiveStorage', () => {
   });
 
   it('forces path-style addressing when custom endpoint is set', async () => {
-    process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_BUCKET = 'my-bucket';
-    process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_ENDPOINT = 'http://minio.local:9000';
+    process.env.NEXANDRO_AUDIT_ARCHIVE_S3_BUCKET = 'my-bucket';
+    process.env.NEXANDRO_AUDIT_ARCHIVE_S3_ENDPOINT = 'http://minio.local:9000';
     const storage = new S3CompatibleArchiveStorage();
     await storage.write('org-x', '2025-01', Buffer.from('z'));
 
@@ -103,8 +103,8 @@ describe('S3CompatibleArchiveStorage', () => {
   });
 
   it('does NOT set forcePathStyle when endpoint is omitted (AWS S3)', async () => {
-    process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_BUCKET = 'my-bucket';
-    delete process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_ENDPOINT;
+    process.env.NEXANDRO_AUDIT_ARCHIVE_S3_BUCKET = 'my-bucket';
+    delete process.env.NEXANDRO_AUDIT_ARCHIVE_S3_ENDPOINT;
     const storage = new S3CompatibleArchiveStorage();
     await storage.write('org-x', '2025-01', Buffer.from('z'));
 
@@ -113,9 +113,9 @@ describe('S3CompatibleArchiveStorage', () => {
   });
 
   it('wires access/secret credentials when both env vars are present', async () => {
-    process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_BUCKET = 'my-bucket';
-    process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_ACCESS_KEY = 'AKIA-fake';
-    process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_SECRET_KEY = 'shh';
+    process.env.NEXANDRO_AUDIT_ARCHIVE_S3_BUCKET = 'my-bucket';
+    process.env.NEXANDRO_AUDIT_ARCHIVE_S3_ACCESS_KEY = 'AKIA-fake';
+    process.env.NEXANDRO_AUDIT_ARCHIVE_S3_SECRET_KEY = 'shh';
     const storage = new S3CompatibleArchiveStorage();
     await storage.write('org-x', '2025-01', Buffer.from('z'));
 
@@ -126,9 +126,9 @@ describe('S3CompatibleArchiveStorage', () => {
   });
 
   it('falls back to default credential chain when access/secret omitted', async () => {
-    process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_BUCKET = 'my-bucket';
-    delete process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_ACCESS_KEY;
-    delete process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_SECRET_KEY;
+    process.env.NEXANDRO_AUDIT_ARCHIVE_S3_BUCKET = 'my-bucket';
+    delete process.env.NEXANDRO_AUDIT_ARCHIVE_S3_ACCESS_KEY;
+    delete process.env.NEXANDRO_AUDIT_ARCHIVE_S3_SECRET_KEY;
     const storage = new S3CompatibleArchiveStorage();
     await storage.write('org-x', '2025-01', Buffer.from('z'));
 
@@ -136,8 +136,8 @@ describe('S3CompatibleArchiveStorage', () => {
   });
 
   it('defaults region to us-east-1 when env unset', async () => {
-    process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_BUCKET = 'my-bucket';
-    delete process.env.OPENTRATTOS_AUDIT_ARCHIVE_S3_REGION;
+    process.env.NEXANDRO_AUDIT_ARCHIVE_S3_BUCKET = 'my-bucket';
+    delete process.env.NEXANDRO_AUDIT_ARCHIVE_S3_REGION;
     const storage = new S3CompatibleArchiveStorage();
     await storage.write('org-x', '2025-01', Buffer.from('z'));
 

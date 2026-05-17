@@ -77,15 +77,15 @@ describe('AgentSignatureMiddleware', () => {
   let originalEnv: string | undefined;
 
   beforeEach(() => {
-    originalEnv = process.env.OPENTRATTOS_AGENT_SIGNATURE_REQUIRED;
-    delete process.env.OPENTRATTOS_AGENT_SIGNATURE_REQUIRED;
+    originalEnv = process.env.NEXANDRO_AGENT_SIGNATURE_REQUIRED;
+    delete process.env.NEXANDRO_AGENT_SIGNATURE_REQUIRED;
   });
 
   afterEach(() => {
     if (originalEnv === undefined) {
-      delete process.env.OPENTRATTOS_AGENT_SIGNATURE_REQUIRED;
+      delete process.env.NEXANDRO_AGENT_SIGNATURE_REQUIRED;
     } else {
-      process.env.OPENTRATTOS_AGENT_SIGNATURE_REQUIRED = originalEnv;
+      process.env.NEXANDRO_AGENT_SIGNATURE_REQUIRED = originalEnv;
     }
   });
 
@@ -100,7 +100,7 @@ describe('AgentSignatureMiddleware', () => {
   });
 
   it('rejects with AGENT_SIGNATURE_REQUIRED when flag-on + viaAgent claim + missing headers', async () => {
-    process.env.OPENTRATTOS_AGENT_SIGNATURE_REQUIRED = 'true';
+    process.env.NEXANDRO_AGENT_SIGNATURE_REQUIRED = 'true';
     const repo = makeRepo();
     const middleware = new AgentSignatureMiddleware(repo);
     const req = makeReq({
@@ -113,7 +113,7 @@ describe('AgentSignatureMiddleware', () => {
   });
 
   it('passes through unsigned when flag specifies a different org', async () => {
-    process.env.OPENTRATTOS_AGENT_SIGNATURE_REQUIRED = '99999999-9999-4999-8999-999999999999';
+    process.env.NEXANDRO_AGENT_SIGNATURE_REQUIRED = '99999999-9999-4999-8999-999999999999';
     const repo = makeRepo();
     const middleware = new AgentSignatureMiddleware(repo);
     const req = makeReq({
@@ -295,7 +295,7 @@ describe('AgentSignatureMiddleware', () => {
 
 describe('isSignatureRequired (via middleware behaviour)', () => {
   it('comma-list flag matches the calling org id case-insensitively', async () => {
-    process.env.OPENTRATTOS_AGENT_SIGNATURE_REQUIRED = ` ${ORG_A.toUpperCase()} `;
+    process.env.NEXANDRO_AGENT_SIGNATURE_REQUIRED = ` ${ORG_A.toUpperCase()} `;
     const repo = makeRepo();
     const middleware = new AgentSignatureMiddleware(repo);
     const req = makeReq({
@@ -305,6 +305,6 @@ describe('isSignatureRequired (via middleware behaviour)', () => {
     await expect(middleware.use(req, {} as never, jest.fn())).rejects.toBeInstanceOf(
       UnauthorizedException,
     );
-    delete process.env.OPENTRATTOS_AGENT_SIGNATURE_REQUIRED;
+    delete process.env.NEXANDRO_AGENT_SIGNATURE_REQUIRED;
   });
 });

@@ -1,4 +1,4 @@
-# `@opentrattos/ui-kit` — shared UI components
+# `@nexandro/ui-kit` — shared UI components
 
 Tailwind 4 + shadcn primitives + Storybook 8. Design tokens consumed from `docs/ux/DESIGN.md` (OKLCH-canonical per ai-playbook §10).
 
@@ -11,7 +11,7 @@ npm run storybook --workspace=packages/ui-kit
 ```
 
 Storybook is published to GitHub Pages on every push to `master`:
-**https://wizarck.github.io/openTrattOS/storybook/**
+**https://wizarck.github.io/nexandro/storybook/**
 
 ## File-layout convention
 
@@ -33,7 +33,7 @@ When implementing a new component for an OpenSpec slice, copy this layout. The `
 `src/tokens.css` is the canonical token file. Generated from `docs/ux/DESIGN.md` YAML frontmatter (the OKLCH form is source of truth; hex in the YAML is a derivation snapshot per ai-playbook §11.7).
 
 ```css
-@import "@opentrattos/ui-kit/globals.css";
+@import "@nexandro/ui-kit/globals.css";
 ```
 
 `globals.css` includes `tokens.css` + base resets + `prefers-reduced-motion` honour. Both `apps/web/` and Storybook's `.storybook/preview.ts` import it.

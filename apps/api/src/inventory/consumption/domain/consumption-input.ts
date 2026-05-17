@@ -33,7 +33,7 @@ export interface RecordConsumptionInput {
   /** Menu-item driver. Populate when an agent surface attributes by menu-item. */
   menuItemId?: string | null;
   /** Free-form AI-obs / cost-attribution tag per ADR-030. Optional. */
-  opentrattosTag?: string | null;
+  nexandroTag?: string | null;
   /** Free-form operator note. REQUIRED non-empty when both drivers null. */
   reason?: string | null;
   /**

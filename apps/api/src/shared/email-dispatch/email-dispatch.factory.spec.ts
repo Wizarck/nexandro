@@ -5,7 +5,7 @@ import { SendGridEmailAdapter } from './sendgrid-email.adapter';
 import { SmtpEmailAdapter } from './smtp-email.adapter';
 
 describe('EmailDispatchFactory.resolve', () => {
-  it('defaults to SmtpEmailAdapter when OPENTRATTOS_EMAIL_PROVIDER is unset', async () => {
+  it('defaults to SmtpEmailAdapter when NEXANDRO_EMAIL_PROVIDER is unset', async () => {
     const factory = new EmailDispatchFactory();
     const svc = await factory.resolve({});
     expect(svc).toBeInstanceOf(SmtpEmailAdapter);
@@ -14,8 +14,8 @@ describe('EmailDispatchFactory.resolve', () => {
   it('selects SendGrid when env=sendgrid', async () => {
     const factory = new EmailDispatchFactory();
     const svc = await factory.resolve({
-      OPENTRATTOS_EMAIL_PROVIDER: 'sendgrid',
-      OPENTRATTOS_SENDGRID_API_KEY: 'SG.test',
+      NEXANDRO_EMAIL_PROVIDER: 'sendgrid',
+      NEXANDRO_SENDGRID_API_KEY: 'SG.test',
     });
     expect(svc).toBeInstanceOf(SendGridEmailAdapter);
   });
@@ -28,8 +28,8 @@ describe('EmailDispatchFactory.resolve', () => {
     // found error. Both prove the env is honoured.
     try {
       const svc = await factory.resolve({
-        OPENTRATTOS_EMAIL_PROVIDER: 'postmark',
-        OPENTRATTOS_POSTMARK_SERVER_TOKEN: 'pm-test',
+        NEXANDRO_EMAIL_PROVIDER: 'postmark',
+        NEXANDRO_POSTMARK_SERVER_TOKEN: 'pm-test',
       });
       expect(svc).toBeInstanceOf(PostmarkEmailAdapter);
     } catch (err) {
@@ -41,14 +41,14 @@ describe('EmailDispatchFactory.resolve', () => {
   it('throws UnknownEmailProviderError on unknown value', async () => {
     const factory = new EmailDispatchFactory();
     await expect(
-      factory.resolve({ OPENTRATTOS_EMAIL_PROVIDER: 'mailchimp' }),
+      factory.resolve({ NEXANDRO_EMAIL_PROVIDER: 'mailchimp' }),
     ).rejects.toBeInstanceOf(UnknownEmailProviderError);
   });
 
   it('is case-insensitive on env value', async () => {
     const factory = new EmailDispatchFactory();
     const svc = await factory.resolve({
-      OPENTRATTOS_EMAIL_PROVIDER: 'SMTP',
+      NEXANDRO_EMAIL_PROVIDER: 'SMTP',
     });
     expect(svc).toBeInstanceOf(SmtpEmailAdapter);
   });

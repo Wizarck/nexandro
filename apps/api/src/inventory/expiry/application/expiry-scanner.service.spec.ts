@@ -123,17 +123,17 @@ async function makeHarness(opts: {
 }
 
 describe('ExpiryScannerService', () => {
-  const ORIG_ENV = process.env.OPENTRATTOS_EXPIRY_SCANNER_ENABLED;
+  const ORIG_ENV = process.env.NEXANDRO_EXPIRY_SCANNER_ENABLED;
 
   beforeEach(() => {
-    process.env.OPENTRATTOS_EXPIRY_SCANNER_ENABLED = 'true';
+    process.env.NEXANDRO_EXPIRY_SCANNER_ENABLED = 'true';
   });
 
   afterAll(() => {
     if (ORIG_ENV === undefined) {
-      delete process.env.OPENTRATTOS_EXPIRY_SCANNER_ENABLED;
+      delete process.env.NEXANDRO_EXPIRY_SCANNER_ENABLED;
     } else {
-      process.env.OPENTRATTOS_EXPIRY_SCANNER_ENABLED = ORIG_ENV;
+      process.env.NEXANDRO_EXPIRY_SCANNER_ENABLED = ORIG_ENV;
     }
   });
 
@@ -250,8 +250,8 @@ describe('ExpiryScannerService', () => {
     expect(h.emitted).toHaveLength(0);
   });
 
-  it('short-circuits when OPENTRATTOS_EXPIRY_SCANNER_ENABLED !== "true"', async () => {
-    process.env.OPENTRATTOS_EXPIRY_SCANNER_ENABLED = 'false';
+  it('short-circuits when NEXANDRO_EXPIRY_SCANNER_ENABLED !== "true"', async () => {
+    process.env.NEXANDRO_EXPIRY_SCANNER_ENABLED = 'false';
     const lot = buildLot({
       expiresAt: new Date(Date.now() + 1 * 3600 * 1000),
     });

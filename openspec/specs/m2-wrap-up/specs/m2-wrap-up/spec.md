@@ -2,14 +2,14 @@
 
 ### Requirement: M2 production feature flags documented as enabled by default after gate clearance
 
-The system SHALL document `OPENTRATTOS_LABELS_PROD_ENABLED=true` and `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED=true` in `apps/api/.env.example` as the production-cleared defaults, while preserving the runtime fallback default of `false` (safety default for unconfigured deployments).
+The system SHALL document `NEXANDRO_LABELS_PROD_ENABLED=true` and `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED=true` in `apps/api/.env.example` as the production-cleared defaults, while preserving the runtime fallback default of `false` (safety default for unconfigured deployments).
 
 #### Scenario: Operator copies .env.example for production deploy
 - **WHEN** an operator copies `apps/api/.env.example` to `.env` in production for the first time
 - **THEN** both flags are pre-set to `true` with comments referencing the gate-clearance ADR notes (ADR-018 + ADR-019)
 
 #### Scenario: Fresh dev deployment without copying .env
-- **WHEN** an unconfigured deployment reads `process.env.OPENTRATTOS_LABELS_PROD_ENABLED` and the env var is unset
+- **WHEN** an unconfigured deployment reads `process.env.NEXANDRO_LABELS_PROD_ENABLED` and the env var is unset
 - **THEN** the runtime fallback returns `false`; labels production endpoints stay gated as a safety default
 
 ### Requirement: ADRs document gate clearance with date and rationale
@@ -25,7 +25,7 @@ The system SHALL annotate ADR-018 and ADR-019 with a "Gate clearance" footnote d
 The system SHALL provide `docs/operations/m2-prod-runbook.md` describing pre-flight checklist, deploy procedure, smoke tests, and rollback procedure for both M2 production surfaces (labels + AI suggestions).
 
 #### Scenario: Operator deploys M2 to a new venue
-- **WHEN** an operator follows the runbook to deploy openTrattOS for a new restaurant
+- **WHEN** an operator follows the runbook to deploy nexandro for a new restaurant
 - **THEN** the runbook walks them through: legal review confirmation → rag-proxy + LightRAG deploy → corpus ingestion → apps/api .env update → smoke tests → rollback steps if anything fails
 
 #### Scenario: Operator deploys to a non-EU jurisdiction

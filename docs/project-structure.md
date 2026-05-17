@@ -1,9 +1,9 @@
-# openTrattOS — Project Structure
+# nexandro — Project Structure
 
 ## Monorepo Layout (Turborepo)
 
 ```
-openTrattOS/
+nexandro/
 │
 ├── apps/
 │   ├── web/                        # Next.js frontend (TypeScript + TailwindCSS)
@@ -93,7 +93,7 @@ openTrattOS/
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                   openTrattOS                        │
+│                   nexandro                        │
 │                                                      │
 │  ┌──────────────────────────────────────────────┐   │
 │  │  Next.js (web)    PWA / Tablet Mode          │   │
@@ -118,7 +118,7 @@ openTrattOS/
 │  └──────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────┘
 
-ENTERPRISE ONLY (TrattOS / Rancher):
+ENTERPRISE ONLY (Nexandro / Rancher):
   Hermes/OpenClaw Agent ── LangGraph ── Hindsight Memory
          │
   WhatsApp / Telegram (kitchen staff interface)

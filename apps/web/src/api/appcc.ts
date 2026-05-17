@@ -4,7 +4,7 @@ import { api } from './client';
  * APPCC export REST client (slice #15 m3-appcc-i18n-ui, Wave 2.7).
  *
  * Per the cross-slice contract pattern (slice prompt CRITICAL hard rule),
- * all shapes are INLINED here — no `@opentrattos/contracts` import; no
+ * all shapes are INLINED here — no `@nexandro/contracts` import; no
  * import from slice #14's `apps/api/src/compliance/*`. URL paths match
  * slice #14's prompt verbatim. If slice #14's shapes diverge at master
  * merge, the resolver picks up the conflict; only this file changes.

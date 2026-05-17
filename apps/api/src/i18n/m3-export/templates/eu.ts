@@ -65,5 +65,5 @@ export const EU_TEMPLATE: Readonly<Record<string, string>> = Object.freeze({
     'Aldi honetan ez dago neurri zuzentzaile erregistratu.',
   'footer.page': '{page}. orrialdea / {total}',
   'footer.legal':
-    'openTrattOSek sortutako dokumentua · audit_log bidez trazagarria',
+    'nexandroek sortutako dokumentua · audit_log bidez trazagarria',
 });

@@ -33,7 +33,7 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
  * Resilience (mirrors slice #3 ExpiryScannerService pattern):
  *  - per-row try/catch: one row's failure does not abort the run
  *  - cron-wide try/catch: a tick failure logs but does not crash the worker
- *  - env flag `OPENTRATTOS_PHOTO_RETENTION_ENABLED=false` short-circuits
+ *  - env flag `NEXANDRO_PHOTO_RETENTION_ENABLED=false` short-circuits
  *  - idempotent at the row level: re-running picks up where a crashed run
  *    left off (WHERE clause filters out already-processed rows)
  */
@@ -50,7 +50,7 @@ export class PhotoRetentionScheduler {
   /** Daily at 03:00 UTC. */
   @Cron('0 3 * * *', { name: 'photo-retention' })
   async runTick(): Promise<void> {
-    if (process.env.OPENTRATTOS_PHOTO_RETENTION_ENABLED !== 'true') {
+    if (process.env.NEXANDRO_PHOTO_RETENTION_ENABLED !== 'true') {
       return;
     }
     await this.runRetention();

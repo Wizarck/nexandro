@@ -9,7 +9,7 @@ import { EMAIL_DISPATCH_SERVICE } from './email-dispatch.service.interface';
  *
  * Exports a single DI token `EMAIL_DISPATCH_SERVICE` resolved by
  * `EmailDispatchFactory.onModuleInit()` from the
- * `OPENTRATTOS_EMAIL_PROVIDER` env. Downstream consumers (slices #13
+ * `NEXANDRO_EMAIL_PROVIDER` env. Downstream consumers (slices #13
  * recall dossier, #15 APPCC export, #19 budget alerts) inject this
  * token via:
  *

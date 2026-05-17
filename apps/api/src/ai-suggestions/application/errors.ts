@@ -1,6 +1,6 @@
 export class AiSuggestionsDisabledError extends Error {
   constructor() {
-    super('AI yield suggestions are disabled (OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED=false)');
+    super('AI yield suggestions are disabled (NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED=false)');
     this.name = 'AiSuggestionsDisabledError';
   }
 }

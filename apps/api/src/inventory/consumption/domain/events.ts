@@ -6,7 +6,7 @@ import { z } from 'zod';
  *
  * Per Wave 2.1 typing-fix cascade lesson [[feedback_subagent_apply_typing_fix_cascade]]:
  * we intentionally DO NOT import the envelope shape from
- * `@opentrattos/contracts` in `apps/api/` code (TS6059 `rootDir` cascade).
+ * `@nexandro/contracts` in `apps/api/` code (TS6059 `rootDir` cascade).
  * The downstream slices that consume this event (#11 incident search,
  * #12 trace tree, #13 recall dispatch) re-declare or import via a single
  * cross-package re-export added by slice #21 once the contracts shape is
@@ -67,7 +67,7 @@ const UUID_RX =
  *     invariant is enforced at the service boundary (NOT here — Zod
  *     allows both null + both populated; service-level guard rejects).
  *   - `consumed_at` server-side timestamp string (ISO-8601 datetime).
- *   - `opentrattos_tag` free-form, optional.
+ *   - `nexandro_tag` free-form, optional.
  *   - `reason` free-form, optional.
  *
  * Wave 2.1 lesson [[feedback_subagent_apply_typing_fix_cascade]]:
@@ -97,7 +97,7 @@ export const LotConsumedPayloadSchema = z.object({
   consumed_by_user_id: z
     .string()
     .regex(UUID_RX, 'consumed_by_user_id must be a UUID'),
-  opentrattos_tag: z.string().min(1).max(127).nullable(),
+  nexandro_tag: z.string().min(1).max(127).nullable(),
   reason: z.string().min(1).max(500).nullable(),
 });
 

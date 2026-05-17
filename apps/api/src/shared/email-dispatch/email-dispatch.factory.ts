@@ -23,7 +23,7 @@ type AllowedProvider = (typeof ALLOWED_PROVIDERS)[number];
  * `onModuleInit` hooks fire — so a separate factory-token approach
  * cannot return the resolved adapter at the right moment.
  *
- * `onModuleInit()` reads `OPENTRATTOS_EMAIL_PROVIDER` (default `smtp`)
+ * `onModuleInit()` reads `NEXANDRO_EMAIL_PROVIDER` (default `smtp`)
  * and constructs the chosen adapter. Postmark is lazy-loaded — the
  * `postmark` SDK enters `require.cache` ONLY when this value resolves
  * to `postmark`. Unknown env values throw `UnknownEmailProviderError`
@@ -67,7 +67,7 @@ export class EmailDispatchFactory
    * lifecycle hooks.
    */
   async resolve(env: NodeJS.ProcessEnv): Promise<EmailDispatchService> {
-    const raw = (env.OPENTRATTOS_EMAIL_PROVIDER ?? 'smtp').trim().toLowerCase();
+    const raw = (env.NEXANDRO_EMAIL_PROVIDER ?? 'smtp').trim().toLowerCase();
     if (!isAllowedProvider(raw)) {
       throw new UnknownEmailProviderError(raw);
     }

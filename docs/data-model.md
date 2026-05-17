@@ -1,6 +1,6 @@
 # Data Model — Entity Relationship Diagram (ERD)
 
-**Project:** openTrattOS  
+**Project:** nexandro  
 **Scope:** Module 1 (Foundation) + Shared Entities  
 **Date:** 2026-04-19
 

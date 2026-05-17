@@ -111,7 +111,7 @@ import { SharedModule } from './shared/shared.module';
     AuditLogModule,
 
     // m2-mcp-agent-chat-widget (Wave 1.13 [3b]): SSE relay to Hermes' web_via_http_sse platform.
-    // Feature-flagged on OPENTRATTOS_AGENT_ENABLED — endpoint returns 404 when off.
+    // Feature-flagged on NEXANDRO_AGENT_ENABLED — endpoint returns 404 when off.
     AgentChatModule,
 
     // m2-mcp-agent-registry-bench (Wave 1.13 [3c]): per-org Ed25519 agent
@@ -140,7 +140,7 @@ import { SharedModule } from './shared/shared.module';
     CostSnapshotModule,
 
     // M3 AI observability (m3-vision-llm-provider-di-otel, Wave 2.1, slice #16):
-    // OTel SDK + tracer service + global span-enricher interceptor (opentrattos.tag)
+    // OTel SDK + tracer service + global span-enricher interceptor (nexandro.tag)
     // + vision-LLM provider DI surface (3 adapter stubs throw NotImplementedError;
     // real implementations land in slice #17a m3-photo-ingest-backend).
     // Downstream consumers: slice #17a (photo ingest), slice #19 (rollup + budget),

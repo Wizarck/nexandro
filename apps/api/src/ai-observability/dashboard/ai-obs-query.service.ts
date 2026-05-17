@@ -152,7 +152,7 @@ export class AiObsQueryService {
       savingsOpportunities,
       blastRadius,
       otlpExporter: {
-        endpoint: process.env.OPENTRATTOS_OTEL_EXPORTER_ENDPOINT ?? 'http://localhost:4318',
+        endpoint: process.env.NEXANDRO_OTEL_EXPORTER_ENDPOINT ?? 'http://localhost:4318',
         status: 'active',
       },
     };
@@ -273,7 +273,7 @@ export class AiObsQueryService {
     until: Date,
   ): Promise<BarRow[]> {
     try {
-      // Slice #19 stores opentrattos.tag in payload->>'tag' (jsonb attr).
+      // Slice #19 stores nexandro.tag in payload->>'tag' (jsonb attr).
       // null tag aggregates under '(sin tag)'.
       const rows = await this.dataSource.query<
         Array<{ tag: string | null; total_eur: string }>
@@ -470,7 +470,7 @@ export class AiObsQueryService {
       savingsOpportunities: [],
       blastRadius: [],
       otlpExporter: {
-        endpoint: process.env.OPENTRATTOS_OTEL_EXPORTER_ENDPOINT ?? 'http://localhost:4318',
+        endpoint: process.env.NEXANDRO_OTEL_EXPORTER_ENDPOINT ?? 'http://localhost:4318',
         status: 'active',
       },
     };

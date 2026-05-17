@@ -11,17 +11,17 @@
  * See ADR-VISION-OTEL-PRE-BOOTSTRAP (`design.md` §Decisions).
  *
  * Environment:
- *  - `OPENTRATTOS_OTEL_DISABLED` — `true` to disable exporter entirely
+ *  - `NEXANDRO_OTEL_DISABLED` — `true` to disable exporter entirely
  *    (spans still emit in-process but go to a no-op processor). Default:
  *    `false`.
- *  - `OPENTRATTOS_OTEL_EXPORTER_ENDPOINT` — OTLP/HTTP traces endpoint.
+ *  - `NEXANDRO_OTEL_EXPORTER_ENDPOINT` — OTLP/HTTP traces endpoint.
  *    Default: `http://localhost:4318/v1/traces`.
- *  - `OPENTRATTOS_OTEL_EXPORTER_HEADERS` — comma-separated `key=value`
+ *  - `NEXANDRO_OTEL_EXPORTER_HEADERS` — comma-separated `key=value`
  *    pairs for tenant auth.
- *  - `OPENTRATTOS_OTEL_SERVICE_NAME` — `service.name` resource attribute.
- *    Default: `opentrattos-api`.
+ *  - `NEXANDRO_OTEL_SERVICE_NAME` — `service.name` resource attribute.
+ *    Default: `nexandro-api`.
  *
- * Rollback: set `OPENTRATTOS_OTEL_DISABLED=true` and redeploy. No code
+ * Rollback: set `NEXANDRO_OTEL_DISABLED=true` and redeploy. No code
  * change required.
  */
 
@@ -30,7 +30,7 @@ import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
 import { NestInstrumentation } from '@opentelemetry/instrumentation-nestjs-core';
 import { NodeSDK } from '@opentelemetry/sdk-node';
 
-const SERVICE_NAME_DEFAULT = 'opentrattos-api';
+const SERVICE_NAME_DEFAULT = 'nexandro-api';
 const ENDPOINT_DEFAULT = 'http://localhost:4318/v1/traces';
 
 function parseHeaders(raw: string | undefined): Record<string, string> {
@@ -48,11 +48,11 @@ function parseHeaders(raw: string | undefined): Record<string, string> {
 }
 
 function isDisabled(): boolean {
-  // Honour both the project-local `OPENTRATTOS_OTEL_DISABLED` and the
+  // Honour both the project-local `NEXANDRO_OTEL_DISABLED` and the
   // OpenTelemetry-canonical `OTEL_SDK_DISABLED` (per opentelemetry.io
   // SDK config conventions). Either set to "true" disables the exporter.
   // m3.x-app-bootstrap-and-vps-deploy slice §1.4.
-  const local = String(process.env.OPENTRATTOS_OTEL_DISABLED ?? '').trim().toLowerCase();
+  const local = String(process.env.NEXANDRO_OTEL_DISABLED ?? '').trim().toLowerCase();
   const canonical = String(process.env.OTEL_SDK_DISABLED ?? '').trim().toLowerCase();
   return local === 'true' || canonical === 'true';
 }
@@ -69,9 +69,9 @@ export function startOtelSdk(): NodeSDK | null {
     return null;
   }
 
-  const serviceName = process.env.OPENTRATTOS_OTEL_SERVICE_NAME ?? SERVICE_NAME_DEFAULT;
-  const endpoint = process.env.OPENTRATTOS_OTEL_EXPORTER_ENDPOINT ?? ENDPOINT_DEFAULT;
-  const headers = parseHeaders(process.env.OPENTRATTOS_OTEL_EXPORTER_HEADERS);
+  const serviceName = process.env.NEXANDRO_OTEL_SERVICE_NAME ?? SERVICE_NAME_DEFAULT;
+  const endpoint = process.env.NEXANDRO_OTEL_EXPORTER_ENDPOINT ?? ENDPOINT_DEFAULT;
+  const headers = parseHeaders(process.env.NEXANDRO_OTEL_EXPORTER_HEADERS);
 
   const exporter = new OTLPTraceExporter({
     url: endpoint,

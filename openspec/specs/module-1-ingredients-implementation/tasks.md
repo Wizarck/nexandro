@@ -80,7 +80,7 @@
 ## 8. Controllers + DTOs (interface layer)
 
 - [x] 8.1 Define DTO classes (class-validator + class-transformer) in `<ctx>/interface/dto/` for Organization, User, Location, UserLocation, Category, Ingredient, Supplier, SupplierItem, UoM
-- [x] 8.2 Type all DTOs against `@opentrattos/types` (re-export from packages/types as needed); no `any`
+- [x] 8.2 Type all DTOs against `@nexandro/types` (re-export from packages/types as needed); no `any`
 - [x] 8.3 Replace `apps/api/src/ingredients/interface/{categories,ingredients,suppliers}.controller.ts` stubs with real implementations (note: existing stub for `suppliers` moves logically to `suppliers` bounded context per design.md §D1; relocate or symlink) — suppliers relocated to `suppliers/interface/`, supplier-items added.
 - [x] 8.4 Add new controllers: `OrganizationController` (`iam/`), `UserController` (`iam/`, absorbs UserLocation actions via `POST /users/:id/locations`), `LocationController` (`iam/`), `UoMController` (`ingredients/`, read-only catalogue) — UserLocation stays as nested resource on UserController (single-purpose verb endpoints, no separate list resource needed for M1)
 - [x] 8.5 `@ApiOperation` summary + description on every method; `@ApiResponse` shape covered by NestJS exception filters (Bad/Conflict/NotFound/Unauthorized/Forbidden) and code: error-code in body

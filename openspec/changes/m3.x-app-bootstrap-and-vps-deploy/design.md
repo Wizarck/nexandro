@@ -7,19 +7,19 @@ Proposal-approved scope: (a) make the monolith boot end-to-end as a single proce
 Three pre-locked architectural decisions constrain this slice:
 
 1. **ADR-001 (modular monolith)** — single NestJS process is the boot unit. No microservice extraction inside this slice.
-2. **ADR-013 (MCP server separable)** — `packages/mcp-server-opentrattos/` keeps its own Dockerfile. The new image MUST NOT bundle it.
+2. **ADR-013 (MCP server separable)** — `packages/mcp-server-nexandro/` keeps its own Dockerfile. The new image MUST NOT bundle it.
 3. **ADR-028 (single omnibus image)** — community AGPL ships as one Docker image; api/web split is explicitly rejected. NestJS serves the SPA via `@nestjs/serve-static`.
 
 Two cross-cutting constraints from operator reality:
 
-- **VPS state confirmed via SSH** (2026-05-16): port 3201 free; cloudflared = systemd unit at `/etc/cloudflared/config.yml`; live tunnel ID `675fa973-4c22-4b1c-9fd4-a52fad422ca4` (NOT the stale `da6c585e-…` in eligia-core's disaster-recovery runbook); modern bind pattern is `127.0.0.1:port:port` (matches `actual-server`, `palafito-staging-wp`, `opentrattos-postgres-test`).
+- **VPS state confirmed via SSH** (2026-05-16): port 3201 free; cloudflared = systemd unit at `/etc/cloudflared/config.yml`; live tunnel ID `675fa973-4c22-4b1c-9fd4-a52fad422ca4` (NOT the stale `da6c585e-…` in eligia-core's disaster-recovery runbook); modern bind pattern is `127.0.0.1:port:port` (matches `actual-server`, `palafito-staging-wp`, `nexandro-postgres-test`).
 - **Open-core boundary** — no enterprise code in `apps/api/` or `apps/web/`; no license-checks; flags gate creds, not paid features.
 
 ## ADRs
 
 ### ADR-BOOTSTRAP-FORROOT-IN-APP-MODULE
 
-**Decision.** `TypeOrmModule.forRootAsync` is added to `AppModule.imports` (NOT to a new `DatabaseModule`). The factory reads `DATABASE_URL` and constructs the same `DataSourceOptions` shape currently used by `apps/api/src/data-source.ts` (entities glob `**/*.entity.{ts,js}`, migrations glob `**/migrations/*.{ts,js}`, `migrationsTableName: 'opentrattos_migrations'`, `synchronize: false`, `logging` honouring `TYPEORM_LOGGING`).
+**Decision.** `TypeOrmModule.forRootAsync` is added to `AppModule.imports` (NOT to a new `DatabaseModule`). The factory reads `DATABASE_URL` and constructs the same `DataSourceOptions` shape currently used by `apps/api/src/data-source.ts` (entities glob `**/*.entity.{ts,js}`, migrations glob `**/migrations/*.{ts,js}`, `migrationsTableName: 'nexandro_migrations'`, `synchronize: false`, `logging` honouring `TYPEORM_LOGGING`).
 
 **Rationale.**
 
@@ -47,7 +47,7 @@ Two cross-cutting constraints from operator reality:
 | `AUDIT_ARCHIVAL_ENABLED` | `false` | S3-compat creds (PR #174) |
 | `PHOTO_STORAGE_ENABLED` | `false` | S3-compat creds (slice #18) |
 | `M3_PO_AGGREGATE_ENABLED` | `false` | (already exists, kept off for bootstrap path) |
-| `OPENTRATTOS_AGENT_ENABLED` | `false` | Hermes web_via_http_sse upstream (already exists) |
+| `NEXANDRO_AGENT_ENABLED` | `false` | Hermes web_via_http_sse upstream (already exists) |
 
 A new `NoopEmailAdapter` is added under `apps/api/src/shared/email-dispatch/adapters/noop.ts`. It satisfies the same `EmailDispatchAdapter` interface, returns a `Result.ok({ providerMessageId: 'noop' })` for every recipient, and logs at `debug` level. Selection is via `EMAIL_DISPATCH_PROVIDER=noop` in the existing factory at `apps/api/src/shared/email-dispatch/email-dispatch.module.ts`.
 
@@ -107,7 +107,7 @@ A new `NoopEmailAdapter` is added under `apps/api/src/shared/email-dispatch/adap
 
 ### ADR-SINGLE-IMAGE-OMNIBUS
 
-**Decision.** Implements ADR-028 (canonical project ADR). One Dockerfile at repo root, multi-stage Node 20 alpine. Stage `build` runs `turbo run build` for both `@opentrattos/api` and `@opentrattos/web`. Stage `runtime` ships the api dist + web dist sibling-mounted at `/app/api/dist/` and `/app/web/dist/`. NestJS `ServeStaticModule.forRoot({ rootPath: join(__dirname, '..', '..', 'web', 'dist'), exclude: ['/api/*', '/health'] })` resolves at runtime via that relative join.
+**Decision.** Implements ADR-028 (canonical project ADR). One Dockerfile at repo root, multi-stage Node 20 alpine. Stage `build` runs `turbo run build` for both `@nexandro/api` and `@nexandro/web`. Stage `runtime` ships the api dist + web dist sibling-mounted at `/app/api/dist/` and `/app/web/dist/`. NestJS `ServeStaticModule.forRoot({ rootPath: join(__dirname, '..', '..', 'web', 'dist'), exclude: ['/api/*', '/health'] })` resolves at runtime via that relative join.
 
 **Rationale.**
 
@@ -160,13 +160,13 @@ Both have `db` (postgres:16-alpine, named volume) + `app` (the single image). No
 **Rationale.**
 
 - Two distinct audiences, two distinct binds. A community user without cloudflared needs to expose on `0.0.0.0`; an operator with cloudflared needs to NOT expose to eth0.
-- Defense-in-depth bind `127.0.0.1:3201:3001` matches the modern VPS pattern (`actual-server`, `palafito-staging-wp`, `opentrattos-postgres-test`). Twenty CRM and Paperclip use `0.0.0.0` but those are legacy from before the loopback-bind convention.
+- Defense-in-depth bind `127.0.0.1:3201:3001` matches the modern VPS pattern (`actual-server`, `palafito-staging-wp`, `nexandro-postgres-test`). Twenty CRM and Paperclip use `0.0.0.0` but those are legacy from before the loopback-bind convention.
 - The 3201 port number was chosen because it's free on the live VPS (verified via SSH `ss -ltnp`), below the k3s NodePort range (4000-32767), and visually consistent with the 3xxx Docker port band on this VPS (3000=Twenty, 3101=Paperclip, 3201=trattos).
 
 **Alternatives considered.**
 
-- *Single compose with an env-controlled bind.* Rejected: two audiences shouldn't share one compose. Operator needs `depends_on` chains, healthchecks, named volumes locked to `/opt/opentrattos`; community needs simpler defaults.
-- *Operator compose lives outside the repo (e.g. in eligia-core).* Rejected: deploy artifacts for openTrattOS belong with openTrattOS source. Cross-repo coupling is more friction than the one extra file.
+- *Single compose with an env-controlled bind.* Rejected: two audiences shouldn't share one compose. Operator needs `depends_on` chains, healthchecks, named volumes locked to `/opt/nexandro`; community needs simpler defaults.
+- *Operator compose lives outside the repo (e.g. in eligia-core).* Rejected: deploy artifacts for nexandro belong with nexandro source. Cross-repo coupling is more friction than the one extra file.
 
 **Trade-offs.**
 
@@ -174,11 +174,11 @@ Both have `db` (postgres:16-alpine, named volume) + `app` (the single image). No
 
 ### ADR-PUBLIC-GHCR-VISIBILITY
 
-**Decision.** The GHCR package `ghcr.io/wizarck/opentrattos` is set to **public** visibility post-first-push. The README quickstart references the public image without auth.
+**Decision.** The GHCR package `ghcr.io/wizarck/nexandro` is set to **public** visibility post-first-push. The README quickstart references the public image without auth.
 
 **Rationale.**
 
-- GHCR personal-namespace packages default to private. A community user who runs `docker pull ghcr.io/wizarck/opentrattos:latest` without auth gets a 401 against a private image, breaking the quickstart.
+- GHCR personal-namespace packages default to private. A community user who runs `docker pull ghcr.io/wizarck/nexandro:latest` without auth gets a 401 against a private image, breaking the quickstart.
 - Public visibility is the AGPL distribution promise: anyone can pull. License (AGPL-3.0) is enforced via the LICENSE file + repo metadata, not via image gating.
 - Operational impact: GHCR's free public-image rate limits are generous (10k/day per source IP) and we're not in CDN territory.
 

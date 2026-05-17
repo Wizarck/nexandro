@@ -1,4 +1,4 @@
-import type { LabelFieldsFormValues } from '@opentrattos/ui-kit';
+import type { LabelFieldsFormValues } from '@nexandro/ui-kit';
 import { api } from './client';
 
 interface WriteEnvelope<T> {

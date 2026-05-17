@@ -16,7 +16,7 @@
 ## §3 Bundle storage abstraction
 
 - [x] `apps/api/src/compliance-export/storage/bundle-storage.ts` — `BundleStorage` interface + `BUNDLE_STORAGE` DI token.
-- [x] `apps/api/src/compliance-export/storage/local-bundle-storage.ts` — filesystem default backed by `OPENTRATTOS_BUNDLE_STORAGE_ROOT`.
+- [x] `apps/api/src/compliance-export/storage/local-bundle-storage.ts` — filesystem default backed by `NEXANDRO_BUNDLE_STORAGE_ROOT`.
 - [x] Unit spec: `local-bundle-storage.spec.ts` covering put + read + signed-URL TTL.
 
 ## §4 Chapter renderers (6)
@@ -54,10 +54,10 @@
 
 ## §8 MCP capability
 
-- [x] `packages/mcp-server-opentrattos/src/capabilities/write/compliance.ts` — single `compliance.generate-export` capability.
-- [x] Update `packages/mcp-server-opentrattos/src/capabilities/write/index.ts` — spread + re-export `COMPLIANCE_WRITE_CAPABILITIES`.
-- [x] Update `packages/mcp-server-opentrattos/src/capabilities/write/index.spec.ts` — count 48 → 49, namespace `compliance` added to the 15-namespace set.
-- [x] Update `packages/mcp-server-opentrattos/test/smoke.spec.ts` — registered-tools count 55 → 56.
+- [x] `packages/mcp-server-nexandro/src/capabilities/write/compliance.ts` — single `compliance.generate-export` capability.
+- [x] Update `packages/mcp-server-nexandro/src/capabilities/write/index.ts` — spread + re-export `COMPLIANCE_WRITE_CAPABILITIES`.
+- [x] Update `packages/mcp-server-nexandro/src/capabilities/write/index.spec.ts` — count 48 → 49, namespace `compliance` added to the 15-namespace set.
+- [x] Update `packages/mcp-server-nexandro/test/smoke.spec.ts` — registered-tools count 55 → 56.
 - [x] Unit spec: `compliance.spec.ts` covering shape + restPathTemplate + restBodyExtractor + idempotencyKey field.
 
 ## §9 Wire ComplianceExportModule into AppModule

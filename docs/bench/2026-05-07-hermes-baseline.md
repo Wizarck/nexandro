@@ -8,8 +8,8 @@ after the maintainer runs:
 
 ```bash
 cd tools/mcp-bench
-OPENTRATTOS_HERMES_BASE_URL=http://127.0.0.1:8644 \
-OPENTRATTOS_HERMES_AUTH_SECRET=$(grep WEB_VIA_HTTP_SSE_AUTH_SECRET /opt/eligia/eligia-core/secrets/secrets.env | cut -d= -f2) \
+NEXANDRO_HERMES_BASE_URL=http://127.0.0.1:8644 \
+NEXANDRO_HERMES_AUTH_SECRET=$(grep WEB_VIA_HTTP_SSE_AUTH_SECRET /opt/eligia/eligia-core/secrets/secrets.env | cut -d= -f2) \
 HERMES_VERSION=$(docker inspect eligia-hermes-agent --format='{{ index .Config.Labels "org.opencontainers.image.version" }}' 2>/dev/null || echo "wamba-overlay") \
 pnpm exec tsx src/run.ts --client=hermes --duration=60s
 ```
@@ -22,7 +22,7 @@ pnpm exec tsx src/run.ts --client=hermes --duration=60s
 - **Started**: 2026-05-07T00:00:00.000Z
 - **Ended**: 2026-05-07T00:01:00.000Z
 - **Duration**: 60.0s
-- **openTrattOS git SHA**: `pending`
+- **nexandro git SHA**: `pending`
 - **Environment**: synthetic (placeholder)
 - **Capabilities**: recipes.read, recipes.list, ingredients.search, menu-items.read
 

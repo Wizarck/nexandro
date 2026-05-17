@@ -24,7 +24,7 @@ This slice is **UI-heavy + a thin backend i18n seed**. We never write to `apps/a
 - **`packages/ui-kit/src/components/BundleDownloadRow/`** — two ghost buttons (PDF + CSV); mute eyebrow with bundle SHA-256 hash + audit_log entry id; optional email-dispatched line.
 - **`packages/ui-kit/src/components/BundleArchiveTable/`** — flat table of last 10 bundles: date, range, locale, scope, who, download link, optional `restaurar →` for cold-storage rows.
 - **`apps/web/src/screens/j9/AppccExportScreen.tsx`** — new page mounted at `/compliance/export`. Composes the 7 components above + DateRangePicker thin wrapper around two native `<input type="date">` + quick chips. State machine: idle → generating (SSE stream) → ready | failed. Defaults: last-90-day range, es-ES locale, haccp+lot scope.
-- **`apps/web/src/api/appcc.ts`** — REST client wrapping `api()` for the 5 slice-#14 endpoints. INLINE shapes (`Locale`, `Scope`, `ExportBundleStatus`, `ExportBundleSummary`, `GenerateBundleRequest`, etc.). No `@opentrattos/contracts` import. No import from `apps/api/src/compliance/*`.
+- **`apps/web/src/api/appcc.ts`** — REST client wrapping `api()` for the 5 slice-#14 endpoints. INLINE shapes (`Locale`, `Scope`, `ExportBundleStatus`, `ExportBundleSummary`, `GenerateBundleRequest`, etc.). No `@nexandro/contracts` import. No import from `apps/api/src/compliance/*`.
 - **`apps/web/src/hooks/useAppcc.ts`** — TanStack hooks: `useBundleArchive`, `useGenerateBundle`, `useBundleStatus`, `useDownloadBundle`.
 - **`apps/web/src/main.tsx`** — register `/compliance/export` route + lazy import.
 - **BREAKING**: none. New components + new route + new client + new i18n module. No schema changes. Wave 2.6 haccp-ui stays untouched; slice #14 owns all bundle-generator backend.

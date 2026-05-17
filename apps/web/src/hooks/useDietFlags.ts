@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
-import type { DietFlag, DietFlagsState } from '@opentrattos/ui-kit';
+import type { DietFlag, DietFlagsState } from '@nexandro/ui-kit';
 
 interface WriteEnvelope<T> {
   data: T;

@@ -1,6 +1,6 @@
 ## Why
 
-Wave 1.5 (`m2-mcp-server`) shipped the MCP server `opentrattos` with **read-only** capabilities (`recipes.{read,list}` + `menu-items.{read,list}` + `ingredients.{read,search}`). Writes were deferred to `m2-mcp-extras` per Gate D 2a — explicitly trading scope for shipping speed.
+Wave 1.5 (`m2-mcp-server`) shipped the MCP server `nexandro` with **read-only** capabilities (`recipes.{read,list}` + `menu-items.{read,list}` + `ingredients.{read,search}`). Writes were deferred to `m2-mcp-extras` per Gate D 2a — explicitly trading scope for shipping speed.
 
 The Agent-Ready architectural pillar (ADR-013) commits the system to: "the MCP server is the agent-side analog to the entire REST API". Without writes the MCP server is a glorified read replica; agents cannot do useful work. **HITL approvals are NOT in scope** for this slice — per Master's direction, "ya después podremos poner HITL approvals para las cosas que veamos necesarias". Per-capability feature flags (F6=a) are the safety net while we observe agent behaviour in production.
 
@@ -33,9 +33,9 @@ This slice (3a of the m2-mcp-extras split) closes the writes gap. 3b adds the Ag
 
 - **Forensic audit interceptor (F5=c + SD5=b)** — new `BeforeAfterAuditInterceptor` in `apps/api/src/shared/interceptors/`. Wraps every write controller method; before calling the handler, fetches the entity's current state via a per-namespace resolver (`recipes.findById`, `menu-items.findById`, etc.); after the handler returns, emits `AGENT_ACTION_EXECUTED` with `{ before, after, capability, executedBy, agentName, viaAgent, organizationId }` payload. The existing `AgentAuditMiddleware` (Wave 1.5) is left untouched — it emits the SAME event without before/after for non-MCP REST clients; the interceptor's emit is an enriched superset for MCP-routed writes.
 
-- **Per-capability feature flags (F6=a + SD1=a)** — `apps/api/.env.example` documents ~43 new env vars `OPENTRATTOS_AGENT_<CAP>_ENABLED` (default `false`). When the flag is `false`, the API returns HTTP 503 with `code: 'AGENT_CAPABILITY_DISABLED'` for MCP-routed writes (detected via `req.agentContext.viaAgent === true`). Direct REST/UI traffic is NEVER affected by these flags. The MCP server does NOT mirror the flags (per SD1=a — Master refuses to release MCP versions just to toggle flags); the MCP server registers all 43 capabilities unconditionally and the API rejects when disabled.
+- **Per-capability feature flags (F6=a + SD1=a)** — `apps/api/.env.example` documents ~43 new env vars `NEXANDRO_AGENT_<CAP>_ENABLED` (default `false`). When the flag is `false`, the API returns HTTP 503 with `code: 'AGENT_CAPABILITY_DISABLED'` for MCP-routed writes (detected via `req.agentContext.viaAgent === true`). Direct REST/UI traffic is NEVER affected by these flags. The MCP server does NOT mirror the flags (per SD1=a — Master refuses to release MCP versions just to toggle flags); the MCP server registers all 43 capabilities unconditionally and the API rejects when disabled.
 
-- **Capability registry pattern in MCP server** — `packages/mcp-server-opentrattos/src/capabilities/write/index.ts` exports a `WRITE_CAPABILITIES` registry: each entry is `{ name, description, schema (zod), restMethod, restPath, restPathParams }`. The MCP `buildServer()` factory loops over the registry and registers each capability via `server.registerTool()`. Adding a 44th capability is one new entry in the registry — no boilerplate.
+- **Capability registry pattern in MCP server** — `packages/mcp-server-nexandro/src/capabilities/write/index.ts` exports a `WRITE_CAPABILITIES` registry: each entry is `{ name, description, schema (zod), restMethod, restPath, restPathParams }`. The MCP `buildServer()` factory loops over the registry and registers each capability via `server.registerTool()`. Adding a 44th capability is one new entry in the registry — no boilerplate.
 
 - **No signing / agent registry yet** — 3a inherits the "trusted-internal-network mode only" posture from Wave 1.5. Spec requirement "unsigned agent → 401" is honoured by 3c (`m2-mcp-agent-registry-bench`) which lands the signing layer. 3a's README + `apps/api/.env.example` carry an explicit warning.
 
@@ -61,9 +61,9 @@ This slice (3a of the m2-mcp-extras split) closes the writes gap. 3b adds the Ag
   - `apps/api/src/shared/dto/write-response.dto.ts` — shared `{data, missingFields, nextRequired}` envelope (extracted to dedupe across N controllers).
   - ~10-20 controller files modified to emit the contract where missing.
   - `apps/api/.env.example` — ~43 new flag entries (grouped by namespace) + Idempotency-Key documentation.
-  - `packages/mcp-server-opentrattos/src/capabilities/write/index.ts` — WRITE_CAPABILITIES registry.
-  - `packages/mcp-server-opentrattos/src/capabilities/write/<namespace>.ts` × 12 — one file per namespace with that namespace's entries.
-  - `packages/mcp-server-opentrattos/src/server.ts` — register the registry alongside existing reads.
+  - `packages/mcp-server-nexandro/src/capabilities/write/index.ts` — WRITE_CAPABILITIES registry.
+  - `packages/mcp-server-nexandro/src/capabilities/write/<namespace>.ts` × 12 — one file per namespace with that namespace's entries.
+  - `packages/mcp-server-nexandro/src/server.ts` — register the registry alongside existing reads.
   - Tests:
     - Unit: ~20 capability descriptor tests (registry shape + zod schema validation).
     - Unit: idempotency middleware (hit/miss/cache eviction/expired).

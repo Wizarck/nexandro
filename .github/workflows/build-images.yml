@@ -2,7 +2,7 @@ name: Build + push omnibus image
 
 # m3.x-app-bootstrap-and-vps-deploy slice §4.1.
 #
-# Builds the single openTrattOS omnibus image (per ADR-028) and pushes
+# Builds the single nexandro omnibus image (per ADR-028) and pushes
 # to GHCR with two tags: `:latest` + `:sha-<7-char-git-sha>`. Triggers on
 # master pushes that touch app code / Dockerfile / deploy artifacts, and
 # on `workflow_dispatch` for ad-hoc rebuilds.
@@ -68,13 +68,13 @@ jobs:
           # Silicon dev machines + Hetzner CAX (eligia-prod aarch64).
           platforms: linux/amd64,linux/arm64
           tags: |
-            ghcr.io/wizarck/opentrattos:latest
-            ghcr.io/wizarck/opentrattos:sha-${{ steps.sha.outputs.short }}
+            ghcr.io/wizarck/nexandro:latest
+            ghcr.io/wizarck/nexandro:sha-${{ steps.sha.outputs.short }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Print published tags
         run: |
           echo "Published:"
-          echo "  ghcr.io/wizarck/opentrattos:latest"
-          echo "  ghcr.io/wizarck/opentrattos:sha-${{ steps.sha.outputs.short }}"
+          echo "  ghcr.io/wizarck/nexandro:latest"
+          echo "  ghcr.io/wizarck/nexandro:sha-${{ steps.sha.outputs.short }}"

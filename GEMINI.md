@@ -1,4 +1,4 @@
-# openTrattOS — GEMINI.md
+# nexandro — GEMINI.md
 
 Gemini CLI / Google Antigravity: read [AGENTS.md](AGENTS.md) first. That is the project dispatcher.
 

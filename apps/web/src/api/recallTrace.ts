@@ -1,4 +1,4 @@
-import type { ReverseAnchorKind, TraceNode } from '@opentrattos/ui-kit';
+import type { ReverseAnchorKind, TraceNode } from '@nexandro/ui-kit';
 import { api } from './client';
 
 /**

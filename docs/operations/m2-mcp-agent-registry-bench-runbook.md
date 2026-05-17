@@ -36,20 +36,20 @@ This slice closes the security and visibility gaps left open by 3a and 3b:
 
 ## Day-1 install (no enforcement)
 
-The slice ships with `OPENTRATTOS_AGENT_SIGNATURE_REQUIRED=false` by
+The slice ships with `NEXANDRO_AGENT_SIGNATURE_REQUIRED=false` by
 default. After deploying, integrators continue to use the legacy
 unsigned X-Agent-Name path until you flip the flag per-org.
 
 ```bash
 # apps/api .env (production)
-OPENTRATTOS_AGENT_SIGNATURE_REQUIRED=false
+NEXANDRO_AGENT_SIGNATURE_REQUIRED=false
 ```
 
 ## Generating an agent keypair
 
 Each agent generates its own Ed25519 keypair. The private key STAYS on
 the agent's host; only the SPKI/DER-encoded public key gets uploaded to
-openTrattOS.
+nexandro.
 
 ```bash
 node -e "
@@ -105,12 +105,12 @@ Once an org's agents are all registered, flip the flag for that org:
 
 ```bash
 # apps/api .env — append the org id (UUID)
-OPENTRATTOS_AGENT_SIGNATURE_REQUIRED=11111111-1111-4111-8111-111111111111
+NEXANDRO_AGENT_SIGNATURE_REQUIRED=11111111-1111-4111-8111-111111111111
 ```
 
 Multiple orgs:
 ```bash
-OPENTRATTOS_AGENT_SIGNATURE_REQUIRED=org-uuid-1,org-uuid-2,org-uuid-3
+NEXANDRO_AGENT_SIGNATURE_REQUIRED=org-uuid-1,org-uuid-2,org-uuid-3
 ```
 
 Then restart apps/api. Unsigned agent requests for those orgs now 401.
@@ -141,7 +141,7 @@ GROUP BY agent_name;
 
 ## Rollback (per-org)
 
-Remove the org id from `OPENTRATTOS_AGENT_SIGNATURE_REQUIRED` and
+Remove the org id from `NEXANDRO_AGENT_SIGNATURE_REQUIRED` and
 restart. The `agent_credentials` rows persist; flipping back later
 re-activates them without re-registration.
 
@@ -316,7 +316,7 @@ within the same client, check apps/api logs for tool-call timeouts.
 
 ## Trusted-internal-network reminder
 
-Until `OPENTRATTOS_AGENT_SIGNATURE_REQUIRED` is on for an org, agent
+Until `NEXANDRO_AGENT_SIGNATURE_REQUIRED` is on for an org, agent
 attribution remains spoofable via `X-Agent-Name` per the 3a posture.
 Once flipped on, attribution comes from the verified credential row;
 header-based spoofing is rejected at the middleware.

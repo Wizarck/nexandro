@@ -68,7 +68,7 @@
 
 - [ ] 9.1 `apps/web/src/screens/j12/PhotoIngestReviewScreen.tsx` — composes Header + TransparencyBanner + BulkReviewChips (`Mis revisiones` / `Todas` / `Rechazadas`) + HitlQueueList (left) + PhotoViewer (centre) + ExtractedFieldList (right) + AiProvenanceChip + sticky CTA `Firmar ingestión`. RoleGuard (Owner + Manager); Staff fallback.
 - [ ] 9.2 State machine: idle → selected → editing → submitting → submitted. Reciprocal box ↔ field link state lifted to the screen.
-- [ ] 9.3 30-minute `localStorage` draft per (`itemId`, `actorUserId`) keyed `opentrattos.photoIngest.draft.v1.<itemId>.<actorUserId>`.
+- [ ] 9.3 30-minute `localStorage` draft per (`itemId`, `actorUserId`) keyed `nexandro.photoIngest.draft.v1.<itemId>.<actorUserId>`.
 - [ ] 9.4 Primary CTA disabled until every reject-band field has a non-empty value.
 - [ ] 9.5 Success strip `✓ Ingestión firmada · {GR draft | Lot} creado · ver en {Procurement | Inventory} →` + 2 ghost actions (`Revisar siguiente` advances queue, `Volver al panel`).
 - [ ] 9.6 Keyboard shortcuts: `j`/`k` navigate queue, `↵` signs, `R` triggers reclassify. Suppressed inside `<input>`/`<textarea>`/`[contenteditable]`.

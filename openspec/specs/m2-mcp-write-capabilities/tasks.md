@@ -71,7 +71,7 @@ For each of the 43 write endpoints, mark status as ✅ has it / ⚠️ missing /
 - [ ] 6.1 `apps/api/.env.example` — add ~43 entries grouped by namespace under a `# m2-mcp-write-capabilities — per-capability kill-switches` block.
 - [ ] 6.2 `apps/api/src/shared/guards/agent-capability.guard.ts`:
   - Read `req.agentContext.capabilityName` (set from `X-Agent-Capability` header by middleware, Wave 1.5).
-  - Look up the env var `OPENTRATTOS_AGENT_<NORMALISE>_ENABLED` (snake-case, uppercase, namespace dot → underscore).
+  - Look up the env var `NEXANDRO_AGENT_<NORMALISE>_ENABLED` (snake-case, uppercase, namespace dot → underscore).
   - If `false` AND `viaAgent === true` → throw `ServiceUnavailableException` with `code: AGENT_CAPABILITY_DISABLED`.
   - If `true` OR `viaAgent === false` → pass through.
 - [ ] 6.3 Wire globally; ordering: JwtAuthGuard → RolesGuard → AgentCapabilityGuard.
@@ -80,7 +80,7 @@ For each of the 43 write endpoints, mark status as ✅ has it / ⚠️ missing /
 
 ## 7. MCP server — capability registry
 
-- [ ] 7.1 `packages/mcp-server-opentrattos/src/capabilities/write/types.ts` — `WriteCapability` interface per design.md ADR-MCP-W-REGISTRY.
+- [ ] 7.1 `packages/mcp-server-nexandro/src/capabilities/write/types.ts` — `WriteCapability` interface per design.md ADR-MCP-W-REGISTRY.
 - [ ] 7.2 12 namespace files in `capabilities/write/` (one per `recipes`, `menu-items`, `ingredients`, `categories`, `suppliers`, `supplier-items`, `labels`, `ai-suggestions`, `external-catalog`, `iam-users`, `iam-locations`, `iam-organizations`). Each exports an array of `WriteCapability` matching the audit-table endpoints.
 - [ ] 7.3 `capabilities/write/index.ts` barrel exporting `WRITE_CAPABILITIES = [...all]`.
 - [ ] 7.4 `capabilities/write/render-path.ts` — pure helper that substitutes `:param` tokens in `restPathTemplate` from a params object.
@@ -98,7 +98,7 @@ For each of the 43 write endpoints, mark status as ✅ has it / ⚠️ missing /
   - `audit_log` row carries `payloadBefore` + `payloadAfter` + `capability` + `actorKind: 'agent'`.
   - Idempotency-Key replay returns cached response without re-executing.
   - Per-capability flag = false → 503 with `AGENT_CAPABILITY_DISABLED`.
-- [ ] 8.6 Lint regression test: `apps/api` does NOT import from `packages/mcp-server-opentrattos` (existing rule from Wave 1.5; verify it still fires).
+- [ ] 8.6 Lint regression test: `apps/api` does NOT import from `packages/mcp-server-nexandro` (existing rule from Wave 1.5; verify it still fires).
 
 ## 9. Operations + docs
 
@@ -107,7 +107,7 @@ For each of the 43 write endpoints, mark status as ✅ has it / ⚠️ missing /
   - Cron setup for `agent_idempotency_keys` TTL cleanup (hourly DELETE).
   - Trusted-network warning (signing in 3c).
   - How to react to `AGENT_CAPABILITY_DISABLED` 503 alerts.
-- [ ] 9.2 `packages/mcp-server-opentrattos/README.md` updated with the 43 write capabilities list + signing-deferred warning.
+- [ ] 9.2 `packages/mcp-server-nexandro/README.md` updated with the 43 write capabilities list + signing-deferred warning.
 
 ## 10. Verification
 

@@ -14,7 +14,7 @@ import {
   type ExportProgressStatus,
   type ProgressStep,
   type RecipientOption,
-} from '@opentrattos/ui-kit';
+} from '@nexandro/ui-kit';
 import { useCurrentOrgId, useCurrentRole } from '../../lib/currentUser';
 import {
   useBundleArchive,

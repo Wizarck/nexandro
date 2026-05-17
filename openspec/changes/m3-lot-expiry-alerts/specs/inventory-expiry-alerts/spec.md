@@ -143,7 +143,7 @@ The system SHALL recover from a single failed cron tick (exception in scanner, D
 
 #### Scenario: Scheduler can be disabled by env flag
 
-- **WHEN** `OPENTRATTOS_EXPIRY_SCANNER_ENABLED=false` is set
+- **WHEN** `NEXANDRO_EXPIRY_SCANNER_ENABLED=false` is set
 - **THEN** the cron handler short-circuits at the start of each tick; no scan query runs; no events emit; no rows are written
 
 ### Requirement: INT test asserts scan query plan uses the partial index

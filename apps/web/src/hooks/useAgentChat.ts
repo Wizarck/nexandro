@@ -1,4 +1,4 @@
-import type { AgentChatSendRequest, AgentChatSseEvent } from '@opentrattos/ui-kit';
+import type { AgentChatSendRequest, AgentChatSseEvent } from '@nexandro/ui-kit';
 
 /**
  * Wave 1.13 [3b] — `useAgentChat`. Owns the SSE connection lifecycle for the

@@ -145,7 +145,7 @@ export class ConsumptionService {
       menu_item_id: input.menuItemId ?? null,
       consumed_at: persistedMove.createdAt.toISOString(),
       consumed_by_user_id: actorUserId,
-      opentrattos_tag: input.opentrattosTag ?? null,
+      nexandro_tag: input.nexandroTag ?? null,
       reason: input.reason ?? null,
     };
     // Defence-in-depth: parse before emit. Should always succeed if the

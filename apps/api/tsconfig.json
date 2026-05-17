@@ -18,8 +18,8 @@
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "@opentrattos/contracts": ["../../packages/contracts/src"],
-      "@opentrattos/types": ["../../packages/types/src"]
+      "@nexandro/contracts": ["../../packages/contracts/src"],
+      "@nexandro/types": ["../../packages/types/src"]
     }
   },
   "include": ["src/**/*"],

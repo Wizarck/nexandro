@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { RoleGuard } from '@opentrattos/ui-kit';
+import { RoleGuard } from '@nexandro/ui-kit';
 import type {
   ReviewQueueAggregateType,
   ReviewQueueDetails,

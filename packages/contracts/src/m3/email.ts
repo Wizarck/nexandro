@@ -47,7 +47,7 @@ export const EmailDispatchInputSchema = z
     bodyText: z.string().optional(),
     attachments: z.array(EmailAttachmentSchema).optional(),
     /**
-     * OpenTrattOS-canonical tag attribute used for audit + ops filtering
+     * Nexandro-canonical tag attribute used for audit + ops filtering
      * (e.g. `m3.recall.dossier_dispatch`, `m3.appcc.export_delivery`,
      * `m3.ai.budget_tier_alert`). Free-form `string` here; downstream
      * consumers MAY narrow via their own enums.

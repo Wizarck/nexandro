@@ -1,5 +1,5 @@
 {
-  "name": "@opentrattos/api",
+  "name": "@nexandro/api",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -33,9 +33,9 @@
     "@opentelemetry/instrumentation-nestjs-core": "0.43.0",
     "@opentelemetry/sdk-node": "0.55.0",
     "@opentelemetry/semantic-conventions": "1.27.0",
-    "@opentrattos/contracts": "*",
-    "@opentrattos/label-renderer": "*",
-    "@opentrattos/types": "*",
+    "@nexandro/contracts": "*",
+    "@nexandro/label-renderer": "*",
+    "@nexandro/types": "*",
     "@aws-sdk/client-s3": "^3.1048.0",
     "@sendgrid/mail": "^8.1.4",
     "bcrypt": "^6.0.0",

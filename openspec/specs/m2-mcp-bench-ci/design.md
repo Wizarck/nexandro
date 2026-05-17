@@ -113,7 +113,7 @@ The proposal commits the slice to manual `workflow_dispatch` only. SD3c's `m2-mc
 
 ### SD5 — Auth secret scoping
 
-`OPENTRATTOS_HERMES_BASE_URL` + `OPENTRATTOS_HERMES_AUTH_SECRET` live as **org-level** GH Secrets so they are available to scheduled (future) runs and to fork PRs (no — fork PRs explicitly cannot access secrets per GH security model; the bench job's `if: workflow_dispatch` already gates on this). The maintainer owns secret rotation per the m2-mcp-agent-chat-widget runbook.
+`NEXANDRO_HERMES_BASE_URL` + `NEXANDRO_HERMES_AUTH_SECRET` live as **org-level** GH Secrets so they are available to scheduled (future) runs and to fork PRs (no — fork PRs explicitly cannot access secrets per GH security model; the bench job's `if: workflow_dispatch` already gates on this). The maintainer owns secret rotation per the m2-mcp-agent-chat-widget runbook.
 
 ### SD6 — Bot identity for commits
 

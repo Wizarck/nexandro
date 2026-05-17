@@ -1,5 +1,5 @@
 ---
-title: openTrattOS Components Catalogue
+title: nexandro Components Catalogue
 status: canonical (M2 MVP) + design-intent (M2.x deferred)
 last-updated: 2026-04-27
 parent: docs/ux/
@@ -10,7 +10,7 @@ related:
   - ../architecture-decisions.md
 ---
 
-# openTrattOS Components Catalogue
+# nexandro Components Catalogue
 
 Per-component contracts: purpose, data shape, states, visual treatment, interactions, edge cases, Storybook stories, cross-references. **Visual tokens come from [DESIGN.md](DESIGN.md); this file does not redefine them.** Storybook stories listed here are the canonical visual surfaces — when implementing, build the stories first and verify them against the per-journey mocks.
 
@@ -35,7 +35,7 @@ Per-component contracts: purpose, data shape, states, visual treatment, interact
 |15 | [`AgentDraftReviewBanner`](#agentdraftreviewbanner)    | M2.x | J5 (deferred)         |
 |16 | [`ChannelTrace`](#channeltrace)                        | M2.x | J5 (deferred)         |
 
-† `AgentChatWidget` is M2 canonical but mounted only when `OPENTRATTOS_AGENT_ENABLED=true` ([ADR-013](../architecture-decisions.md)).
+† `AgentChatWidget` is M2 canonical but mounted only when `NEXANDRO_AGENT_ENABLED=true` ([ADR-013](../architecture-decisions.md)).
 
 ## Conventions
 
@@ -541,7 +541,7 @@ type LabelPreviewProps = {
 
 ### `AgentChatWidget`
 
-**Purpose.** Web chat sidesheet for the agent path, mounted only when `OPENTRATTOS_AGENT_ENABLED=true`. Lets a user converse with Hermes from inside the openTrattOS app instead of via WhatsApp / external channel.
+**Purpose.** Web chat sidesheet for the agent path, mounted only when `NEXANDRO_AGENT_ENABLED=true`. Lets a user converse with Hermes from inside the nexandro app instead of via WhatsApp / external channel.
 
 **Status.** Canonical M2 contract; **feature-flagged**. Does not render unless the env flag is set. Per [ADR-013](../architecture-decisions.md), the widget consumes the same MCP contract as any other agent client — it's a *visual surface*, not a privileged client.
 

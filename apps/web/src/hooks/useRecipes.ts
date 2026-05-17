@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../api/client';
-import type { RecipeListItem } from '@opentrattos/ui-kit';
+import type { RecipeListItem } from '@nexandro/ui-kit';
 
 interface RecipeDto {
   id: string;

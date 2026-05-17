@@ -2,24 +2,24 @@
 
 ## Capability
 
-The monolith ships as one GHCR image (`ghcr.io/wizarck/opentrattos:latest`, public visibility per ADR-028) orchestrated by docker-compose on a single host. Two compose files target two audiences (community quickstart + operator behind cloudflared); both reference the same image. The operator compose maps to the existing eligia-prod VPS via a cloudflared ingress entry on `trattos.palafitofood.com`.
+The monolith ships as one GHCR image (`ghcr.io/wizarck/nexandro:latest`, public visibility per ADR-028) orchestrated by docker-compose on a single host. Two compose files target two audiences (community quickstart + operator behind cloudflared); both reference the same image. The operator compose maps to the existing eligia-prod VPS via a cloudflared ingress entry on `nexandro.palafitofood.com`.
 
 ## ADDED Requirements
 
 ### Requirement: Single Docker image bundles api + web
 
-The system SHALL ship a single Docker image at `ghcr.io/wizarck/opentrattos:latest` that contains both the NestJS API runtime (under `/app/api/`) and the Vite-built SPA static files (under `/app/web/dist/`), and SHALL NOT publish a separate image for the web layer.
+The system SHALL ship a single Docker image at `ghcr.io/wizarck/nexandro:latest` that contains both the NestJS API runtime (under `/app/api/`) and the Vite-built SPA static files (under `/app/web/dist/`), and SHALL NOT publish a separate image for the web layer.
 
 #### Scenario: image runs the api and serves the SPA
 
-- WHEN an operator runs `docker run -p 3201:3001 -e DATABASE_URL=... ghcr.io/wizarck/opentrattos:latest`
+- WHEN an operator runs `docker run -p 3201:3001 -e DATABASE_URL=... ghcr.io/wizarck/nexandro:latest`
 - THEN the container's process tree shows a single `node /app/api/dist/main` process (not Caddy + Node)
 - AND `curl http://localhost:3201/api/docs` returns the Swagger UI
 - AND `curl http://localhost:3201/` returns the SPA `index.html`
 
 #### Scenario: image is publicly pullable without auth
 
-- WHEN any user (no GitHub authentication) runs `docker pull ghcr.io/wizarck/opentrattos:latest`
+- WHEN any user (no GitHub authentication) runs `docker pull ghcr.io/wizarck/nexandro:latest`
 - THEN the pull succeeds
 - AND the manifest is retrievable via the GHCR public manifest API
 
@@ -27,7 +27,7 @@ The system SHALL ship a single Docker image at `ghcr.io/wizarck/opentrattos:late
 
 - WHEN the GHA workflow `build-images.yml` runs on a master push
 - THEN the resulting image is published with both tags: `:latest` and `:sha-<7-char-git-sha>`
-- AND `docker pull ghcr.io/wizarck/opentrattos:sha-abc1234` retrieves the same artifact as `docker pull ghcr.io/wizarck/opentrattos@sha256:<digest>`
+- AND `docker pull ghcr.io/wizarck/nexandro:sha-abc1234` retrieves the same artifact as `docker pull ghcr.io/wizarck/nexandro@sha256:<digest>`
 
 ### Requirement: Image built by single-job GHA workflow
 
@@ -63,7 +63,7 @@ The system SHALL provide a `docker-compose.yml` at the repository root with two 
 
 #### Scenario: clone + up brings the stack online
 
-- WHEN a user runs `git clone https://github.com/Wizarck/openTrattOS.git && cd openTrattOS && cp .env.example .env && docker compose up -d`
+- WHEN a user runs `git clone https://github.com/Wizarck/nexandro.git && cd nexandro && cp .env.example .env && docker compose up -d`
 - THEN both `db` and `app` containers start
 - AND `app` is healthy within 60 seconds
 - AND `curl http://localhost:3000/health` returns `200 OK`
@@ -78,7 +78,7 @@ The system SHALL provide a `docker-compose.yml` at the repository root with two 
 #### Scenario: postgres data persists in a named volume
 
 - WHEN the user runs `docker compose down` (without `-v`) and then `docker compose up -d`
-- THEN the `opentrattos_pgdata` named volume is preserved
+- THEN the `nexandro_pgdata` named volume is preserved
 - AND any data written before the down is still present
 
 ### Requirement: Operator compose binds to loopback for cloudflared frontends
@@ -93,18 +93,18 @@ The system SHALL provide `deploy/docker-compose.prod.yml` with the same two serv
 
 #### Scenario: cloudflared on the VPS reaches the app via loopback
 
-- WHEN cloudflared (running as the systemd unit on the VPS host) routes `trattos.palafitofood.com` to `http://localhost:3201`
-- AND a client runs `curl https://trattos.palafitofood.com/health` from anywhere
+- WHEN cloudflared (running as the systemd unit on the VPS host) routes `nexandro.palafitofood.com` to `http://localhost:3201`
+- AND a client runs `curl https://nexandro.palafitofood.com/health` from anywhere
 - THEN the response is `200 OK` (cloudflared → tunnel → host loopback → docker port-forward → app container)
 
 #### Scenario: env file lives outside the compose
 
-- WHEN the operator scps `deploy/docker-compose.prod.yml` to `/opt/opentrattos/` on the VPS
-- AND populates `/opt/opentrattos/.env` with the operator-specific values (DATABASE_URL, FRONTEND_URL, POSTGRES_PASSWORD)
-- THEN `docker compose --env-file /opt/opentrattos/.env -f /opt/opentrattos/docker-compose.prod.yml up -d` starts the stack
+- WHEN the operator scps `deploy/docker-compose.prod.yml` to `/opt/nexandro/` on the VPS
+- AND populates `/opt/nexandro/.env` with the operator-specific values (DATABASE_URL, FRONTEND_URL, POSTGRES_PASSWORD)
+- THEN `docker compose --env-file /opt/nexandro/.env -f /opt/nexandro/docker-compose.prod.yml up -d` starts the stack
 - AND the `.env` file is NOT in the GHCR image or the compose file itself
 
-### Requirement: Cloudflared ingress snippet routes trattos.palafitofood.com to localhost:3201
+### Requirement: Cloudflared ingress snippet routes nexandro.palafitofood.com to localhost:3201
 
 The system SHALL provide a `deploy/cloudflared-ingress-trattos.snippet.yml` containing the exact ingress entry to insert into the VPS's `/etc/cloudflared/config.yml`, plus a comment block describing where to insert it (immediately before the `- service: http_status:404` catch-all) and how to reload (`cloudflared tunnel ingress validate --config /etc/cloudflared/config.yml && systemctl restart cloudflared`).
 
@@ -112,8 +112,8 @@ The system SHALL provide a `deploy/cloudflared-ingress-trattos.snippet.yml` cont
 
 - WHEN the operator inserts the snippet content into `/etc/cloudflared/config.yml`
 - AND runs `systemctl restart cloudflared`
-- AND the operator already created the Cloudflare DNS CNAME `trattos.palafitofood.com` → `675fa973-4c22-4b1c-9fd4-a52fad422ca4.cfargotunnel.com`
-- THEN a client GETs `https://trattos.palafitofood.com/health` and receives `200 OK`
+- AND the operator already created the Cloudflare DNS CNAME `nexandro.palafitofood.com` → `675fa973-4c22-4b1c-9fd4-a52fad422ca4.cfargotunnel.com`
+- THEN a client GETs `https://nexandro.palafitofood.com/health` and receives `200 OK`
 
 #### Scenario: ingress validate catches malformed YAML before reload
 
@@ -124,11 +124,11 @@ The system SHALL provide a `deploy/cloudflared-ingress-trattos.snippet.yml` cont
 
 ### Requirement: Deploy procedure is documented in deploy/README.md
 
-The system SHALL provide a `deploy/README.md` that walks an operator from "I have SSH to the VPS" to "trattos.palafitofood.com returns 200" in fewer than 10 numbered steps.
+The system SHALL provide a `deploy/README.md` that walks an operator from "I have SSH to the VPS" to "nexandro.palafitofood.com returns 200" in fewer than 10 numbered steps.
 
 #### Scenario: README covers the end-to-end procedure
 
 - WHEN an operator follows the README in order
-- THEN the operator reaches a smoke test step that includes both an internal probe (`curl http://127.0.0.1:3201/health` from the VPS) and an external probe (`curl https://trattos.palafitofood.com/health` from anywhere)
-- AND the README explicitly references where to put `POSTGRES_PASSWORD` (in `/opt/opentrattos/.env`, NOT in the compose file)
+- THEN the operator reaches a smoke test step that includes both an internal probe (`curl http://127.0.0.1:3201/health` from the VPS) and an external probe (`curl https://nexandro.palafitofood.com/health` from anywhere)
+- AND the README explicitly references where to put `POSTGRES_PASSWORD` (in `/opt/nexandro/.env`, NOT in the compose file)
 - AND the README references the cloudflared snippet step + the DNS CNAME the operator must create

@@ -178,7 +178,7 @@ Both pure — no DB, no DI, no clock. Callers pass `daysIntoMonth` + `daysInMont
 
 ### ADR-BUDGET-TIER-CROSSED-EVENT — inline payload shape, channel `ai-observability.budget-tier-crossed`
 
-The event ships on bus channel `ai-observability.budget-tier-crossed` (matches the namespace pattern from M2/M3 events). Payload is declared INLINE in `apps/api/src/ai-observability/budget/domain/events.ts` — NO `@opentrattos/contracts` import (Wave 2.1+2.2+2.3 hard-constraint lesson).
+The event ships on bus channel `ai-observability.budget-tier-crossed` (matches the namespace pattern from M2/M3 events). Payload is declared INLINE in `apps/api/src/ai-observability/budget/domain/events.ts` — NO `@nexandro/contracts` import (Wave 2.1+2.2+2.3 hard-constraint lesson).
 
 ```ts
 export interface AiBudgetTierCrossedPayload {
@@ -241,7 +241,7 @@ The slice brief named the column `total_cost_usd`. The architecture artifact ADR
 
 **Why deviate from the brief?** The architecture artifact is the source of truth at Gate D; the slice brief is a working draft that occasionally drifts from the artifact. Aligning to the artifact prevents downstream confusion (e.g. slice #20 reading the column expects EUR per ADR-030; a USD column name would require translation at the read boundary).
 
-**FX consideration**: AI provider pricing is published in USD (OpenAI, Anthropic). The `ai_pricing` seed (slice #20 ownership) stores rates as USD per million tokens; conversion to EUR happens at rollup time using a pinned FX rate per month. The pinned rate is recorded on the rollup row's `payloadAfter` envelope (slice #20 dashboard surfaces it). Out of scope for THIS slice: the FX-rate source / cadence. MVP convention: the scheduler computes EUR cost = USD cost × `OPENTRATTOS_AI_FX_RATE_USD_TO_EUR` (env var, default 0.92). Owner-visible FX-rate-of-record lands in slice #20's dashboard footer.
+**FX consideration**: AI provider pricing is published in USD (OpenAI, Anthropic). The `ai_pricing` seed (slice #20 ownership) stores rates as USD per million tokens; conversion to EUR happens at rollup time using a pinned FX rate per month. The pinned rate is recorded on the rollup row's `payloadAfter` envelope (slice #20 dashboard surfaces it). Out of scope for THIS slice: the FX-rate source / cadence. MVP convention: the scheduler computes EUR cost = USD cost × `NEXANDRO_AI_FX_RATE_USD_TO_EUR` (env var, default 0.92). Owner-visible FX-rate-of-record lands in slice #20's dashboard footer.
 
 ## Risks / Trade-offs
 
@@ -254,9 +254,9 @@ The slice brief named the column `total_cost_usd`. The architecture artifact ADR
 ## Migration Plan
 
 1. Apply migration 0032 — creates `ai_usage_rollup`, adds `organizations.ai_monthly_budget_eur` (nullable).
-2. Deploy with `OPENTRATTOS_AI_BUDGET_SCHEDULER_ENABLED=false` (default) — scheduler is dormant.
+2. Deploy with `NEXANDRO_AI_BUDGET_SCHEDULER_ENABLED=false` (default) — scheduler is dormant.
 3. Verify migration applied (`SELECT 1 FROM ai_usage_rollup LIMIT 0` returns clean).
-4. Flip `OPENTRATTOS_AI_BUDGET_SCHEDULER_ENABLED=true` in prod env. First tick (5 min later) upserts rows for any orgs with span data.
+4. Flip `NEXANDRO_AI_BUDGET_SCHEDULER_ENABLED=true` in prod env. First tick (5 min later) upserts rows for any orgs with span data.
 5. Owner-side: budget config lands in slice #20 UI. Until then, Owners with `ai_monthly_budget_eur IS NULL` get telemetry rollup only, no alerts — graceful degradation per ADR-NULL-BUDGET-UNLIMITED.
 
 Rollback: flip env flag off; if needed, run migration down (drops the table + column; loses tier history but no foreign keys into the rollup table so no cascade pain).

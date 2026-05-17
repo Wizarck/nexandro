@@ -1,12 +1,12 @@
 ## Why
 
-`m2-ai-yield-suggestions` (Wave 1.7) shipped the apps/api surface — provider abstraction, iron-rule guard, audit/cache table, controllers, UI editors. It is gated by `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED=false` in production because **no real RAG endpoint is wired**: the contract `{value, citationUrl, snippet}` exists, but nothing on the other side returns useful answers.
+`m2-ai-yield-suggestions` (Wave 1.7) shipped the apps/api surface — provider abstraction, iron-rule guard, audit/cache table, controllers, UI editors. It is gated by `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED=false` in production because **no real RAG endpoint is wired**: the contract `{value, citationUrl, snippet}` exists, but nothing on the other side returns useful answers.
 
 This slice closes that gap operationally. It is a 3-leg delivery:
 
 1. **Corpus**: ingest authoritative sources (USDA FoodData Central, EU Reglamento 1169/2011, CIAA Spain, Escoffier *Le Guide Culinaire* public-domain edition) into the existing RAGAnything+LightRAG deployment on the VPS.
 2. **Proxy**: a thin Python FastAPI service (`rag-proxy`) sitting in front of LightRAG that (a) translates LightRAG's prose+references response into the canonical `{value, citationUrl, snippet}` contract, (b) injects a JSON-only `user_prompt` per LightRAG capability, (c) falls back to Brave Search API (with a whitelist of authoritative domains) when LightRAG returns no high-confidence match, (d) preflights the iron rule before responding.
-3. **Zero changes to apps/api**: `GptOssRagProvider` already speaks the canonical contract. Pointing `OPENTRATTOS_AI_RAG_BASE_URL` at the proxy is the only consumer-side change. No new TypeScript provider class.
+3. **Zero changes to apps/api**: `GptOssRagProvider` already speaks the canonical contract. Pointing `NEXANDRO_AI_RAG_BASE_URL` at the proxy is the only consumer-side change. No new TypeScript provider class.
 
 LightRAG is **not modified**. All translation logic lives in the proxy.
 
@@ -28,7 +28,7 @@ LightRAG is **not modified**. All translation logic lives in the proxy.
   - rag-proxy architecture + iron-rule preflight.
   - Brave Search domain whitelist + fallback semantics.
   - LightRAG `→` canonical contract response mapping.
-- `apps/api/.env.example`: documents that `OPENTRATTOS_AI_RAG_BASE_URL` should point at the proxy, not at LightRAG directly.
+- `apps/api/.env.example`: documents that `NEXANDRO_AI_RAG_BASE_URL` should point at the proxy, not at LightRAG directly.
 - **BREAKING**: none — additive, behind the existing feature flag.
 
 ## Capabilities
@@ -39,7 +39,7 @@ LightRAG is **not modified**. All translation logic lives in the proxy.
 
 ### Modified Capabilities
 
-- `m2-ai-yield-suggestions` (operationally): the existing slice's `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED` flag becomes flippable to `true` once the proxy is deployed and corpus ingested. No code changes there.
+- `m2-ai-yield-suggestions` (operationally): the existing slice's `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED` flag becomes flippable to `true` once the proxy is deployed and corpus ingested. No code changes there.
 
 ## Impact
 

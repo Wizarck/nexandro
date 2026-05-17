@@ -17,10 +17,10 @@ describe('OrganizationRepository (integration)', () => {
       imports: [
         TypeOrmModule.forRoot({
           type: 'postgres',
-          url: process.env.DATABASE_URL ?? 'postgres://opentrattos_test:opentrattos_test@localhost:5433/opentrattos_test',
+          url: process.env.DATABASE_URL ?? 'postgres://nexandro_test:nexandro_test@localhost:5433/nexandro_test',
           entities: [Organization, User, Location, UserLocation],
           migrations: [`${__dirname}/../../migrations/*.{ts,js}`],
-          migrationsTableName: 'opentrattos_migrations',
+          migrationsTableName: 'nexandro_migrations',
           synchronize: false,
         }),
         TypeOrmModule.forFeature([Organization, User, Location, UserLocation]),

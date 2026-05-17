@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../api/client';
-import type { SupplierItemOption } from '@opentrattos/ui-kit';
+import type { SupplierItemOption } from '@nexandro/ui-kit';
 
 interface SupplierItemDto {
   id: string;

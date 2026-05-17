@@ -196,7 +196,7 @@ For a chat turn (`POST /agent-chat/stream`) you get **one** rich forensic row fr
    - Rows on `AGENT_ACTION_EXECUTED` with `aggregate_type='organization'` are correct (lean attribution row from `AgentAuditMiddleware`).
    - Rows on `AGENT_ACTION_FORENSIC` with `aggregate_type<>'organization'` are correct (rich mutation row).
    - Anything ELSE on `AGENT_ACTION_EXECUTED` (i.e. `aggregate_type<>'organization'`) means the migration didn't apply or there's a post-migration emit path that's still using the old channel.
-2. Confirm the migration ran: `SELECT * FROM opentrattos_migrations WHERE name LIKE '%forensic_split%';`
+2. Confirm the migration ran: `SELECT * FROM nexandro_migrations WHERE name LIKE '%forensic_split%';`
 3. If migration ran but rows are still mis-channelled, grep emit sites: `grep -rn "AGENT_ACTION_EXECUTED" apps/api/src` should return only the lean middleware (`agent-audit.middleware.ts`) + types/comment matches. Any rich-emit site on the lean channel is a regression.
 
 ### R5 — "Audit row drops silently"
@@ -235,7 +235,7 @@ Reference implementation: `apps/api/src/agent-chat/application/agent-chat.servic
 Slice-specific setup, env flags, secret rotation:
 
 - [m2-mcp-write-capabilities-runbook](./m2-mcp-write-capabilities-runbook.md) — 43 per-capability env flags + Idempotency-Key + audit interceptor.
-- [m2-mcp-agent-chat-widget-runbook](./m2-mcp-agent-chat-widget-runbook.md) — `OPENTRATTOS_AGENT_ENABLED` + Hermes secret + chat audit emission.
+- [m2-mcp-agent-chat-widget-runbook](./m2-mcp-agent-chat-widget-runbook.md) — `NEXANDRO_AGENT_ENABLED` + Hermes secret + chat audit emission.
 - [m2-mcp-agent-registry-bench-runbook](./m2-mcp-agent-registry-bench-runbook.md) — Ed25519 signing + agent_credentials registration + SSE replay + bench harness.
 
 Architecture decisions consumed by this runbook:

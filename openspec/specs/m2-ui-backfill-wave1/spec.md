@@ -125,5 +125,5 @@ The system SHALL provide 2 stub journey screens at `/poc/recipe-builder-j1` and 
 The system SHALL re-export the 5 new components and their TypeScript types from `packages/ui-kit/src/index.ts`.
 
 #### Scenario: Barrel import works in apps/web
-- **WHEN** an `apps/web/` file imports `import { RecipePicker, IngredientPicker, SourceOverridePicker, CostDeltaTable, DietFlagsPanel } from '@opentrattos/ui-kit'`
+- **WHEN** an `apps/web/` file imports `import { RecipePicker, IngredientPicker, SourceOverridePicker, CostDeltaTable, DietFlagsPanel } from '@nexandro/ui-kit'`
 - **THEN** TypeScript compilation succeeds and runtime resolution finds each component

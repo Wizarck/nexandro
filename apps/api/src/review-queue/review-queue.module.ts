@@ -24,7 +24,7 @@ import { ReviewQueueController } from './interface/review-queue.controller';
  * for organisations with overdue flagged rows — surfaces stale items
  * to dashboards + MCP agents WITHOUT touching `requires_review`. The
  * scanner is disabled by default and activates via
- * `OPENTRATTOS_REVIEW_QUEUE_STALE_NOTIFIER_ENABLED=true`.
+ * `NEXANDRO_REVIEW_QUEUE_STALE_NOTIFIER_ENABLED=true`.
  */
 @Module({
   imports: [AuditLogModule],

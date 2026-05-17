@@ -28,7 +28,7 @@ THEN   The mcp-bench.yml workflow is NOT triggered for this PR
 
 ```
 GIVEN  A maintainer with `actions:write` permissions
-       AND GH Secrets contain OPENTRATTOS_HERMES_BASE_URL + OPENTRATTOS_HERMES_AUTH_SECRET
+       AND GH Secrets contain NEXANDRO_HERMES_BASE_URL + NEXANDRO_HERMES_AUTH_SECRET
 WHEN   The maintainer runs `gh workflow run mcp-bench.yml`
        OR clicks "Run workflow" in the GH UI with default inputs
 THEN   The `bench` job runs on master (or the chosen ref)
@@ -103,7 +103,7 @@ THEN   It exits non-zero with "could not parse results table" diagnostic
 ## Scenario: WHEN the workflow runs with auth secret missing, THEN the bench fails BEFORE producing a partial report
 
 ```
-GIVEN  GH Secrets do not contain OPENTRATTOS_HERMES_AUTH_SECRET
+GIVEN  GH Secrets do not contain NEXANDRO_HERMES_AUTH_SECRET
        (e.g. fork PR / org-level secret missing)
 WHEN   The bench job runs
 THEN   The bench harness exits non-zero on its `/health` probe + the workflow fails

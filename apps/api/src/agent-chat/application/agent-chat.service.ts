@@ -12,9 +12,9 @@ import { safeAuditEmit } from '../../shared/audit-emit/safe-audit-emit';
 import { OrganizationRepository } from '../../iam/infrastructure/organization.repository';
 import { ChatRequestDto, ChatSseEvent } from '../interface/dto/agent-chat.dto';
 
-const FLAG_ENV = 'OPENTRATTOS_AGENT_ENABLED';
-const HERMES_URL_ENV = 'OPENTRATTOS_HERMES_BASE_URL';
-const HERMES_AUTH_ENV = 'OPENTRATTOS_HERMES_AUTH_SECRET';
+const FLAG_ENV = 'NEXANDRO_AGENT_ENABLED';
+const HERMES_URL_ENV = 'NEXANDRO_HERMES_BASE_URL';
+const HERMES_AUTH_ENV = 'NEXANDRO_HERMES_AUTH_SECRET';
 
 const HERMES_DEFAULT_TIMEOUT_MS = 60_000;
 
@@ -29,8 +29,8 @@ interface HermesPostBody {
  * Wave 1.13 [3b] — `POST /agent-chat/stream` SSE relay.
  *
  * Behaviour:
- *  - Read-once-at-call `OPENTRATTOS_AGENT_ENABLED`. When false, throw 404.
- *  - Resolve `bank_id = opentrattos-{tenant_slug}` from the authenticated
+ *  - Read-once-at-call `NEXANDRO_AGENT_ENABLED`. When false, throw 404.
+ *  - Resolve `bank_id = nexandro-{tenant_slug}` from the authenticated
  *    user's organization. Collisions append a short hash of `organizationId`.
  *  - Open an SSE connection to Hermes' `web_via_http_sse` platform with the
  *    shared `X-Web-Auth-Secret`. Relay events 1:1 to the browser.
@@ -62,7 +62,7 @@ export class AgentChatService {
   }
 
   /**
-   * Build the deterministic `opentrattos-{tenant_slug}` bank id for an org.
+   * Build the deterministic `nexandro-{tenant_slug}` bank id for an org.
    *
    * Strategy: slugify `organization.name` (lowercase ASCII, dashes, ≤32
    * chars). Falls back to the leading 8 hex chars of `sha256(organizationId)`
@@ -76,10 +76,10 @@ export class AgentChatService {
     const org = await this.organizations.findOneBy({ id: organizationId });
     if (!org) {
       this.logger.warn(`agent-chat.bank.org_not_found id=${organizationId}`);
-      return `opentrattos-${shortHash(organizationId)}`;
+      return `nexandro-${shortHash(organizationId)}`;
     }
     const slug = slugify(org.name);
-    return slug ? `opentrattos-${slug}` : `opentrattos-${shortHash(organizationId)}`;
+    return slug ? `nexandro-${slug}` : `nexandro-${shortHash(organizationId)}`;
   }
 
   /**

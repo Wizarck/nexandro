@@ -1,6 +1,6 @@
 # User Personas & Jobs-to-be-Done (JTBD)
 
-**Project:** openTrattOS  
+**Project:** nexandro  
 **Version:** 1.0  
 **Date:** 2026-04-19
 
@@ -82,8 +82,8 @@ and have one Role per Location.
 
 ## 3. Onboarding Flow (First Run Experience)
 
-When a user installs openTrattOS for the first time (self-hosted) or signs up 
-(TrattOS Enterprise), the system guides them through a 5-step wizard:
+When a user installs nexandro for the first time (self-hosted) or signs up 
+(Nexandro Enterprise), the system guides them through a 5-step wizard:
 
 ### Step 1: Create Organization
 - Organization name (e.g. "Grupo Palafito")

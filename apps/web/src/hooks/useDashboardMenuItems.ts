@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../api/client';
-import type { DashboardMenuItem } from '@opentrattos/ui-kit';
+import type { DashboardMenuItem } from '@nexandro/ui-kit';
 
 export interface RankingResult {
   organizationId: string;

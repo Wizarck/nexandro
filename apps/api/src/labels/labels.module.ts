@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   IppPrintAdapter,
   PrintAdapterRegistry,
-} from '@opentrattos/label-renderer';
+} from '@nexandro/label-renderer';
 import { Ingredient } from '../ingredients/domain/ingredient.entity';
 import { IngredientsModule } from '../ingredients/ingredients.module';
 import { Organization } from '../iam/domain/organization.entity';

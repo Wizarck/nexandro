@@ -41,7 +41,7 @@ interface BucketRow {
  * peak morning Spain operations.
  *
  * **Env-gated:** disabled by default; activates only when
- * `OPENTRATTOS_AUDIT_LOG_ARCHIVAL_ENABLED=true`. Matches the
+ * `NEXANDRO_AUDIT_LOG_ARCHIVAL_ENABLED=true`. Matches the
  * disabled-by-default pattern from `ExpiryScannerService` and
  * `ReviewQueueStaleScanner` so the cron only runs where intended.
  *
@@ -87,7 +87,7 @@ export class AuditLogArchivalScanner {
 
   @Cron(CronExpression.EVERY_DAY_AT_2AM, { name: 'audit-log-archival' })
   async runTick(): Promise<void> {
-    if (process.env.OPENTRATTOS_AUDIT_LOG_ARCHIVAL_ENABLED !== 'true') {
+    if (process.env.NEXANDRO_AUDIT_LOG_ARCHIVAL_ENABLED !== 'true') {
       return;
     }
     try {

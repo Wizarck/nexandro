@@ -52,7 +52,7 @@ export interface PostmarkClientLike {
  * ADR-EMAIL-PROVIDER-FACTORY.
  *
  * The `postmark` SDK is lazy-imported via dynamic `import('postmark')`
- * inside `init()`. When `OPENTRATTOS_EMAIL_PROVIDER=smtp`, this adapter
+ * inside `init()`. When `NEXANDRO_EMAIL_PROVIDER=smtp`, this adapter
  * is never instantiated and the Postmark SDK never enters
  * `require.cache` — keeping the AGPL build slim.
  *
@@ -75,9 +75,9 @@ export class PostmarkEmailAdapter implements EmailDispatchService {
   static async fromEnv(
     env: NodeJS.ProcessEnv = process.env,
   ): Promise<PostmarkEmailAdapter> {
-    const serverToken = env.OPENTRATTOS_POSTMARK_SERVER_TOKEN ?? '';
+    const serverToken = env.NEXANDRO_POSTMARK_SERVER_TOKEN ?? '';
     const from =
-      env.OPENTRATTOS_EMAIL_FROM ?? 'notifications@opentrattos.local';
+      env.NEXANDRO_EMAIL_FROM ?? 'notifications@nexandro.local';
     const adapter = new PostmarkEmailAdapter({ serverToken, from });
     await adapter.init();
     return adapter;
@@ -85,7 +85,7 @@ export class PostmarkEmailAdapter implements EmailDispatchService {
 
   /**
    * Lazy-load the `postmark` SDK. Called exactly once from the factory's
-   * `onModuleInit` when `OPENTRATTOS_EMAIL_PROVIDER=postmark`. Idempotent.
+   * `onModuleInit` when `NEXANDRO_EMAIL_PROVIDER=postmark`. Idempotent.
    */
   async init(): Promise<void> {
     if (this.client) return;

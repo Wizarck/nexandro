@@ -4,7 +4,7 @@ import {
   renderRecallDossierToPdf,
   type RecallDossierData,
   type RecallDossierTraceNode,
-} from '@opentrattos/label-renderer';
+} from '@nexandro/label-renderer';
 import { AuditLogService } from '../../audit-log/application/audit-log.service';
 import { validateChainIntegrity } from '../../audit-log/application/audit-log-hash-chain';
 import { RECALL_INCIDENT_AGGREGATE_TYPE } from '../domain/constants';

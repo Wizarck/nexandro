@@ -8,7 +8,7 @@ import {
   type ChronologyRailEntry,
   type DispatchReceiptRow,
   type RecipientListEntry,
-} from '@opentrattos/ui-kit';
+} from '@nexandro/ui-kit';
 import {
   dossierPdfUrl,
 } from '../api/recall';

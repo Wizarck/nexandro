@@ -13,7 +13,7 @@ The system SHALL accept signed agent requests carrying `X-Agent-Id`, `X-Agent-Si
 
 #### Scenario: invalid signature returns 401 when flag is on
 
-- **WHEN** `OPENTRATTOS_AGENT_SIGNATURE_REQUIRED=true` (or includes the request's organizationId) AND `X-Agent-Signature` does not verify against the registered public key
+- **WHEN** `NEXANDRO_AGENT_SIGNATURE_REQUIRED=true` (or includes the request's organizationId) AND `X-Agent-Signature` does not verify against the registered public key
 - **THEN** the response is HTTP 401 `code: AGENT_SIGNATURE_INVALID`; the request never reaches the route handler
 
 #### Scenario: expired timestamp returns 401
@@ -28,7 +28,7 @@ The system SHALL accept signed agent requests carrying `X-Agent-Id`, `X-Agent-Si
 
 #### Scenario: missing headers + flag off keeps the legacy 3a path
 
-- **WHEN** `OPENTRATTOS_AGENT_SIGNATURE_REQUIRED=false` AND no `X-Agent-Signature` header is present
+- **WHEN** `NEXANDRO_AGENT_SIGNATURE_REQUIRED=false` AND no `X-Agent-Signature` header is present
 - **THEN** the request is processed under the 3a unsigned path: `X-Via-Agent` + `X-Agent-Name` + `X-Agent-Capability` headers are honoured as today; `req.agentContext.signatureVerified=false`; a deprecation log line is emitted
 
 #### Scenario: missing headers + flag on rejects
@@ -111,7 +111,7 @@ The system SHALL provide a runnable Node CLI under `tools/mcp-bench/` that drive
 #### Scenario: invocation produces a report
 
 - **WHEN** an operator runs `pnpm exec tsx tools/mcp-bench/run.ts --client=hermes --capabilities=read,list --duration=60s`
-- **THEN** a markdown file is written to `docs/bench/<YYYY-MM-DD>-hermes.md` containing: run metadata (client name, version, transport, env, openTrattOS git SHA, ISO8601 timestamp); a table with rows per capability and columns p50, p95, error rate, throughput; the process exits zero on success
+- **THEN** a markdown file is written to `docs/bench/<YYYY-MM-DD>-hermes.md` containing: run metadata (client name, version, transport, env, nexandro git SHA, ISO8601 timestamp); a table with rows per capability and columns p50, p95, error rate, throughput; the process exits zero on success
 
 #### Scenario: transport spawn failure surfaces cleanly
 
@@ -125,11 +125,11 @@ The system SHALL provide a runnable Node CLI under `tools/mcp-bench/` that drive
 
 ### Requirement: Default-OFF flag posture
 
-The system SHALL ship signing infrastructure with `OPENTRATTOS_AGENT_SIGNATURE_REQUIRED=false` by default. Per-org rollout SHALL flip the flag once that org's agents have registered their public keys.
+The system SHALL ship signing infrastructure with `NEXANDRO_AGENT_SIGNATURE_REQUIRED=false` by default. Per-org rollout SHALL flip the flag once that org's agents have registered their public keys.
 
 #### Scenario: comma-separated org list
 
-- **WHEN** `OPENTRATTOS_AGENT_SIGNATURE_REQUIRED` is set to a comma-separated list of UUIDs
+- **WHEN** `NEXANDRO_AGENT_SIGNATURE_REQUIRED` is set to a comma-separated list of UUIDs
 - **THEN** signing is required only for requests whose `req.user.organizationId` is in the list; other orgs continue to use the legacy 3a unsigned path
 
 #### Scenario: literal `true` enforces globally

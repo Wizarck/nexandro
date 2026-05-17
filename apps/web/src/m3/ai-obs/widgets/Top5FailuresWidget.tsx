@@ -1,4 +1,4 @@
-import { BadgeChip, EmptyStateCard, MetricCard } from '@opentrattos/ui-kit';
+import { BadgeChip, EmptyStateCard, MetricCard } from '@nexandro/ui-kit';
 import type { FailureRange, FailureRow } from '../api/aiObs.types';
 import { formatFreshness, formatRelativeTime } from '../lib/format';
 

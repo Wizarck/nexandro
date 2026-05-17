@@ -19,9 +19,9 @@
 
 - [ ] 2.1 `apps/api/src/ai-suggestions/types.ts` — `AiSuggestionProvider` interface with `suggestYield(input)` + `suggestWaste(input)` returning `{ value, citationUrl, snippet, modelName, modelVersion } | null`
 - [ ] 2.2 `GptOssRagProvider` HTTP client wrapping internal RAG endpoint. Config from env:
-  - `OPENTRATTOS_AI_RAG_BASE_URL` (required when feature flag on)
-  - `OPENTRATTOS_AI_RAG_API_KEY` (optional Bearer)
-  - `OPENTRATTOS_AI_RAG_TIMEOUT_MS` (default 5000)
+  - `NEXANDRO_AI_RAG_BASE_URL` (required when feature flag on)
+  - `NEXANDRO_AI_RAG_API_KEY` (optional Bearer)
+  - `NEXANDRO_AI_RAG_TIMEOUT_MS` (default 5000)
 - [ ] 2.3 Iron-rule guard (FR19): server-side check rejects responses with empty/null `citationUrl` AND empty/null `snippet`. Hybrid corpus + web-search fallback per Gate D 2c is the RAG endpoint's responsibility — apps/api enforces the contract, not the orchestration
 - [ ] 2.4 Snippet truncation: ≤500 chars + ellipsis marker `…` if cut
 - [ ] 2.5 Network errors / non-2xx / parse errors → return `null` (no suggestion offered) — never crash the controller
@@ -42,7 +42,7 @@
 - [ ] 4.3 `POST /ai-suggestions/:id/accept` — body `{organizationId, value?}` (value present = tweak)
 - [ ] 4.4 `POST /ai-suggestions/:id/reject` — body `{organizationId, reason}` (reason ≥10 chars)
 - [ ] 4.5 RBAC: Owner+Manager for all endpoints; Staff blocked
-- [ ] 4.6 Feature-flag guard: `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED=false` → 404 on every endpoint
+- [ ] 4.6 Feature-flag guard: `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED=false` → 404 on every endpoint
 - [ ] 4.7 Validation: contextHash required + non-empty; reason ≥10 chars on reject; value within `[0, 1]` on tweak
 
 ## 5. UI: YieldEditor + WasteFactorEditor
@@ -84,7 +84,7 @@
 - [ ] 8.3 `npm test --workspace=packages/ui-kit` green; ≥10 new YieldEditor + WasteFactorEditor tests
 - [ ] 8.4 Lint clean across all 5 workspaces
 - [ ] 8.5 apps/web build clean
-- [ ] 8.6 Manual smoke (deferred to post-deploy): `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED=true` + RAG endpoint live → chef sees citation + accepts + audit row + UI shows accepted state
+- [ ] 8.6 Manual smoke (deferred to post-deploy): `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED=true` + RAG endpoint live → chef sees citation + accepts + audit row + UI shows accepted state
 
 ## 9. CI + landing
 
@@ -96,4 +96,4 @@
 - [ ] 9.6 File follow-up slices:
   - `m2-ai-yield-corpus` — ingest CIAA + USDA + cookbook references into the RAG vector store (operational; outside the slice's wire format)
   - `m2-ai-yield-web-fallback` — explicit web-search fallback layer at apps/api when RAG endpoint returns no citation (alternative orchestration to the RAG-internal hybrid; useful if Gate D 2c moves to apps/api orchestration)
-  - `m2-wrap-up` — flip `OPENTRATTOS_LABELS_PROD_ENABLED=true` post legal review + flip `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED=true` post corpus ingestion
+  - `m2-wrap-up` — flip `NEXANDRO_LABELS_PROD_ENABLED=true` post legal review + flip `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED=true` post corpus ingestion

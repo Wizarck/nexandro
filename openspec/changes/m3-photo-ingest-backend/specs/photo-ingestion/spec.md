@@ -123,4 +123,4 @@ Inspectors + future model-tuning passes read both: the LLM's hypothesis AND the 
 
 ### AC-PHOTO-13 — MCP capabilities expose the same surface
 
-`inventory.ingest-invoice-photo`, `inventory.ingest-product-photo`, and `inventory.sign-photo-ingestion` are wired in `packages/mcp-server-opentrattos/src/capabilities/write/inventory.ts`. The smoke test asserts `WRITE_CAPABILITIES.length === 52` and the registered keys include all three new names. Hermes (WhatsApp / Telegram / chat widget) invokes the same handler that REST hits — no surface fork.
+`inventory.ingest-invoice-photo`, `inventory.ingest-product-photo`, and `inventory.sign-photo-ingestion` are wired in `packages/mcp-server-nexandro/src/capabilities/write/inventory.ts`. The smoke test asserts `WRITE_CAPABILITIES.length === 52` and the registered keys include all three new names. Hermes (WhatsApp / Telegram / chat widget) invokes the same handler that REST hits — no surface fork.

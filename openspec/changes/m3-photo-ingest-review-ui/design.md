@@ -71,7 +71,7 @@ Rejected alternative: a modal on submit-click that says "fill the manual fields"
 
 ### ADR-J12-DRAFT-LOCALSTORAGE — 30-minute TTL, keyed by `(itemId, actorUserId)`
 
-Local draft persistence uses `localStorage` keyed by `opentrattos.photoIngest.draft.v1.<itemId>.<actorUserId>`. The stored shape:
+Local draft persistence uses `localStorage` keyed by `nexandro.photoIngest.draft.v1.<itemId>.<actorUserId>`. The stored shape:
 
 ```ts
 interface PhotoIngestDraftV1 {

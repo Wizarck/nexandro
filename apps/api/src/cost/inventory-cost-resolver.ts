@@ -74,7 +74,7 @@ export class NoCostSourceError extends Error {
  * implementation against this token in `CostModule` so M2 / M3 swaps stay
  * drop-in.
  */
-export const INVENTORY_COST_RESOLVER = Symbol.for('opentrattos.InventoryCostResolver');
+export const INVENTORY_COST_RESOLVER = Symbol.for('nexandro.InventoryCostResolver');
 
 /** Narrows the legacy Date / new options union into the canonical options shape. */
 export function normaliseResolveOptions(

@@ -1,4 +1,4 @@
-import type { AuditLogFilterValues, AuditLogRow } from '@opentrattos/ui-kit';
+import type { AuditLogFilterValues, AuditLogRow } from '@nexandro/ui-kit';
 import { api } from './client';
 
 export interface AuditLogPage {

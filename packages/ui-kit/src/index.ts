@@ -1,4 +1,4 @@
-// Public API surface of @opentrattos/ui-kit.
+// Public API surface of @nexandro/ui-kit.
 // Components live under src/components/<Name>/; this barrel re-exports them.
 
 export { cn } from './lib/cn';

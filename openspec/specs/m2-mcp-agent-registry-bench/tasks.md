@@ -22,7 +22,7 @@
 - [ ] Verification: `crypto.verify('ed25519', envelope, publicKey, signature)` — envelope = `method+'\n'+path+'\n'+ts+'\n'+nonce+'\n'+body`
 - [ ] 5-min timestamp skew window
 - [ ] In-memory nonce LRU (10k entries; reject duplicates within the skew window)
-- [ ] Flag parsing: `OPENTRATTOS_AGENT_SIGNATURE_REQUIRED` (true / false / comma-list of org ids)
+- [ ] Flag parsing: `NEXANDRO_AGENT_SIGNATURE_REQUIRED` (true / false / comma-list of org ids)
 - [ ] Stamp `req.agentContext` from the verified credential (NOT from `X-Agent-Name`); legacy unsigned path keeps the 3a behaviour when flag is off
 - [ ] Module wiring: `SharedModule` applies the middleware via `consumer.apply()` to all `*` routes
 - [ ] 8 unit tests: valid sig accepts, invalid 401, expired 401, replayed nonce 401, missing + flag-off ignores, missing + flag-on rejects, revoked credential 401, body-tampering 401

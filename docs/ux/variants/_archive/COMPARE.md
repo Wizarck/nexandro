@@ -17,7 +17,7 @@
 | **Pivot cost later** | Low (small token set) | Medium (serif + cream baked in) | High (brand baked deep) | **Lowest** (provisional by design) |
 | **Best for first customer (Palafito)** | ✅ Chef-functional, gets out of the way | ⚠️ Risk feels "para guiris" in modest kitchen | ⚠️ Risk: developer-aesthetic for non-tech chefs | ✅ "Just works" — no opinion to defend |
 | **Best for GitHub adoption** | ⚠️ Forgettable | ⚠️ Niche enterprise-feel | ✅ Distinctive identity wins stars | ⚠️ Generic |
-| **Best for TrattOS Enterprise pitch** | ⚠️ Looks like dev tooling | ✅ Luxe positioning natural | ⚠️ Open-source vibe may not pitch | ⚠️ Generic |
+| **Best for Nexandro Enterprise pitch** | ⚠️ Looks like dev tooling | ✅ Luxe positioning natural | ⚠️ Open-source vibe may not pitch | ⚠️ Generic |
 
 ## Sally's read after writing all four
 
@@ -31,7 +31,7 @@
 1. **D** for MVP (lowest risk, highest velocity, identity emerges from real signal)
 2. **A** if you reject D's "deferred" stance and want a locked aesthetic now
 3. **C** if you're in build-an-OSS-brand mode and want GitHub heat
-4. **B** is for the day TrattOS Enterprise pitches start
+4. **B** is for the day Nexandro Enterprise pitches start
 
 But it's your call. The 4 docs are at:
 - [docs/ux/variants/DESIGN-A-conservative.md](DESIGN-A-conservative.md)

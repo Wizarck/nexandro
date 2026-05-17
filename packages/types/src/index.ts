@@ -1,5 +1,5 @@
 // ============================================================
-// openTrattOS — Shared Type Definitions
+// nexandro — Shared Type Definitions
 // These types are the contract between frontend and backend.
 // NEVER use `any`. Every field must be explicitly typed.
 // ============================================================

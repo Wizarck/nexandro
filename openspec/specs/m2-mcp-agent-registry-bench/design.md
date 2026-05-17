@@ -71,9 +71,9 @@
 
 ### ADR-AGENT-SIG-3: Default-OFF flag with staged rollout
 
-**Decision**: `OPENTRATTOS_AGENT_SIGNATURE_REQUIRED=false` by default. Day-1 the slice ships with signing infrastructure but no enforcement. Per-org rollout flips the flag once that org's agents have registered their public keys.
+**Decision**: `NEXANDRO_AGENT_SIGNATURE_REQUIRED=false` by default. Day-1 the slice ships with signing infrastructure but no enforcement. Per-org rollout flips the flag once that org's agents have registered their public keys.
 
-**Per-org flag shape**: `OPENTRATTOS_AGENT_SIGNATURE_REQUIRED=true|false|<comma-list-of-org-ids>`. The third form is the staged-rollout escape hatch — true for listed orgs, false for the rest.
+**Per-org flag shape**: `NEXANDRO_AGENT_SIGNATURE_REQUIRED=true|false|<comma-list-of-org-ids>`. The third form is the staged-rollout escape hatch — true for listed orgs, false for the rest.
 
 **Rationale**: Day-1 default-on would 401 every Hermes request on the VPS until the new credential is registered. That window is a downtime risk. Default-off + staged rollout is the standard cross-cutting auth-tightening pattern.
 
@@ -145,7 +145,7 @@ The 3b helper `cacheableTextForIdempotency()` already produces `{kind, text, fin
 
 ### ADR-BENCH-3: Output is markdown in repo, not a database
 
-**Decision**: Each run writes one markdown file to `docs/bench/<YYYY-MM-DD>-<client>.md`. The file carries metadata (client version, transport, env, openTrattOS git SHA) + a fixed table (capability × p50/p95/error_rate/throughput).
+**Decision**: Each run writes one markdown file to `docs/bench/<YYYY-MM-DD>-<client>.md`. The file carries metadata (client version, transport, env, nexandro git SHA) + a fixed table (capability × p50/p95/error_rate/throughput).
 
 **Rationale**: Repo-versioned bench history = git log shows evolution. No additional schema, no UI, no scheduled jobs. The maintainer can compare runs by `git diff` between two markdown files. When run frequency justifies it, a follow-up slice can lift the data into a `bench_runs` table.
 
@@ -208,13 +208,13 @@ AgentChatModule (existing)
 **Day-N rollout (per-org)**:
 
 1. Owner registers their agents' public keys via `POST /agent-credentials`.
-2. Owner sets `OPENTRATTOS_AGENT_SIGNATURE_REQUIRED` to include their org id.
+2. Owner sets `NEXANDRO_AGENT_SIGNATURE_REQUIRED` to include their org id.
 3. Restart apps/api.
 4. Agents must now send signed requests; unsigned/invalid → 401.
 
 **Rollback**:
 
-1. Remove the org id from `OPENTRATTOS_AGENT_SIGNATURE_REQUIRED`.
+1. Remove the org id from `NEXANDRO_AGENT_SIGNATURE_REQUIRED`.
 2. Restart apps/api.
 3. Unsigned requests fall back to the 3a legacy trusted-network path.
 

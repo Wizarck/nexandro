@@ -5,7 +5,7 @@ import type { Locale } from './locales';
  * canonical machine identifier (matching `packages/ui-kit/AllergenBadge`'s
  * exported `AllergenCode` type); the localised display name is the
  * regulator-defined vocabulary for the four autonomous-community
- * languages openTrattOS targets (FR24 — "verbatim, not paraphrased").
+ * languages nexandro targets (FR24 — "verbatim, not paraphrased").
  *
  * 14 codes × 4 locales = 56 entries. The table is hard-coded (not
  * database-backed) per ADR-J9-ALLERGEN-VOCABULARY-INLINE-TABLE:

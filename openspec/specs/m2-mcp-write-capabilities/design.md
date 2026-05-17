@@ -1,6 +1,6 @@
 ## Context
 
-Wave 1.5 (`m2-mcp-server`, PR #85) shipped MCP server `opentrattos` with reads only. Wave 1.9 (`m2-audit-log`, PR #90) shipped the `AgentAuditMiddleware` that emits `AGENT_ACTION_EXECUTED` events when `X-Via-Agent + X-Agent-Name` headers arrive. This slice (3a of the m2-mcp-extras split) closes the writes gap.
+Wave 1.5 (`m2-mcp-server`, PR #85) shipped MCP server `nexandro` with reads only. Wave 1.9 (`m2-audit-log`, PR #90) shipped the `AgentAuditMiddleware` that emits `AGENT_ACTION_EXECUTED` events when `X-Via-Agent + X-Agent-Name` headers arrive. This slice (3a of the m2-mcp-extras split) closes the writes gap.
 
 The Master picked F1=a + SD6=a (truly exhaustive, all 43 write endpoints across 12 namespaces including IAM and external-catalog), explicitly choosing wide scope over minimum-viable. Per-capability feature flags (F6=a) provide the safety net; HITL approvals are filed for follow-up. The reasoning ("after we'll add HITL where needed") puts the burden on observability — production telemetry will inform which capabilities need approval gating, rather than guessing upfront.
 
@@ -140,8 +140,8 @@ Round-trip cost: one extra `findById` per write. ~5-15ms latency, acceptable for
 # capabilities unconditionally; toggling here does not require an MCP
 # server redeploy.
 
-OPENTRATTOS_AGENT_RECIPES_CREATE_ENABLED=false
-OPENTRATTOS_AGENT_RECIPES_UPDATE_ENABLED=false
+NEXANDRO_AGENT_RECIPES_CREATE_ENABLED=false
+NEXANDRO_AGENT_RECIPES_UPDATE_ENABLED=false
 # ... (~41 more)
 ```
 
@@ -164,7 +164,7 @@ Rationale:
 ### ADR-MCP-W-REGISTRY — capability-registry pattern (implementation)
 
 ```ts
-// packages/mcp-server-opentrattos/src/capabilities/write/types.ts
+// packages/mcp-server-nexandro/src/capabilities/write/types.ts
 export interface WriteCapability<TInput = unknown, TResponse = unknown> {
   name: string;                                    // e.g. 'recipes.create'
   description: string;
@@ -175,7 +175,7 @@ export interface WriteCapability<TInput = unknown, TResponse = unknown> {
   restBodyExtractor?: (input: TInput) => unknown;  // remove path params from body
 }
 
-// packages/mcp-server-opentrattos/src/capabilities/write/recipes.ts
+// packages/mcp-server-nexandro/src/capabilities/write/recipes.ts
 export const RECIPES_WRITE_CAPABILITIES: WriteCapability[] = [
   {
     name: 'recipes.create',
@@ -191,14 +191,14 @@ export const RECIPES_WRITE_CAPABILITIES: WriteCapability[] = [
   // ... 6 more recipe writes
 ];
 
-// packages/mcp-server-opentrattos/src/capabilities/write/index.ts
+// packages/mcp-server-nexandro/src/capabilities/write/index.ts
 export const WRITE_CAPABILITIES: WriteCapability[] = [
   ...RECIPES_WRITE_CAPABILITIES,
   ...MENU_ITEMS_WRITE_CAPABILITIES,
   // ... 10 more namespace exports
 ];
 
-// packages/mcp-server-opentrattos/src/server.ts
+// packages/mcp-server-nexandro/src/server.ts
 for (const cap of WRITE_CAPABILITIES) {
   server.registerTool(cap.name, {
     description: cap.description,
@@ -239,12 +239,12 @@ Rationale:
 5. New `apps/api/src/shared/interceptors/before-after-audit.interceptor.ts` + spec + per-namespace resolver registry. Wire it globally as `APP_INTERCEPTOR`.
 6. New `apps/api/src/shared/guards/agent-capability.guard.ts` + spec. Reads per-capability flag from config; rejects 503 when disabled and `viaAgent === true`. Wired globally.
 7. `apps/api/.env.example` — ~43 new flag entries grouped by namespace.
-8. `packages/mcp-server-opentrattos/src/capabilities/write/` — types.ts + 12 namespace files + index.ts barrel.
-9. `packages/mcp-server-opentrattos/src/server.ts` — register the registry.
+8. `packages/mcp-server-nexandro/src/capabilities/write/` — types.ts + 12 namespace files + index.ts barrel.
+9. `packages/mcp-server-nexandro/src/server.ts` — register the registry.
 10. INT spec covering 3 representative writes round-tripping with Idempotency + before/after.
 11. Operations runbook: cron setup, env var checklist, signing-deferred warning.
 
-**Rollback**: revert the migration; revert controllers (each is a small unit). Production-side rollback: flip every `OPENTRATTOS_AGENT_*_ENABLED=false` and restart apps/api (no MCP redeploy needed — caps return 503).
+**Rollback**: revert the migration; revert controllers (each is a small unit). Production-side rollback: flip every `NEXANDRO_AGENT_*_ENABLED=false` and restart apps/api (no MCP redeploy needed — caps return 503).
 
 ## Open Questions
 

@@ -3,8 +3,8 @@ import { AuditLog } from '../../audit-log/domain/audit-log.entity';
 import { RECALL_INCIDENT_AGGREGATE_TYPE } from '../domain/constants';
 import { DossierRenderError, DossierService } from './dossier.service';
 
-jest.mock('@opentrattos/label-renderer', () => {
-  const actual = jest.requireActual('@opentrattos/label-renderer');
+jest.mock('@nexandro/label-renderer', () => {
+  const actual = jest.requireActual('@nexandro/label-renderer');
   return {
     ...actual,
     renderRecallDossierToPdf: jest.fn(async () => Buffer.from('mock-pdf-bytes')),
@@ -102,7 +102,7 @@ describe('DossierService', () => {
 
   it('surfaces DossierRenderError when the PDF renderer throws', async () => {
     const { renderRecallDossierToPdf } = jest.requireMock(
-      '@opentrattos/label-renderer',
+      '@nexandro/label-renderer',
     ) as { renderRecallDossierToPdf: jest.Mock };
     renderRecallDossierToPdf.mockImplementationOnce(async () => {
       throw new Error('boom');

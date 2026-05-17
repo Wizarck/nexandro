@@ -13,7 +13,7 @@ export const DEFAULT_VISION_LLM_PROVIDER: KnownVisionLlmProviderId = 'gpt-oss-vi
 
 /**
  * Factory selecting the active vision-LLM adapter via the
- * `OPENTRATTOS_VISION_LLM_PROVIDER` env var.
+ * `NEXANDRO_VISION_LLM_PROVIDER` env var.
  *
  * - Default: `gpt-oss-vision-rag-proxy` (AGPL community build).
  * - Enterprise: `claude-vision` or `gpt-four-v`.
@@ -42,7 +42,7 @@ export class VisionLlmFactory {
   }
 
   private resolve(): VisionLlmProvider {
-    const raw = (process.env.OPENTRATTOS_VISION_LLM_PROVIDER ?? '').trim();
+    const raw = (process.env.NEXANDRO_VISION_LLM_PROVIDER ?? '').trim();
     const selected = raw.length === 0 ? DEFAULT_VISION_LLM_PROVIDER : raw;
 
     if (!isKnownProviderId(selected)) {

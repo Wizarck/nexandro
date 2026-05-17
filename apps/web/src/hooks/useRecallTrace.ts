@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import type { ReverseAnchorKind, TraceNode } from '@opentrattos/ui-kit';
+import type { ReverseAnchorKind, TraceNode } from '@nexandro/ui-kit';
 import { ApiError } from '../api/client';
 import { getForwardTrace, getReverseTrace } from '../api/recallTrace';
 

@@ -11,15 +11,15 @@ This slice ships **infrastructure only** — no rollup tables, no dashboard, no 
 - **`apps/api/src/ai-observability/`** new BC scaffold:
   - `ai-observability.module.ts` (NestJS module; exports `OtelService`, `SpanEnricherInterceptor`, `VisionLlmProviderRegistry`)
   - `otel-tracer.service.ts` (`OtelService` — thin wrapper over `@opentelemetry/api` `Tracer` + helpers for `gen_ai.*` semantic-conventions span creation)
-  - `span-enricher.interceptor.ts` (NestJS interceptor that adds `opentrattos.tag` JSONB attribute to every emitted span — caller-supplied label, e.g. `"recall-investigation"`, `"photo-ingest-batch"`)
+  - `span-enricher.interceptor.ts` (NestJS interceptor that adds `nexandro.tag` JSONB attribute to every emitted span — caller-supplied label, e.g. `"recall-investigation"`, `"photo-ingest-batch"`)
   - `pricing.ts` (model→cost seeder consumed by slice #19's rollup; introduced empty here as the typed registry shape)
-- **`apps/api/src/main.ts` modified** — OTel SDK init runs **pre-bootstrap** (`NodeSDK.start()` before any NestJS imports per ADR-030). Reads env vars: `OPENTRATTOS_OTEL_EXPORTER_ENDPOINT` (default OTLP/HTTP `http://localhost:4318/v1/traces`), `OPENTRATTOS_OTEL_EXPORTER_HEADERS` (comma-separated `key=value` pairs for tenant auth), `OPENTRATTOS_OTEL_SERVICE_NAME` (default `opentrattos-api`).
+- **`apps/api/src/main.ts` modified** — OTel SDK init runs **pre-bootstrap** (`NodeSDK.start()` before any NestJS imports per ADR-030). Reads env vars: `NEXANDRO_OTEL_EXPORTER_ENDPOINT` (default OTLP/HTTP `http://localhost:4318/v1/traces`), `NEXANDRO_OTEL_EXPORTER_HEADERS` (comma-separated `key=value` pairs for tenant auth), `NEXANDRO_OTEL_SERVICE_NAME` (default `nexandro-api`).
 - **`apps/api/src/shared/vision-llm/`** new vision provider DI surface per ADR-038:
   - `vision-llm-provider.interface.ts` — `VisionLlmProvider` DI token + interface
   - `gpt-oss-vision-rag-proxy.provider.ts` (default; extends `tools/rag-proxy/` from Wave 1.8)
   - `claude-vision.provider.ts` (Anthropic SDK adapter; stubs only — not bundled until slice #17a wires real calls)
   - `gpt-four-v.provider.ts` (OpenAI SDK adapter; stubs only — same)
-  - `vision-llm.factory.ts` (factory selecting provider via `OPENTRATTOS_VISION_LLM_PROVIDER` env, defaulting to `gpt-oss-vision-rag-proxy`)
+  - `vision-llm.factory.ts` (factory selecting provider via `NEXANDRO_VISION_LLM_PROVIDER` env, defaulting to `gpt-oss-vision-rag-proxy`)
   - Iron-rule fallback to `null` on outage (Wave 1.8 pattern — outage = manual entry, never partial extraction)
 - **`packages/contracts/src/m3/ai-obs.ts`** new module:
   - `OtelSpanAttributes` Zod schema for the `gen_ai.*` attribute set this project pins (model, prompt, completion, token counts, tier, capability)
@@ -52,7 +52,7 @@ This slice ships **infrastructure only** — no rollup tables, no dashboard, no 
   - Vision-LLM provider factory caches its selection at module-init time; no per-request branching cost.
 - **Storage**: none in this slice. Telemetry exits via OTLP to whichever backend the org configures (Langfuse / Phoenix / Datadog / Honeycomb — backend-agnostic per ADR-030 design intent).
 - **Audit**: every AI call eventually produces an `audit_log` row via the existing M2 `AuditLogSubscriber` (no change here). Span emission is **observability**, not audit — distinct concerns per ADR-030.
-- **Rollback**: `OPENTRATTOS_OTEL_EXPORTER_ENDPOINT` unset disables exporter (spans still emit in-process but discarded). Vision-LLM factory always defaults to `gpt-oss-vision-rag-proxy` if env unset. Removing the BC requires reverting the OTel SDK pre-bootstrap line in `main.ts` and the `AiObservabilityModule` import — no schema, no data to migrate.
+- **Rollback**: `NEXANDRO_OTEL_EXPORTER_ENDPOINT` unset disables exporter (spans still emit in-process but discarded). Vision-LLM factory always defaults to `gpt-oss-vision-rag-proxy` if env unset. Removing the BC requires reverting the OTel SDK pre-bootstrap line in `main.ts` and the `AiObservabilityModule` import — no schema, no data to migrate.
 - **Out of scope** (claimed by other slices):
   - `ai_pricing` table + seeder execution → `m3-ai-obs-budget-tier-emitter` (slice #19)
   - `ai_usage_rollup` table + hourly cron → slice #19

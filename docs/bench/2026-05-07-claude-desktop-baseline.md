@@ -24,7 +24,7 @@ fixed read-only capability matrix and measures round-trip latency.
 - **Started**: 2026-05-07T00:00:00.000Z
 - **Ended**: 2026-05-07T00:01:00.000Z
 - **Duration**: 60.0s
-- **openTrattOS git SHA**: `pending`
+- **nexandro git SHA**: `pending`
 - **Environment**: synthetic (placeholder)
 - **Capabilities**: recipes.read, recipes.list, ingredients.search, menu-items.read
 

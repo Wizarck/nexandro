@@ -131,7 +131,7 @@ Tablet is the **canonical design target**. Mobile and desktop are adaptations. N
 When an LLM needs to generate a screen consistent with this DESIGN.md, the prompt should include:
 
 ```
-You are designing a screen for openTrattOS, a kitchen-operations SaaS.
+You are designing a screen for nexandro, a kitchen-operations SaaS.
 Visual language: Variant A "Conservative kitchen-functional" — Notion/Linear feel,
 high information density, slate palette, Inter sans + JetBrains Mono numerics,
 motion <150ms only. Allergen and diet badges always icon + text (never color-only).

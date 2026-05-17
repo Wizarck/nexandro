@@ -12,7 +12,7 @@ Wave 1.13 / 3a of the m2-mcp-extras sub-saga. Operator-facing reference for the
 ## 1. Trusted-network warning (read this first)
 
 This slice runs in **trusted-internal-network mode only**. The MCP server
-(`packages/mcp-server-opentrattos`) does NOT verify a signed agent identity —
+(`packages/mcp-server-nexandro`) does NOT verify a signed agent identity —
 any caller that can reach `apps/api` over HTTP and supply
 `X-Via-Agent: true` + `X-Agent-Name` headers will be treated as an agent.
 
@@ -22,7 +22,7 @@ any caller that can reach `apps/api` over HTTP and supply
   namespace as `apps/api`. There must be NO ingress/load-balancer/reverse-proxy
   path that exposes either component to the public internet, a partner VPC, or
   a customer network.
-- All 43 `OPENTRATTOS_AGENT_*_ENABLED` flags MUST default to `false` in the
+- All 43 `NEXANDRO_AGENT_*_ENABLED` flags MUST default to `false` in the
   production `.env`. Operators flip a single flag only after explicit
   authorisation + a recorded change-management ticket.
 - Audit-log forensic rows (`event_type='AGENT_ACTION_EXECUTED'`,
@@ -46,7 +46,7 @@ HTTP/1.1 503 Service Unavailable
 {
   "code": "AGENT_CAPABILITY_DISABLED",
   "capability": "<capability-name>",
-  "message": "Agent capability '<capability-name>' is disabled. Set OPENTRATTOS_AGENT_<...>_ENABLED=true to enable."
+  "message": "Agent capability '<capability-name>' is disabled. Set NEXANDRO_AGENT_<...>_ENABLED=true to enable."
 }
 ```
 
@@ -56,8 +56,8 @@ flags — flipping a flag does not turn off the corresponding UI affordance.
 **To enable a capability:**
 
 1. Edit `apps/api/.env` (NOT `.env.example`).
-2. Set the corresponding `OPENTRATTOS_AGENT_<NAMESPACE>_<OP>_ENABLED=true`.
-3. Restart `apps/api` (`systemctl restart opentrattos-api` or your equivalent).
+2. Set the corresponding `NEXANDRO_AGENT_<NAMESPACE>_<OP>_ENABLED=true`.
+3. Restart `apps/api` (`systemctl restart nexandro-api` or your equivalent).
    The MCP server does NOT need a restart.
 4. Tail the apps/api boot log; the boot-time line lists which agent
    capabilities are enabled (helps verify config drift).
@@ -70,109 +70,109 @@ flags — flipping a flag does not turn off the corresponding UI affordance.
 
 | Capability                          | Env var                                                       |
 |-------------------------------------|---------------------------------------------------------------|
-| `recipes.create`                    | `OPENTRATTOS_AGENT_RECIPES_CREATE_ENABLED`                    |
-| `recipes.update`                    | `OPENTRATTOS_AGENT_RECIPES_UPDATE_ENABLED`                    |
-| `recipes.setLineSource`             | `OPENTRATTOS_AGENT_RECIPES_SET_LINE_SOURCE_ENABLED`           |
-| `recipes.delete`                    | `OPENTRATTOS_AGENT_RECIPES_DELETE_ENABLED`                    |
-| `recipes.setAllergensOverride`      | `OPENTRATTOS_AGENT_RECIPES_SET_ALLERGENS_OVERRIDE_ENABLED`    |
-| `recipes.setDietFlagsOverride`      | `OPENTRATTOS_AGENT_RECIPES_SET_DIET_FLAGS_OVERRIDE_ENABLED`   |
-| `recipes.setCrossContamination`     | `OPENTRATTOS_AGENT_RECIPES_SET_CROSS_CONTAMINATION_ENABLED`   |
+| `recipes.create`                    | `NEXANDRO_AGENT_RECIPES_CREATE_ENABLED`                    |
+| `recipes.update`                    | `NEXANDRO_AGENT_RECIPES_UPDATE_ENABLED`                    |
+| `recipes.setLineSource`             | `NEXANDRO_AGENT_RECIPES_SET_LINE_SOURCE_ENABLED`           |
+| `recipes.delete`                    | `NEXANDRO_AGENT_RECIPES_DELETE_ENABLED`                    |
+| `recipes.setAllergensOverride`      | `NEXANDRO_AGENT_RECIPES_SET_ALLERGENS_OVERRIDE_ENABLED`    |
+| `recipes.setDietFlagsOverride`      | `NEXANDRO_AGENT_RECIPES_SET_DIET_FLAGS_OVERRIDE_ENABLED`   |
+| `recipes.setCrossContamination`     | `NEXANDRO_AGENT_RECIPES_SET_CROSS_CONTAMINATION_ENABLED`   |
 
 ### `menu-items.*` (3)
 
 | Capability             | Env var                                          |
 |------------------------|--------------------------------------------------|
-| `menu-items.create`    | `OPENTRATTOS_AGENT_MENU_ITEMS_CREATE_ENABLED`    |
-| `menu-items.update`    | `OPENTRATTOS_AGENT_MENU_ITEMS_UPDATE_ENABLED`    |
-| `menu-items.delete`    | `OPENTRATTOS_AGENT_MENU_ITEMS_DELETE_ENABLED`    |
+| `menu-items.create`    | `NEXANDRO_AGENT_MENU_ITEMS_CREATE_ENABLED`    |
+| `menu-items.update`    | `NEXANDRO_AGENT_MENU_ITEMS_UPDATE_ENABLED`    |
+| `menu-items.delete`    | `NEXANDRO_AGENT_MENU_ITEMS_DELETE_ENABLED`    |
 
 ### `ingredients.*` (6)
 
 | Capability                  | Env var                                              |
 |-----------------------------|------------------------------------------------------|
-| `ingredients.create`        | `OPENTRATTOS_AGENT_INGREDIENTS_CREATE_ENABLED`       |
-| `ingredients.update`        | `OPENTRATTOS_AGENT_INGREDIENTS_UPDATE_ENABLED`       |
-| `ingredients.delete`        | `OPENTRATTOS_AGENT_INGREDIENTS_DELETE_ENABLED`       |
-| `ingredients.reactivate`    | `OPENTRATTOS_AGENT_INGREDIENTS_REACTIVATE_ENABLED`   |
-| `ingredients.applyOverride` | `OPENTRATTOS_AGENT_INGREDIENTS_APPLY_OVERRIDE_ENABLED` |
-| `ingredients.import`        | `OPENTRATTOS_AGENT_INGREDIENTS_IMPORT_ENABLED` (not yet routable via MCP transport — flag exists for future) |
+| `ingredients.create`        | `NEXANDRO_AGENT_INGREDIENTS_CREATE_ENABLED`       |
+| `ingredients.update`        | `NEXANDRO_AGENT_INGREDIENTS_UPDATE_ENABLED`       |
+| `ingredients.delete`        | `NEXANDRO_AGENT_INGREDIENTS_DELETE_ENABLED`       |
+| `ingredients.reactivate`    | `NEXANDRO_AGENT_INGREDIENTS_REACTIVATE_ENABLED`   |
+| `ingredients.applyOverride` | `NEXANDRO_AGENT_INGREDIENTS_APPLY_OVERRIDE_ENABLED` |
+| `ingredients.import`        | `NEXANDRO_AGENT_INGREDIENTS_IMPORT_ENABLED` (not yet routable via MCP transport — flag exists for future) |
 
 ### `categories.*` (3)
 
 | Capability             | Env var                                       |
 |------------------------|-----------------------------------------------|
-| `categories.create`    | `OPENTRATTOS_AGENT_CATEGORIES_CREATE_ENABLED` |
-| `categories.update`    | `OPENTRATTOS_AGENT_CATEGORIES_UPDATE_ENABLED` |
-| `categories.delete`    | `OPENTRATTOS_AGENT_CATEGORIES_DELETE_ENABLED` |
+| `categories.create`    | `NEXANDRO_AGENT_CATEGORIES_CREATE_ENABLED` |
+| `categories.update`    | `NEXANDRO_AGENT_CATEGORIES_UPDATE_ENABLED` |
+| `categories.delete`    | `NEXANDRO_AGENT_CATEGORIES_DELETE_ENABLED` |
 
 ### `suppliers.*` (3)
 
 | Capability           | Env var                                      |
 |----------------------|----------------------------------------------|
-| `suppliers.create`   | `OPENTRATTOS_AGENT_SUPPLIERS_CREATE_ENABLED` |
-| `suppliers.update`   | `OPENTRATTOS_AGENT_SUPPLIERS_UPDATE_ENABLED` |
-| `suppliers.delete`   | `OPENTRATTOS_AGENT_SUPPLIERS_DELETE_ENABLED` |
+| `suppliers.create`   | `NEXANDRO_AGENT_SUPPLIERS_CREATE_ENABLED` |
+| `suppliers.update`   | `NEXANDRO_AGENT_SUPPLIERS_UPDATE_ENABLED` |
+| `suppliers.delete`   | `NEXANDRO_AGENT_SUPPLIERS_DELETE_ENABLED` |
 
 ### `supplier-items.*` (4)
 
 | Capability                            | Env var                                                       |
 |---------------------------------------|---------------------------------------------------------------|
-| `supplier-items.create`               | `OPENTRATTOS_AGENT_SUPPLIER_ITEMS_CREATE_ENABLED`             |
-| `supplier-items.update`               | `OPENTRATTOS_AGENT_SUPPLIER_ITEMS_UPDATE_ENABLED`             |
-| `supplier-items.promotePreferred`     | `OPENTRATTOS_AGENT_SUPPLIER_ITEMS_PROMOTE_PREFERRED_ENABLED`  |
-| `supplier-items.delete`               | `OPENTRATTOS_AGENT_SUPPLIER_ITEMS_DELETE_ENABLED`             |
+| `supplier-items.create`               | `NEXANDRO_AGENT_SUPPLIER_ITEMS_CREATE_ENABLED`             |
+| `supplier-items.update`               | `NEXANDRO_AGENT_SUPPLIER_ITEMS_UPDATE_ENABLED`             |
+| `supplier-items.promotePreferred`     | `NEXANDRO_AGENT_SUPPLIER_ITEMS_PROMOTE_PREFERRED_ENABLED`  |
+| `supplier-items.delete`               | `NEXANDRO_AGENT_SUPPLIER_ITEMS_DELETE_ENABLED`             |
 
 ### `labels.*` (2)
 
 | Capability                  | Env var                                                  |
 |-----------------------------|----------------------------------------------------------|
-| `labels.print`              | `OPENTRATTOS_AGENT_LABELS_PRINT_ENABLED`                 |
-| `labels.setOrgLabelFields`  | `OPENTRATTOS_AGENT_LABELS_SET_ORG_LABEL_FIELDS_ENABLED`  |
+| `labels.print`              | `NEXANDRO_AGENT_LABELS_PRINT_ENABLED`                 |
+| `labels.setOrgLabelFields`  | `NEXANDRO_AGENT_LABELS_SET_ORG_LABEL_FIELDS_ENABLED`  |
 
 ### `ai-suggestions.*` (4)
 
 | Capability                | Env var                                              |
 |---------------------------|------------------------------------------------------|
-| `ai-suggestions.yield`    | `OPENTRATTOS_AGENT_AI_SUGGESTIONS_YIELD_ENABLED`     |
-| `ai-suggestions.waste`    | `OPENTRATTOS_AGENT_AI_SUGGESTIONS_WASTE_ENABLED`     |
-| `ai-suggestions.accept`   | `OPENTRATTOS_AGENT_AI_SUGGESTIONS_ACCEPT_ENABLED`    |
-| `ai-suggestions.reject`   | `OPENTRATTOS_AGENT_AI_SUGGESTIONS_REJECT_ENABLED`    |
+| `ai-suggestions.yield`    | `NEXANDRO_AGENT_AI_SUGGESTIONS_YIELD_ENABLED`     |
+| `ai-suggestions.waste`    | `NEXANDRO_AGENT_AI_SUGGESTIONS_WASTE_ENABLED`     |
+| `ai-suggestions.accept`   | `NEXANDRO_AGENT_AI_SUGGESTIONS_ACCEPT_ENABLED`    |
+| `ai-suggestions.reject`   | `NEXANDRO_AGENT_AI_SUGGESTIONS_REJECT_ENABLED`    |
 
 ### `external-catalog.*` (1)
 
 | Capability                  | Env var                                              |
 |-----------------------------|------------------------------------------------------|
-| `external-catalog.sync`     | `OPENTRATTOS_AGENT_EXTERNAL_CATALOG_SYNC_ENABLED`    |
+| `external-catalog.sync`     | `NEXANDRO_AGENT_EXTERNAL_CATALOG_SYNC_ENABLED`    |
 
 ### `iam.users.*` (5)
 
 | Capability                       | Env var                                                  |
 |----------------------------------|----------------------------------------------------------|
-| `iam.users.create`               | `OPENTRATTOS_AGENT_IAM_USERS_CREATE_ENABLED`             |
-| `iam.users.update`               | `OPENTRATTOS_AGENT_IAM_USERS_UPDATE_ENABLED`             |
-| `iam.users.changePassword`       | `OPENTRATTOS_AGENT_IAM_USERS_CHANGE_PASSWORD_ENABLED`    |
-| `iam.users.addLocation`          | `OPENTRATTOS_AGENT_IAM_USERS_ADD_LOCATION_ENABLED`       |
-| `iam.users.removeLocation`       | `OPENTRATTOS_AGENT_IAM_USERS_REMOVE_LOCATION_ENABLED`    |
+| `iam.users.create`               | `NEXANDRO_AGENT_IAM_USERS_CREATE_ENABLED`             |
+| `iam.users.update`               | `NEXANDRO_AGENT_IAM_USERS_UPDATE_ENABLED`             |
+| `iam.users.changePassword`       | `NEXANDRO_AGENT_IAM_USERS_CHANGE_PASSWORD_ENABLED`    |
+| `iam.users.addLocation`          | `NEXANDRO_AGENT_IAM_USERS_ADD_LOCATION_ENABLED`       |
+| `iam.users.removeLocation`       | `NEXANDRO_AGENT_IAM_USERS_REMOVE_LOCATION_ENABLED`    |
 
 ### `iam.locations.*` (3)
 
 | Capability                  | Env var                                              |
 |-----------------------------|------------------------------------------------------|
-| `iam.locations.create`      | `OPENTRATTOS_AGENT_IAM_LOCATIONS_CREATE_ENABLED`     |
-| `iam.locations.update`      | `OPENTRATTOS_AGENT_IAM_LOCATIONS_UPDATE_ENABLED`     |
-| `iam.locations.delete`      | `OPENTRATTOS_AGENT_IAM_LOCATIONS_DELETE_ENABLED`     |
+| `iam.locations.create`      | `NEXANDRO_AGENT_IAM_LOCATIONS_CREATE_ENABLED`     |
+| `iam.locations.update`      | `NEXANDRO_AGENT_IAM_LOCATIONS_UPDATE_ENABLED`     |
+| `iam.locations.delete`      | `NEXANDRO_AGENT_IAM_LOCATIONS_DELETE_ENABLED`     |
 
 ### `iam.organizations.*` (2)
 
 | Capability                       | Env var                                              |
 |----------------------------------|------------------------------------------------------|
-| `iam.organizations.create`       | `OPENTRATTOS_AGENT_IAM_ORGANIZATIONS_CREATE_ENABLED` |
-| `iam.organizations.update`       | `OPENTRATTOS_AGENT_IAM_ORGANIZATIONS_UPDATE_ENABLED` |
+| `iam.organizations.create`       | `NEXANDRO_AGENT_IAM_ORGANIZATIONS_CREATE_ENABLED` |
+| `iam.organizations.update`       | `NEXANDRO_AGENT_IAM_ORGANIZATIONS_UPDATE_ENABLED` |
 
 **Total: 43 flags.** Validate parity with the MCP registry by running:
 
 ```sh
-node -e "import('./packages/mcp-server-opentrattos/dist/capabilities/write/index.js').then(m => console.log(m.WRITE_CAPABILITIES.length))"
+node -e "import('./packages/mcp-server-nexandro/dist/capabilities/write/index.js').then(m => console.log(m.WRITE_CAPABILITIES.length))"
 # → 43
 ```
 
@@ -186,7 +186,7 @@ TTL = 24 hours (Stripe convention).
 **Recommended cleanup cron (Postgres `pg_cron`, hourly):**
 
 ```sql
--- Run as the database owner (e.g. opentrattos).
+-- Run as the database owner (e.g. nexandro).
 SELECT cron.schedule(
   'agent-idempotency-keys-cleanup',
   '0 * * * *',                    -- top of every hour
@@ -298,7 +298,7 @@ warn-level line `agent.capability.rejected: capability=<...> envVar=<...>`).
 
 1. **Identify the capability.** The alert payload (or log line) names the
    capability (e.g. `recipes.create`) and the env var
-   (`OPENTRATTOS_AGENT_RECIPES_CREATE_ENABLED`). If you only have the 503
+   (`NEXANDRO_AGENT_RECIPES_CREATE_ENABLED`). If you only have the 503
    rate, query the apps/api access log for recent 503s with the
    `X-Agent-Capability` header to map back.
 
@@ -312,9 +312,9 @@ warn-level line `agent.capability.rejected: capability=<...> envVar=<...>`).
 3. **Flip the flag.**
    ```sh
    # apps/api host
-   sudo $EDITOR /etc/opentrattos/api.env
-   # set OPENTRATTOS_AGENT_<...>_ENABLED=true
-   sudo systemctl restart opentrattos-api
+   sudo $EDITOR /etc/nexandro/api.env
+   # set NEXANDRO_AGENT_<...>_ENABLED=true
+   sudo systemctl restart nexandro-api
    ```
    Boot log will show the new enabled-capabilities list. The MCP server does
    NOT need a restart.
@@ -374,6 +374,6 @@ reviewers know the boundary of what this slice ships.
 
 - `docs/operations/m2-mcp-agent-registry-bench-runbook.md` — per-agent
   Ed25519 signing replaces the `X-Agent-Name` trust posture. The
-  signing flag (`OPENTRATTOS_AGENT_SIGNATURE_REQUIRED`) sits ahead of
+  signing flag (`NEXANDRO_AGENT_SIGNATURE_REQUIRED`) sits ahead of
   the per-capability flags documented above; once enabled per-org,
   unsigned agent requests 401 before reaching the capability gate.

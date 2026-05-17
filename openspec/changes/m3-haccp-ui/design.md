@@ -55,7 +55,7 @@ Rejected alternative: a modal that surfaces "you must enter a corrective action"
 
 ### ADR-J10-DRAFT-PERSISTENCE-LOCALSTORAGE — 10-minute TTL, keyed by `(orgId, ccpId, actorUserId)`
 
-Local draft persistence uses `localStorage` keyed by `opentrattos.haccp.draft.v1.<orgId>.<ccpId>.<actorUserId>`. The stored shape:
+Local draft persistence uses `localStorage` keyed by `nexandro.haccp.draft.v1.<orgId>.<ccpId>.<actorUserId>`. The stored shape:
 
 ```ts
 interface DraftV1 {

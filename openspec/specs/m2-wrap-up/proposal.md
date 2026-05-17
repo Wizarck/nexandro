@@ -2,8 +2,8 @@
 
 M2 development is complete (16 slices merged through Wave 1.8). Two production feature flags have been gating M2's externally-visible surface:
 
-- `OPENTRATTOS_LABELS_PROD_ENABLED` (Wave 1.6) — gated on pre-launch external legal review per ADR-019 §Risk.
-- `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED` (Wave 1.7) — gated on RAG corpus ingestion + rag-proxy deploy on the VPS, both delivered by `m2-ai-yield-corpus` (Wave 1.8).
+- `NEXANDRO_LABELS_PROD_ENABLED` (Wave 1.6) — gated on pre-launch external legal review per ADR-019 §Risk.
+- `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED` (Wave 1.7) — gated on RAG corpus ingestion + rag-proxy deploy on the VPS, both delivered by `m2-ai-yield-corpus` (Wave 1.8).
 
 The Owner has declared both gates cleared:
 - Legal review filed and approved.
@@ -13,7 +13,7 @@ This slice formally closes M2 in production. It is doc-and-config only — no bu
 
 ## What Changes
 
-- `apps/api/.env.example`: `OPENTRATTOS_LABELS_PROD_ENABLED=true` and `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED=true` as the documented prod default. The runtime code default in `apps/api/src/{labels,ai-suggestions}/*.module.ts` stays `false` (safety default for unconfigured deployments — operators must explicitly opt in via `.env`).
+- `apps/api/.env.example`: `NEXANDRO_LABELS_PROD_ENABLED=true` and `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED=true` as the documented prod default. The runtime code default in `apps/api/src/{labels,ai-suggestions}/*.module.ts` stays `false` (safety default for unconfigured deployments — operators must explicitly opt in via `.env`).
 - `docs/architecture-decisions.md`: ADR-018 and ADR-019 each get a "Gate clearance" note dated 2026-05-06 referencing this slice.
 - `docs/operations/m2-prod-runbook.md` (NEW): step-by-step deploy + rollback for operators.
 - `tools/rag-proxy/.env.example`: documents the production env shape (LIGHTRAG_BASE_URL pointing at internal LightRAG + RAG_PROXY_API_KEY + BRAVE_API_KEY for the fallback path).

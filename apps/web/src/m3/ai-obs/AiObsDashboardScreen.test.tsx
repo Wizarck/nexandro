@@ -57,7 +57,7 @@ const emptyOverview = {
   anomalies: [],
   savingsOpportunities: [],
   blastRadius: [],
-  otlpExporter: { endpoint: 'langfuse.opentrattos.local', status: 'active' as const },
+  otlpExporter: { endpoint: 'langfuse.nexandro.local', status: 'active' as const },
 };
 
 const populatedOverview = {

@@ -5,7 +5,7 @@ import {
   type WidgetId,
 } from '../api/aiObs.types';
 
-const LS_KEY = 'opentrattos.aiObsDashboard.widgetConfig.v1';
+const LS_KEY = 'nexandro.aiObsDashboard.widgetConfig.v1';
 
 const DEFAULT_CONFIG: WidgetConfigV1 = {
   order: [...ALL_WIDGET_IDS],

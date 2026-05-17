@@ -275,7 +275,7 @@ export function AgentChatWidget(props: AgentChatWidgetProps): JSX.Element | null
         id={labelId}
         className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3"
       >
-        <span className="font-semibold">openTrattOS</span>
+        <span className="font-semibold">nexandro</span>
         <button
           type="button"
           aria-label="Close agent chat"
@@ -299,7 +299,7 @@ export function AgentChatWidget(props: AgentChatWidgetProps): JSX.Element | null
       >
         {bubbles.length === 0 ? (
           <p className="text-sm text-[var(--mute)]">
-            Hola — I&apos;m the openTrattOS assistant. Ask me anything about
+            Hola — I&apos;m the nexandro assistant. Ask me anything about
             recipes, suppliers, menus, or the Owner dashboard.
           </p>
         ) : (

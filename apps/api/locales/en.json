@@ -59,8 +59,8 @@
     "ALLERGEN_CROSS_CONTAMINATION_TAGS_REQUIRED": "Cross-contamination requires both a free-text note and a non-empty structured allergens array"
   },
   "ui": {
-    "swagger_title": "openTrattOS API",
-    "swagger_description": "openTrattOS Module 1 — Ingredients Foundation. Multi-tenant, multi-location, RBAC-gated.",
+    "swagger_title": "nexandro API",
+    "swagger_description": "nexandro Module 1 — Ingredients Foundation. Multi-tenant, multi-location, RBAC-gated.",
     "tag_iam": "Identity & Access Management",
     "tag_categories": "Categories",
     "tag_ingredients": "Ingredients",

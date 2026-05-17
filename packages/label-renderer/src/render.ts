@@ -12,7 +12,7 @@ import type { LabelData } from './types';
  * configuration plumbing.
  *
  * Pre-launch external legal review per ADR-019 §Risk gates production
- * exposure of this output via `OPENTRATTOS_LABELS_PROD_ENABLED`.
+ * exposure of this output via `NEXANDRO_LABELS_PROD_ENABLED`.
  */
 export async function renderLabelToPdf(data: LabelData): Promise<Buffer> {
   // Dynamic imports — evaluated only when this function is actually called.

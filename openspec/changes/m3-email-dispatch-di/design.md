@@ -18,7 +18,7 @@ There is no email infrastructure in M2. Wave 1.x AI-suggestion notifications sur
 
 - Single `EmailDispatchService` DI token, provider-agnostic, consumable from any NestJS service via constructor injection.
 - 3 adapters: SMTP (AGPL community default), SendGrid (Enterprise bundled), Postmark (alternative Enterprise; bundled but unimported until env selects it — avoids hard dependency on the `postmark` SDK in the AGPL build).
-- Factory selects active adapter at module init via `OPENTRATTOS_EMAIL_PROVIDER` env. No per-request branching.
+- Factory selects active adapter at module init via `NEXANDRO_EMAIL_PROVIDER` env. No per-request branching.
 - 3-retry exponential backoff (1s, 4s, 16s delays) for 5xx HTTP responses + network timeouts. 4xx responses (auth failure, recipient rejected) fail-fast without retry.
 - Final failure surfaces to Owner via M2 `notifications` BC + dashboard alert banner (visual "your last email to X failed; check inbox/spam or update SMTP credentials").
 - Zod schemas for `EmailDispatchInput` + `EmailDispatchResult` exported from contracts package for consumer type-safety.
@@ -37,7 +37,7 @@ There is no email infrastructure in M2. Wave 1.x AI-suggestion notifications sur
 
 ### ADR-EMAIL-PROVIDER-FACTORY — three adapters, env-selected at module init
 
-`EmailDispatchFactory` reads `OPENTRATTOS_EMAIL_PROVIDER` (default `smtp`) at `onModuleInit()` and resolves:
+`EmailDispatchFactory` reads `NEXANDRO_EMAIL_PROVIDER` (default `smtp`) at `onModuleInit()` and resolves:
 
 | Env value | Adapter | SDK | Bundled in |
 |---|---|---|---|
@@ -103,7 +103,7 @@ When 3 retries exhaust and the alerter fires, the Owner sees a paprika banner on
 
 ## Risks / Trade-offs
 
-- **[Risk]** SMTP `nodemailer` connection pool may exhaust under high-rate budget-alert bursts (e.g. many orgs cross the 75% tier in the same hour). **Mitigation**: pool size configurable via `OPENTRATTOS_SMTP_POOL_SIZE` env (default 5); slice #19 cron batches per-org alerts.
+- **[Risk]** SMTP `nodemailer` connection pool may exhaust under high-rate budget-alert bursts (e.g. many orgs cross the 75% tier in the same hour). **Mitigation**: pool size configurable via `NEXANDRO_SMTP_POOL_SIZE` env (default 5); slice #19 cron batches per-org alerts.
 - **[Risk]** Postmark lazy import may break in some bundlers (Vite, esbuild) that don't support dynamic `import()` of optional dependencies. **Mitigation**: `apps/api` uses `tsc` (no bundler at runtime); tested on the CI pipeline. If web-side or worker process needs Postmark, file `m3-email-postmark-bundling` followup.
 - **[Risk]** Retry policy adds up to 21s latency per failed dispatch. **Mitigation**: callers must invoke from non-request-path; smoke test asserts no controller-level handler imports `EmailDispatchService` directly.
 - **[Risk]** `EmailFailureAlerter` cascades into M2 `notifications` BC; if `notifications` schema changes, this slice's smoke test breaks. **Mitigation**: contract test mocks the `NotificationsService` API; broken integration surfaces immediately in CI.
@@ -118,7 +118,7 @@ When 3 retries exhaust and the alerter fires, the Owner sees a paprika banner on
    - `.env.example` documents the 5 new env vars.
    - INT test suite uses `mailpit` (Postgres testcontainer pattern adapted for SMTP) — captures sent emails for assertion.
 2. **Stage 2 — Staging validation**:
-   - Set `OPENTRATTOS_SMTP_HOST=smtp.your-tenant.example` + creds on staging.
+   - Set `NEXANDRO_SMTP_HOST=smtp.your-tenant.example` + creds on staging.
    - Trigger a manual dispatch via test endpoint (`POST /admin/test-email-dispatch`, Owner-only).
    - Assert email arrives + `EMAIL_DISPATCHED` event fires (visible in M2 audit_log AFTER slice #21 wires subscriber registration).
 3. **Stage 3 — Consumer slice integration**:

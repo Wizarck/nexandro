@@ -109,7 +109,7 @@ async function makeHarness(): Promise<Harness> {
 
   const config: PhotoStorageConfig = {
     endpoint: 'minio.local:9000',
-    bucket: 'opentrattos-photos-test',
+    bucket: 'nexandro-photos-test',
     region: 'us-east-1',
     accessKeyId: 'AK',
     secretAccessKey: 'SK',
@@ -156,17 +156,17 @@ async function makeHarness(): Promise<Harness> {
 }
 
 describe('PhotoRetentionScheduler', () => {
-  const ORIG_ENV = process.env.OPENTRATTOS_PHOTO_RETENTION_ENABLED;
+  const ORIG_ENV = process.env.NEXANDRO_PHOTO_RETENTION_ENABLED;
 
   beforeEach(() => {
-    process.env.OPENTRATTOS_PHOTO_RETENTION_ENABLED = 'true';
+    process.env.NEXANDRO_PHOTO_RETENTION_ENABLED = 'true';
   });
 
   afterAll(() => {
     if (ORIG_ENV === undefined) {
-      delete process.env.OPENTRATTOS_PHOTO_RETENTION_ENABLED;
+      delete process.env.NEXANDRO_PHOTO_RETENTION_ENABLED;
     } else {
-      process.env.OPENTRATTOS_PHOTO_RETENTION_ENABLED = ORIG_ENV;
+      process.env.NEXANDRO_PHOTO_RETENTION_ENABLED = ORIG_ENV;
     }
   });
 
@@ -326,7 +326,7 @@ describe('PhotoRetentionScheduler', () => {
   describe('runTick (cron entry)', () => {
     it('short-circuits when env flag is off', async () => {
       const h = await makeHarness();
-      process.env.OPENTRATTOS_PHOTO_RETENTION_ENABLED = 'false';
+      process.env.NEXANDRO_PHOTO_RETENTION_ENABLED = 'false';
       const old = buildPhoto({
         organizationId: ORG_A,
         createdAt: new Date(Date.now() - 95 * MS_PER_DAY),

@@ -66,5 +66,5 @@ export const CA_TEMPLATE: Readonly<Record<string, string>> = Object.freeze({
     'Sense accions correctives registrades en aquest rang.',
   'footer.page': 'Pàgina {page} de {total}',
   'footer.legal':
-    'Document generat per openTrattOS · traçable per audit_log',
+    'Document generat per nexandro · traçable per audit_log',
 });

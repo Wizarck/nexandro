@@ -15,7 +15,7 @@ export class UnknownEmailProviderError extends Error {
   readonly providerEnvValue: string;
   constructor(providerEnvValue: string) {
     super(
-      `Unknown OPENTRATTOS_EMAIL_PROVIDER=${providerEnvValue}; expected one of: smtp, sendgrid, postmark`,
+      `Unknown NEXANDRO_EMAIL_PROVIDER=${providerEnvValue}; expected one of: smtp, sendgrid, postmark`,
     );
     this.name = 'UnknownEmailProviderError';
     this.providerEnvValue = providerEnvValue;

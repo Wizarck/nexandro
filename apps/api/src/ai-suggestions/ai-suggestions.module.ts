@@ -21,7 +21,7 @@ import { AiSuggestionsController } from './interface/ai-suggestions.controller';
  * implement the same interface and replace this binding via Nest's
  * provider override pattern.
  *
- * Feature flag: `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED` is read once at
+ * Feature flag: `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED` is read once at
  * module configure time. When false, the controller returns 404 on every
  * endpoint AND the service rejects every call (defence in depth).
  */
@@ -61,18 +61,18 @@ export class AiSuggestionsModule implements OnApplicationBootstrap {
 }
 
 function isFlagEnabled(): boolean {
-  return String(process.env.OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED ?? '')
+  return String(process.env.NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED ?? '')
     .trim()
     .toLowerCase() === 'true';
 }
 
 function buildProvider(): AiSuggestionProvider {
-  const baseUrl = process.env.OPENTRATTOS_AI_RAG_BASE_URL ?? '';
-  const apiKey = process.env.OPENTRATTOS_AI_RAG_API_KEY;
-  const timeoutEnv = process.env.OPENTRATTOS_AI_RAG_TIMEOUT_MS;
+  const baseUrl = process.env.NEXANDRO_AI_RAG_BASE_URL ?? '';
+  const apiKey = process.env.NEXANDRO_AI_RAG_API_KEY;
+  const timeoutEnv = process.env.NEXANDRO_AI_RAG_TIMEOUT_MS;
   const timeoutMs = timeoutEnv ? Number(timeoutEnv) : undefined;
-  const modelName = process.env.OPENTRATTOS_AI_RAG_MODEL_NAME;
-  const modelVersion = process.env.OPENTRATTOS_AI_RAG_MODEL_VERSION;
+  const modelName = process.env.NEXANDRO_AI_RAG_MODEL_NAME;
+  const modelVersion = process.env.NEXANDRO_AI_RAG_MODEL_VERSION;
   return new GptOssRagProvider({
     baseUrl: baseUrl || 'http://localhost:0/disabled',
     apiKey,

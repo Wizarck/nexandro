@@ -89,13 +89,13 @@ On a successful `POST /m3/photo-ingest/items/:itemId/sign`, the screen SHALL inv
 
 ### Requirement: 30-minute local draft persists per (itemId, actorUserId)
 
-The system SHALL persist in-progress field edits to `localStorage` under the key `opentrattos.photoIngest.draft.v1.<itemId>.<actorUserId>`. The shape SHALL include `fieldValues: Record<string, string>`, `savedAt` (ms epoch), and `v: 1`. On mount, the screen SHALL hydrate the draft when `now - savedAt < 1_800_000` (30 minutes); older drafts SHALL be discarded. On successful sign, the draft SHALL be cleared.
+The system SHALL persist in-progress field edits to `localStorage` under the key `nexandro.photoIngest.draft.v1.<itemId>.<actorUserId>`. The shape SHALL include `fieldValues: Record<string, string>`, `savedAt` (ms epoch), and `v: 1`. On mount, the screen SHALL hydrate the draft when `now - savedAt < 1_800_000` (30 minutes); older drafts SHALL be discarded. On successful sign, the draft SHALL be cleared.
 
 #### Scenario: editing a field writes a draft to localStorage
 
 - **GIVEN** the operator selected an item `(itemId='itm-1', actorUserId='MANAGER')`
 - **WHEN** the operator types a new value in any field
-- **THEN** `localStorage.getItem('opentrattos.photoIngest.draft.v1.itm-1.MANAGER')` returns a JSON string containing `"v":1` AND the new value is present in `fieldValues`
+- **THEN** `localStorage.getItem('nexandro.photoIngest.draft.v1.itm-1.MANAGER')` returns a JSON string containing `"v":1` AND the new value is present in `fieldValues`
 
 #### Scenario: a 31-minute-old draft is discarded on mount
 

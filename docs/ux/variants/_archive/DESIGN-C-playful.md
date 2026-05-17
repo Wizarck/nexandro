@@ -4,7 +4,7 @@
 
 ## 1. Principles
 
-1. **Identity is a feature.** The chef should recognize "this is openTrattOS" within 2 seconds of seeing a screenshot.
+1. **Identity is a feature.** The chef should recognize "this is nexandro" within 2 seconds of seeing a screenshot.
 2. **Opinionated micro-interactions.** Save success has a tiny nod. Cycle detection has a *clear* but not theatrical bounce. No celebration confetti — but there IS character.
 3. **Confident sans, no serif.** A modern sans (Geist or Satoshi) carries the brand alone.
 4. **Color tells the food story.** A green-to-amber bridge in the brand palette echoes kitchen produce — fresh greens, warm spice. NOT corporate blue.
@@ -131,7 +131,7 @@ Tablet is canonical. Mobile gets brand-prominent treatment for the Owner experie
 ## 9. Agent prompts (how to describe screens to LLMs)
 
 ```
-You are designing a screen for openTrattOS, a kitchen-operations SaaS.
+You are designing a screen for nexandro, a kitchen-operations SaaS.
 Visual language: Variant C "Playful AGPL community vibe" — distinctive open-source.
 Palette: brand-green (#2d8859) + brand-amber (#c47a14), tomato-red for danger.
 Single sans family Geist (no serif anywhere). Geist Mono for numerics.
@@ -140,5 +140,5 @@ food emoji on allergen/diet badges (NON-critical paths only).
 Brand gradient (green-to-amber) ONLY on logo + onboarding hero CTA — never body.
 NO blue (corporate anti-pattern). NO stock illustrations.
 Tablet-first (10" landscape, slow Wi-Fi). Friendly + competent voice in microcopy.
-Identity is a feature: the chef should recognize "this is openTrattOS" within 2s.
+Identity is a feature: the chef should recognize "this is nexandro" within 2s.
 ```

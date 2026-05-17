@@ -106,8 +106,8 @@ jobs:
       - run: npm ci
       - name: Run bench
         env:
-          OPENTRATTOS_HERMES_BASE_URL: ${{ secrets.OPENTRATTOS_HERMES_BASE_URL }}
-          OPENTRATTOS_HERMES_AUTH_SECRET: ${{ secrets.OPENTRATTOS_HERMES_AUTH_SECRET }}
+          NEXANDRO_HERMES_BASE_URL: ${{ secrets.NEXANDRO_HERMES_BASE_URL }}
+          NEXANDRO_HERMES_AUTH_SECRET: ${{ secrets.NEXANDRO_HERMES_AUTH_SECRET }}
           HERMES_VERSION: ${{ vars.HERMES_VERSION || 'wamba-overlay' }}
         run: pnpm exec tsx src/run.ts --client=${{ inputs.client }} --duration=${{ inputs.duration }}
       - name: Upload report artifact
@@ -157,7 +157,7 @@ jobs:
 
 ## Risk + mitigation
 
-- **Risk: VPS Hermes is unreachable from GH Actions** — `OPENTRATTOS_HERMES_BASE_URL` may resolve to a private DNS name. Mitigation: the eligia-vps does expose Hermes on a public hostname per the m2-mcp-agent-chat-widget runbook (`https://hermes.eligia-vps.example` or similar). If it doesn't, the workflow needs SSH-tunnel scaffolding — out of scope for this slice. We will discover this on the first manual `workflow_dispatch` and handle it then; a follow-up `m2-mcp-bench-vpn-tunnel` is the right scope.
+- **Risk: VPS Hermes is unreachable from GH Actions** — `NEXANDRO_HERMES_BASE_URL` may resolve to a private DNS name. Mitigation: the eligia-vps does expose Hermes on a public hostname per the m2-mcp-agent-chat-widget runbook (`https://hermes.eligia-vps.example` or similar). If it doesn't, the workflow needs SSH-tunnel scaffolding — out of scope for this slice. We will discover this on the first manual `workflow_dispatch` and handle it then; a follow-up `m2-mcp-bench-vpn-tunnel` is the right scope.
 - **Risk: Auth secret leaks into the artifact or report** — the bench harness writes only the report markdown which contains no secrets. The auth secret is consumed via env var by the harness's HTTP client. Documented in the workflow: secret is masked in logs by GH Actions' default behaviour.
 - **Risk: Regression check false-positives on noisy runs** — single-run p95 has variance. Mitigation: the threshold is operator-tunable (default 20% is intentionally lenient). After 5+ real runs land, the threshold can tighten. Rolling-window detection is filed but deferred.
 - **Risk: Bot-commit triggers an infinite CI loop** — the new commit goes to master and would re-trigger workflows that watch master. Mitigation: the `mcp-bench.yml` workflow's `pull_request` trigger watches PRs only, not pushes. Other workflows (`ci.yml` etc.) do watch master pushes; a single extra CI run per manual bench is acceptable.

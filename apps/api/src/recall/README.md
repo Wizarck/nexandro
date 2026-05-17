@@ -54,4 +54,4 @@ Each is partial so it stays narrow — only event types that populate the field 
 - INT testcontainer test at `apps/api/test/int/recall-traversal-depth.int-spec.ts` (placeholder file present; body deferred per slice #12 `tasks.md §Deferred D1`).
 - Per-org `recall_max_depth` admin UX — slice's migration provisions the column; an admin form is M3.x.
 - Label-join enrichment for recipe / menu-item nodes — slice #12 renders placeholder labels; M3.x wires M2 i18n hooks.
-- `TraceNode` promotion to `@opentrattos/contracts` — blocked on the workspace `rootDir` cascade resolution; until then the shape is duplicated between `apps/api/src/recall/types.ts` and `packages/ui-kit/src/components/RecallTraceTree/types.ts`.
+- `TraceNode` promotion to `@nexandro/contracts` — blocked on the workspace `rootDir` cascade resolution; until then the shape is duplicated between `apps/api/src/recall/types.ts` and `packages/ui-kit/src/components/RecallTraceTree/types.ts`.

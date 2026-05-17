@@ -66,7 +66,7 @@ This is "drift surfacing" coverage — the same pattern slice #21's FTS spec use
 
 Each INT spec follows the existing `audit-log-fts.int.spec.ts` harness:
 
-1. `Test.createTestingModule()` with `TypeOrmModule.forRoot({ url: process.env.DATABASE_URL ?? 'postgres://opentrattos_test:opentrattos_test@localhost:5433/opentrattos_test', migrations: [...], synchronize: false })`.
+1. `Test.createTestingModule()` with `TypeOrmModule.forRoot({ url: process.env.DATABASE_URL ?? 'postgres://nexandro_test:nexandro_test@localhost:5433/nexandro_test', migrations: [...], synchronize: false })`.
 2. `dataSource.runMigrations()` in `beforeAll` — applies 0001 through current head, including 0023 + 0024.
 3. `TRUNCATE TABLE audit_log RESTART IDENTITY CASCADE` in `beforeEach` — guarantees a clean slate so prior-test rows don't poison the lookback window.
 4. `afterAll`: `dataSource.destroy()` + `app.close()`.

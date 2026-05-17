@@ -3,7 +3,7 @@ import {
   IncidentSearchField,
   RoleGuard,
   type IncidentSearchHit,
-} from '@opentrattos/ui-kit';
+} from '@nexandro/ui-kit';
 import { useIncidentSearch } from '../../hooks/useIncidentSearch';
 import { useCurrentOrgId, useCurrentRole } from '../../lib/currentUser';
 

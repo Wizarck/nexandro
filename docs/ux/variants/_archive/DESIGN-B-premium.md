@@ -129,7 +129,7 @@ Owner's mobile experience is a flagship demo. Investiamo más en mobile que en V
 ## 9. Agent prompts (how to describe screens to LLMs)
 
 ```
-You are designing a screen for openTrattOS, a kitchen-operations SaaS.
+You are designing a screen for nexandro, a kitchen-operations SaaS.
 Visual language: Variant B "Premium hospitality" — luxe restauración alta,
 cream/charcoal/emerald palette, Fraunces serif titles + Inter body,
 sans 500 numerics (NO mono). Soft shadows, 200-300ms transitions, hover lifts.

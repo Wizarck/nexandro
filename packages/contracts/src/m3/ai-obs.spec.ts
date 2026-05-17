@@ -45,7 +45,7 @@ describe('OtelSpanAttributes', () => {
     expect(parsed.success).toBe(true);
   });
 
-  it('accepts a full attribute set including opentrattos.tag', () => {
+  it('accepts a full attribute set including nexandro.tag', () => {
     const parsed = OtelSpanAttributes.safeParse({
       'gen_ai.system': 'openai',
       'gen_ai.request.model': 'gpt-4o',
@@ -53,7 +53,7 @@ describe('OtelSpanAttributes', () => {
       'gen_ai.usage.input_tokens': 100,
       'gen_ai.usage.output_tokens': 50,
       'gen_ai.operation.name': 'chat',
-      'opentrattos.tag': 'photo-ingest-batch',
+      'nexandro.tag': 'photo-ingest-batch',
     });
     expect(parsed.success).toBe(true);
   });

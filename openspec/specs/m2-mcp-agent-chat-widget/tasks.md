@@ -31,8 +31,8 @@ Cadence: 4 stages, each one commit. Each stage must end on green local lint + bu
 - [ ] 2.1 Module `apps/api/src/agent-chat/agent-chat.module.ts` — imports `SharedModule`, `ConfigModule`. Providers: `AgentChatService`. Controllers: `AgentChatController`.
 - [ ] 2.2 DTO `apps/api/src/agent-chat/agent-chat.dto.ts` — `ChatMessageDto`, `ChatRequestDto`, `ChatSseEventDto` (typed events for testing).
 - [ ] 2.3 Service `apps/api/src/agent-chat/agent-chat.service.ts`:
-  - [ ] Read `OPENTRATTOS_AGENT_ENABLED` via `ConfigService`. Throw `NotFoundException` when false.
-  - [ ] `resolveBankId(organization)` → `opentrattos-{slug}` with collision handling per design.md.
+  - [ ] Read `NEXANDRO_AGENT_ENABLED` via `ConfigService`. Throw `NotFoundException` when false.
+  - [ ] `resolveBankId(organization)` → `nexandro-{slug}` with collision handling per design.md.
   - [ ] `streamFromHermes(req)` returns an `Observable<ChatSseEventDto>` reading the Hermes SSE response and re-emitting events 1:1 plus a synthesised `error` on transport failure.
   - [ ] `cacheableTextForIdempotency(events)` accumulator that the controller will use after the stream completes — body cached for replay = `{kind: 'sse-replay', text, finishReason}`.
 - [ ] 2.4 Controller `apps/api/src/agent-chat/agent-chat.controller.ts`:
@@ -76,26 +76,26 @@ Cadence: 4 stages, each one commit. Each stage must end on green local lint + bu
 **Output:** widget mounted in apps/web, 2 INT specs in apps/api, env flags documented, ops runbook.
 
 - [ ] 4.1 `apps/web/src/hooks/useAgentChat.ts` — TanStack Query mutation that opens an SSE connection to `/agent-chat/stream`, exposes `{messages, status, send(message), close()}`. Cleans up on unmount.
-- [ ] 4.2 `apps/web/src/RuntimeConfigProvider.tsx` — reads `import.meta.env.VITE_OPENTRATTOS_AGENT_ENABLED` at boot, exposes `agentEnabled` to the context. Wrap `<App />`.
+- [ ] 4.2 `apps/web/src/RuntimeConfigProvider.tsx` — reads `import.meta.env.VITE_NEXANDRO_AGENT_ENABLED` at boot, exposes `agentEnabled` to the context. Wrap `<App />`.
 - [ ] 4.3 Mount `<AgentChatWidget organizationId userId />` in the apps/web layout (sibling of the main `<Outlet />`).
 - [ ] 4.4 INT spec `apps/api/src/agent-chat/agent-chat.flag-enabled.int.spec.ts`:
-  - [ ] `OPENTRATTOS_AGENT_ENABLED=true`, mock Hermes endpoint with a static SSE script.
+  - [ ] `NEXANDRO_AGENT_ENABLED=true`, mock Hermes endpoint with a static SSE script.
   - [ ] POST `/agent-chat/stream` with valid auth + body → assert 200 + SSE event sequence + one `audit_log` row with `event_type=AGENT_ACTION_EXECUTED`, `agent_name='hermes-web'`, `aggregate_type='chat_session'`, `payload_after.messageDigest` set.
   - [ ] Idempotency-Key replay: same key + body → second response matches first; same key + different body → 409 IDEMPOTENCY_KEY_REQUEST_MISMATCH.
 - [ ] 4.5 INT spec `apps/api/src/agent-chat/agent-chat.flag-disabled.int.spec.ts`:
-  - [ ] `OPENTRATTOS_AGENT_ENABLED=false` → POST `/agent-chat/stream` returns 404, zero `audit_log` rows for the session.
+  - [ ] `NEXANDRO_AGENT_ENABLED=false` → POST `/agent-chat/stream` returns 404, zero `audit_log` rows for the session.
 - [ ] 4.6 `apps/api/.env.example` — append:
-  - `OPENTRATTOS_AGENT_ENABLED=false` (already present from Wave 1.5 — verify wording).
-  - `OPENTRATTOS_HERMES_BASE_URL=http://hermes:8644`
-  - `OPENTRATTOS_HERMES_AUTH_SECRET=` (empty; document it must be 64-hex sha256-grade).
+  - `NEXANDRO_AGENT_ENABLED=false` (already present from Wave 1.5 — verify wording).
+  - `NEXANDRO_HERMES_BASE_URL=http://hermes:8644`
+  - `NEXANDRO_HERMES_AUTH_SECRET=` (empty; document it must be 64-hex sha256-grade).
 - [ ] 4.7 `tools/hermes-overlay/.env.example` (new) — document the Hermes-side flags: `WEB_VIA_HTTP_SSE_HOST`, `_PORT`, `_PATH`, `_AUTH_SECRET`, `_ALLOWED_ORIGINS`, `_DEFAULT_BANK_ID`.
-- [ ] 4.8 `apps/web/.env.example` — `VITE_OPENTRATTOS_AGENT_ENABLED=false` (compile-time flag for Vite).
+- [ ] 4.8 `apps/web/.env.example` — `VITE_NEXANDRO_AGENT_ENABLED=false` (compile-time flag for Vite).
 - [ ] 4.9 `docs/operations/m2-mcp-agent-chat-widget-runbook.md`:
   - [ ] Pre-flight: secret generation (`openssl rand -hex 32`), shared between apps/api and Hermes.
   - [ ] Hermes overlay rebuild steps.
   - [ ] Smoke test: `curl -N -H "X-Web-Auth-Secret: …"  http://hermes:8644/web/test-session` with a sample body.
-  - [ ] Apps/api flip: set `OPENTRATTOS_AGENT_ENABLED=true` + restart container.
-  - [ ] Apps/web flip: set `VITE_OPENTRATTOS_AGENT_ENABLED=true` + rebuild.
+  - [ ] Apps/api flip: set `NEXANDRO_AGENT_ENABLED=true` + restart container.
+  - [ ] Apps/web flip: set `VITE_NEXANDRO_AGENT_ENABLED=true` + rebuild.
   - [ ] Rollback: flip the apps/api flag; widget vanishes immediately.
   - [ ] Auth secret rotation: lockstep update of both env vars + restart both.
   - [ ] Bank id collision diagnosis (rare).

@@ -19,7 +19,7 @@ This slice also closes the `walkRecipeTree` tech-debt entry filed in retros: wit
 - Print workflow ≤3 clicks per NFR.
 - **Print dispatch abstraction**: `PrintAdapter` interface + registry in `packages/label-renderer/`. Ships `IppPrintAdapter` validating the contract. Future printer families (Phomemo/Zebra/SaaS) ship as new adapters via separate slices — endpoint stays stable.
 - **Walker unification (Gate D 1b')**: refactor `recipe-tree-walker.ts` to expose two named operations — `walkRecipeTreeLeaves` (visitor, used by allergens + macros + labels) and `foldRecipeTree<T>` (post-order accumulator with built-in memoization, used by cost.service). Eliminates 3 duplicated walkers across BC.
-- Pre-launch external legal review per ADR-019 §Risk — gates the prod release of this slice via `OPENTRATTOS_LABELS_PROD_ENABLED` flag.
+- Pre-launch external legal review per ADR-019 §Risk — gates the prod release of this slice via `NEXANDRO_LABELS_PROD_ENABLED` flag.
 - **BREAKING** (none — additive only.)
 
 ## Capabilities
@@ -49,7 +49,7 @@ This slice also closes the `walkRecipeTree` tech-debt entry filed in retros: wit
   - `POST /recipes/:id/print` body `{ locale, copies?, printerId? }` dispatching via configured adapter
   - `GET /orgs/:id/label-fields` (Owner+Manager)
   - `PUT /orgs/:id/label-fields` (Owner only)
-- **Compliance**: every label PDF carries the org's mandatory fields per Article 9. Refusal mode emits structured error naming missing fields. `OPENTRATTOS_LABELS_PROD_ENABLED` gates production exposure.
+- **Compliance**: every label PDF carries the org's mandatory fields per Article 9. Refusal mode emits structured error naming missing fields. `NEXANDRO_LABELS_PROD_ENABLED` gates production exposure.
 - **Out of scope** (filed as follow-up slices):
   - `m2-labels-print-adapter-phomemo` — Phomemo PM-344-WF "Labelife" protocol adapter (proprietary, requires reverse-engineering)
   - `m2-labels-print-bridge` — cloud-API ↔ kitchen-LAN print job bridge (conditional on deployment topology)

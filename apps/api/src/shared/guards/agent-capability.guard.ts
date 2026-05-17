@@ -14,7 +14,7 @@ import type { Request } from 'express';
  *   - Pass-through when `req.agentContext?.viaAgent !== true` (UI/REST
  *     traffic ignores all agent flags).
  *   - When agent traffic carries `req.agentContext.capabilityName`, look up
- *     the env var `OPENTRATTOS_AGENT_<NAMESPACE>_<OP>_ENABLED` (transformed
+ *     the env var `NEXANDRO_AGENT_<NAMESPACE>_<OP>_ENABLED` (transformed
  *     from the capability dot-notation). Default is `false` (disabled).
  *   - Disabled → throw `ServiceUnavailableException` with
  *     `code: AGENT_CAPABILITY_DISABLED`. The middleware does NOT emit any
@@ -25,9 +25,9 @@ import type { Request } from 'express';
  * requests still 401/403 first.
  *
  * Capability → env var transformation:
- *   `recipes.create`        → `OPENTRATTOS_AGENT_RECIPES_CREATE_ENABLED`
- *   `iam.users.changePassword` → `OPENTRATTOS_AGENT_IAM_USERS_CHANGE_PASSWORD_ENABLED`
- *   `supplier-items.promotePreferred` → `OPENTRATTOS_AGENT_SUPPLIER_ITEMS_PROMOTE_PREFERRED_ENABLED`
+ *   `recipes.create`        → `NEXANDRO_AGENT_RECIPES_CREATE_ENABLED`
+ *   `iam.users.changePassword` → `NEXANDRO_AGENT_IAM_USERS_CHANGE_PASSWORD_ENABLED`
+ *   `supplier-items.promotePreferred` → `NEXANDRO_AGENT_SUPPLIER_ITEMS_PROMOTE_PREFERRED_ENABLED`
  */
 @Injectable()
 export class AgentCapabilityGuard implements CanActivate {
@@ -68,7 +68,7 @@ export function capabilityToEnvVar(capability: string): string {
     .replace(/([A-Z])/g, '_$1')
     .toUpperCase()
     .replace(/__+/g, '_');
-  return `OPENTRATTOS_AGENT_${upper}_ENABLED`;
+  return `NEXANDRO_AGENT_${upper}_ENABLED`;
 }
 
 function readBoolFlag(name: string): boolean {

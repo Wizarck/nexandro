@@ -1,6 +1,6 @@
 ## Why
 
-Slice #16 (`m3-vision-llm-provider-di-otel`, Wave 2.1) shipped the AI-observability BC scaffold: `OtelService`, the `gen_ai.*` semantic-conventions surface, the `opentrattos.tag` enricher, and empty placeholder directories at `apps/api/src/ai-observability/{rollup,dashboard,budget}/` so downstream slices (#19 + #20) can land without rebase friction. Slice #18 (`m3-photo-storage-lifecycle`) is in flight on a sibling worktree; slice #20 (`m3-ai-obs-ui`) lands the operator dashboard after this slice publishes its read surface.
+Slice #16 (`m3-vision-llm-provider-di-otel`, Wave 2.1) shipped the AI-observability BC scaffold: `OtelService`, the `gen_ai.*` semantic-conventions surface, the `nexandro.tag` enricher, and empty placeholder directories at `apps/api/src/ai-observability/{rollup,dashboard,budget}/` so downstream slices (#19 + #20) can land without rebase friction. Slice #18 (`m3-photo-storage-lifecycle`) is in flight on a sibling worktree; slice #20 (`m3-ai-obs-ui`) lands the operator dashboard after this slice publishes its read surface.
 
 This slice closes the **emit side** of NFR-OBS-10 (per-organization monthly AI budget with 4-tier alerts) and ADR-030 sub-decisions "Budget tier system" + "Rollup table" + "Dashboard caching" (eligia-dashboard cross-pollination). Concretely:
 
@@ -24,12 +24,12 @@ This slice consumes pre-reserved migration slot **0032** (next free after slice 
 - **`apps/api/src/ai-observability/budget/domain/budget-tier.ts`** — pure tier-crossing logic + tier name constants `{ INFO: 'info', WARN: 'warn', ERROR: 'error', FATAL: 'fatal' }` + threshold map `{ info: 0.50, warn: 0.75, error: 0.90, fatal: 1.00 }`.
 - **`apps/api/src/ai-observability/budget/domain/burn-rate.ts`** — pure `projectMonthEndSpend({ currentSpend, daysIntoMonth, daysInMonth })` + `daysUntilEmpty({ remainingBudget, avgDailySpend })`.
 - **`apps/api/src/ai-observability/budget/domain/errors.ts`** — typed errors: `AiUsageRollupQueryError`, `BudgetEvaluationError`, `LruCacheUnavailableError`.
-- **`apps/api/src/ai-observability/budget/domain/events.ts`** — INLINE event shape `AiBudgetTierCrossedPayload` + channel constant `AI_BUDGET_TIER_CROSSED_CHANNEL = 'ai-observability.budget-tier-crossed'`. No `@opentrattos/contracts` import (Wave 2.1+2.2+2.3 lesson).
+- **`apps/api/src/ai-observability/budget/domain/events.ts`** — INLINE event shape `AiBudgetTierCrossedPayload` + channel constant `AI_BUDGET_TIER_CROSSED_CHANNEL = 'ai-observability.budget-tier-crossed'`. No `@nexandro/contracts` import (Wave 2.1+2.2+2.3 lesson).
 - **`apps/api/src/ai-observability/budget/application/ai-usage-rollup.repository.ts`** — TypeORM repository wrapper; `upsertAggregate(orgId, period, agg)` uses `INSERT … ON CONFLICT … DO UPDATE`; `findByPeriod(orgId, period)` reads. Multi-tenant gate: every public method takes `organizationId` as the first arg.
 - **`apps/api/src/ai-observability/budget/application/lru-rollup-cache.ts`** — Injectable wrapping `lru-cache` (capacity 1024, TTL 1 h). Methods: `get(key)`, `set(key, value)`, `verifyEligible(key)` (the check-and-insert pattern from #136 — verifies the still-present key BEFORE the missing-key path, dodging LRU eviction races).
 - **`apps/api/src/ai-observability/budget/application/budget-tier.service.ts`** — pure tier-crossing evaluator: `evaluate({ currentSpend, budgetLimit, alreadyCrossed }): TierTransition[]`. Returns the list of newly-crossed tiers (zero, one, or many — bulk-cross when a single tick jumps multiple thresholds, e.g. 40% → 95%).
 - **`apps/api/src/ai-observability/budget/application/burn-rate.calculator.ts`** — thin service wrapping `domain/burn-rate.ts`; injected into RollupScheduler so projection alerts share the same emission path.
-- **`apps/api/src/ai-observability/budget/application/rollup-scheduler.service.ts`** — `@Cron('*/5 * * * *')` (`@nestjs/schedule`); aggregates spans from the OTel exporter sink into the `ai_usage_rollup` row for the current month, evaluates tier crossings, emits `AI_BUDGET_TIER_CROSSED` per newly-crossed tier. Env flag `OPENTRATTOS_AI_BUDGET_SCHEDULER_ENABLED` (default off in dev, on in prod).
+- **`apps/api/src/ai-observability/budget/application/rollup-scheduler.service.ts`** — `@Cron('*/5 * * * *')` (`@nestjs/schedule`); aggregates spans from the OTel exporter sink into the `ai_usage_rollup` row for the current month, evaluates tier crossings, emits `AI_BUDGET_TIER_CROSSED` per newly-crossed tier. Env flag `NEXANDRO_AI_BUDGET_SCHEDULER_ENABLED` (default off in dev, on in prod).
 - **`apps/api/src/ai-observability/budget/budget.module.ts`** — wires the above + injects `OrganizationsRepository` (read-only) for the budget-limit lookup.
 - **`apps/api/src/ai-observability/ai-observability.module.ts`** — extended to import `BudgetModule` + re-export it so consumers (slice #20 dashboard) can read rollup rows.
 - **`apps/api/src/audit-log/application/types.ts`** — extend `AuditEventType` const with `AI_BUDGET_TIER_CROSSED: 'ai-observability.budget-tier-crossed'`. Mirror in `AuditEventTypeName`. Add to retention map: `'AI_BUDGET_TIER_CROSSED': 'operational'` (default).
@@ -74,7 +74,7 @@ This slice consumes pre-reserved migration slot **0032** (next free after slice 
 - **Out of scope** (claimed by other slices, do NOT pre-empt):
   - 6-widget AI obs dashboard UI (slice #20 `m3-ai-obs-ui`) — this slice publishes the rollup read surface; the chart layer + per-tag/per-model breakdown live in #20.
   - Email cadence for tier alerts (deferred follow-up; the audit row IS the canonical alert record).
-  - Hard enforcement at `fatal` tier (`OPENTRATTOS_AI_BUDGET_HARD_BLOCK_ENABLED` flag) — soft enforcement only per ADR-030 "Budget tier system" sub-decision (matches eligia "report-not-enforce" pattern).
+  - Hard enforcement at `fatal` tier (`NEXANDRO_AI_BUDGET_HARD_BLOCK_ENABLED` flag) — soft enforcement only per ADR-030 "Budget tier system" sub-decision (matches eligia "report-not-enforce" pattern).
   - Per-organization tier-threshold customisation (50/75/90/100 are hard-coded MVP).
   - Redis-backed LRU swap (Enterprise multi-instance) — follow-up `m3-ai-budget-redis-cache`.
   - Owner UI for setting `ai_monthly_budget_eur` — slice #20.

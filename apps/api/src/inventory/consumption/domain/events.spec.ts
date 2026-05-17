@@ -29,7 +29,7 @@ describe('LotConsumedPayloadSchema (Zod validation)', () => {
     menu_item_id: null,
     consumed_at: '2026-05-14T12:34:56.000Z',
     consumed_by_user_id: randomUUID(),
-    opentrattos_tag: 'chef-tablet',
+    nexandro_tag: 'chef-tablet',
     reason: null,
   });
 
@@ -117,17 +117,17 @@ describe('LotConsumedPayloadSchema (Zod validation)', () => {
       );
     });
 
-    it('opentrattos_tag empty string → ZodError (min length 1)', () => {
+    it('nexandro_tag empty string → ZodError (min length 1)', () => {
       const p = basePayload();
-      p.opentrattos_tag = '';
+      p.nexandro_tag = '';
       expect(() => LotConsumedPayloadSchema.parse(p)).toThrow();
     });
 
-    it('opentrattos_tag null → accepted', () => {
+    it('nexandro_tag null → accepted', () => {
       const p = basePayload();
-      p.opentrattos_tag = null;
+      p.nexandro_tag = null;
       const parsed = LotConsumedPayloadSchema.parse(p);
-      expect(parsed.opentrattos_tag).toBeNull();
+      expect(parsed.nexandro_tag).toBeNull();
     });
 
     it('reason empty string → ZodError', () => {

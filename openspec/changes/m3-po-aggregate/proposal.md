@@ -1,6 +1,6 @@
 ## Why
 
-M3 introduces operational procurement — every restocking cycle starts with a `PurchaseOrder` (PO) sent to a supplier, then closes when goods are received and reconciled. Today, openTrattOS has no `PurchaseOrder` entity: M2 ships `suppliers` (Wave 1.x, `apps/api/src/suppliers/`) and supplier_items, but every downstream procurement flow assumes a PO record exists.
+M3 introduces operational procurement — every restocking cycle starts with a `PurchaseOrder` (PO) sent to a supplier, then closes when goods are received and reconciled. Today, nexandro has no `PurchaseOrder` entity: M2 ships `suppliers` (Wave 1.x, `apps/api/src/suppliers/`) and supplier_items, but every downstream procurement flow assumes a PO record exists.
 
 Two downstream M3 slices block on this foundation:
 

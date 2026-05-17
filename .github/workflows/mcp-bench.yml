@@ -98,8 +98,8 @@ jobs:
 
       - name: Run bench
         env:
-          OPENTRATTOS_HERMES_BASE_URL: ${{ secrets.OPENTRATTOS_HERMES_BASE_URL }}
-          OPENTRATTOS_HERMES_AUTH_SECRET: ${{ secrets.OPENTRATTOS_HERMES_AUTH_SECRET }}
+          NEXANDRO_HERMES_BASE_URL: ${{ secrets.NEXANDRO_HERMES_BASE_URL }}
+          NEXANDRO_HERMES_AUTH_SECRET: ${{ secrets.NEXANDRO_HERMES_AUTH_SECRET }}
           HERMES_VERSION: ${{ vars.HERMES_VERSION || 'wamba-overlay' }}
         run: npx tsx src/run.ts --client=${{ inputs.client }} --duration=${{ inputs.duration }}
 

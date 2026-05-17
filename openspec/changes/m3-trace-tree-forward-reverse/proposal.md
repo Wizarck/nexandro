@@ -24,7 +24,7 @@ This slice is the **traversal foundation** for the Recall BC. Slice #11 (`m3-inc
 
 - **`apps/api/src/recall/`** new BC (or extends slice #11's scaffold if it merges first):
   - `apps/api/src/recall/domain/constants.ts` — `RECALL_TRACE_MAX_DEPTH = 10`. **Created here if slice #11 hasn't merged yet**; re-exported from slice #11's location at rebase time otherwise.
-  - `apps/api/src/recall/types.ts` — inline `TraceNode` shape (NOT imported from `@opentrattos/contracts` per Wave 2.1 hard constraint).
+  - `apps/api/src/recall/types.ts` — inline `TraceNode` shape (NOT imported from `@nexandro/contracts` per Wave 2.1 hard constraint).
   - `apps/api/src/recall/application/trace.service.ts` — `traceForward` + `traceReverse` against `audit_log` via a recursive CTE; ONE pass over the flat row-set to build the nested tree.
   - `apps/api/src/recall/application/trace.errors.ts` — `RecallAnchorNotFoundError`, `RecallInvalidAnchorKindError`.
   - `apps/api/src/recall/interface/trace.controller.ts` — `GET /m3/recall/trace/forward?lotId=…` + `GET /m3/recall/trace/reverse?anchorId=…&anchorKind=…` (RBAC: OWNER + MANAGER per ADR-RECALL-RBAC; mirrors `audit-log-browse.controller.ts`).

@@ -1,5 +1,5 @@
 {
-  "name": "@opentrattos/label-renderer",
+  "name": "@nexandro/label-renderer",
   "version": "0.1.0",
   "private": true,
   "description": "EU 1169/2011 compliant label renderer (multi-format: A4 + thermal) + PrintAdapter abstraction. Per ADR-019 / m2-labels-rendering: separable npm package isolating @react-pdf/renderer dependency. Consumed by apps/api for server-side render + dispatch.",

@@ -27,7 +27,7 @@ Module 1 shipped 8 base entities (Organization, Location, User, Ingredient, Cate
 
 ## Risks / Trade-offs
 
-- [Risk] Polymorphic-via-nullable-FKs CHECK constraint is dialect-specific (PostgreSQL syntax). **Mitigation**: openTrattOS is PostgreSQL-only per ADR-001; if that ever changes, the CHECK becomes an application-level guard.
+- [Risk] Polymorphic-via-nullable-FKs CHECK constraint is dialect-specific (PostgreSQL syntax). **Mitigation**: nexandro is PostgreSQL-only per ADR-001; if that ever changes, the CHECK becomes an application-level guard.
 - [Risk] `nutrition` jsonb makes ad-hoc queries harder ("find all recipes where kcal/100g < 200"). **Mitigation**: M2 has no requirement for that query; if it appears in M3+, add a generated column or a search index.
 - [Risk] Adding `phoneNumber` now without a use case looks like premature design. **Mitigation**: documented in this slice and in PRD-M2 §M2.x WhatsApp; nullable, no default, zero-cost.
 

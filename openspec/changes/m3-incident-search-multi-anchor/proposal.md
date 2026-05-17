@@ -30,7 +30,7 @@ The scaffolded `RECALL_TRACE_MAX_DEPTH = 10` constant per ADR-028 lives in this 
   - `GET /m3/recall/search?q=<text>&types=lot,supplier,ingredient,aggregate&limit=8`
   - `@Roles('OWNER', 'MANAGER')` via the shared `Roles` decorator + global `RolesGuard`.
   - `organizationId` resolved from `req.user.organizationId` (multi-tenant gate at repository layer per ADR-LOT-MULTITENANT-AT-REPO).
-- **MCP capability** `recall.search-incident` (`packages/mcp-server-opentrattos/src/capabilities/recall.ts`):
+- **MCP capability** `recall.search-incident` (`packages/mcp-server-nexandro/src/capabilities/recall.ts`):
   - Read-only typeahead surface for agents (Hermes WhatsApp, AgentChatWidget) per the architecture-m3.md MCP namespace.
   - Forwards to `GET /m3/recall/search`. Returns the same `IncidentSearchHit[]` shape as the REST API.
 - **Migration 0035** (`add_recall_search_indexes`) per ADR-031:
@@ -61,7 +61,7 @@ The scaffolded `RECALL_TRACE_MAX_DEPTH = 10` constant per ADR-028 lives in this 
 - **Code**:
   - `apps/api/src/recall/` (new BC). ~400 LOC.
   - `apps/api/src/migrations/0035_add_recall_search_indexes.ts`. ~70 LOC.
-  - `packages/mcp-server-opentrattos/src/capabilities/recall.ts` (new). ~50 LOC + ~30 LOC registration glue in `index.ts`.
+  - `packages/mcp-server-nexandro/src/capabilities/recall.ts` (new). ~50 LOC + ~30 LOC registration glue in `index.ts`.
   - `packages/ui-kit/src/components/IncidentSearchField/` (new). ~200 LOC.
   - `apps/web/src/screens/j6/IncidentSearchFieldScreen.tsx` + `apps/web/src/hooks/useIncidentSearch.ts` + `apps/web/src/api/recall.ts`. ~180 LOC.
   - Tests: ~150 LOC unit (service spec) + ~140 LOC unit (component spec).
@@ -79,4 +79,4 @@ The scaffolded `RECALL_TRACE_MAX_DEPTH = 10` constant per ADR-028 lives in this 
   - 86-flag dispatch (FR17) + dossier PDF (FR18) + email dispatch (FR19) → slice #13 `m3-recall-86-flag-dispatch`.
   - `RecallTraceTree` ui-kit component → slice #12.
   - Symptom keyword corpus (FR14 symptom-match) — this slice uses literal substring match on `audit_log.payload_after->>'symptom'` (when present) + a hard-coded synonym table inlined in the service. A richer NLP layer is M3.x.
-- **Parallelism**: this slice writes exclusively to `apps/api/src/recall/`, `apps/api/src/migrations/0035_*`, `packages/mcp-server-opentrattos/src/capabilities/recall.ts` + a single-line index registration, `packages/ui-kit/src/components/IncidentSearchField/`, and `apps/web/src/{hooks,api,screens/j6}/`. File-path disjoint from #12 (writes `apps/api/src/recall/application/trace-*.ts` + `apps/api/src/migrations/0036_*` + `packages/ui-kit/src/components/RecallTraceTree/`) and #13 (writes `apps/api/src/recall/application/dispatch-*.ts` + `packages/ui-kit/src/components/RecallActionBar/`). The shared touch point is `apps/api/src/app.module.ts` (this slice adds `RecallModule`; #12 + #13 do not re-touch). The shared touch point in `packages/mcp-server-opentrattos/src/index.ts` is the `registerRecallCapabilities` line — #12 + #13 add capabilities to the same file with concatenable diff; resolve manually if same-day merge.
+- **Parallelism**: this slice writes exclusively to `apps/api/src/recall/`, `apps/api/src/migrations/0035_*`, `packages/mcp-server-nexandro/src/capabilities/recall.ts` + a single-line index registration, `packages/ui-kit/src/components/IncidentSearchField/`, and `apps/web/src/{hooks,api,screens/j6}/`. File-path disjoint from #12 (writes `apps/api/src/recall/application/trace-*.ts` + `apps/api/src/migrations/0036_*` + `packages/ui-kit/src/components/RecallTraceTree/`) and #13 (writes `apps/api/src/recall/application/dispatch-*.ts` + `packages/ui-kit/src/components/RecallActionBar/`). The shared touch point is `apps/api/src/app.module.ts` (this slice adds `RecallModule`; #12 + #13 do not re-touch). The shared touch point in `packages/mcp-server-nexandro/src/index.ts` is the `registerRecallCapabilities` line — #12 + #13 add capabilities to the same file with concatenable diff; resolve manually if same-day merge.

@@ -30,26 +30,26 @@ The system SHALL include `missingFields` and `nextRequired` in every write-endpo
 
 ### Requirement: System operates in standalone or agent-integrated mode via configuration
 
-The system SHALL operate in one of two modes determined by the `OPENTRATTOS_AGENT_ENABLED` configuration flag. Switching modes SHALL require only configuration change, no code change. Switch SHALL complete in ≤30 minutes.
+The system SHALL operate in one of two modes determined by the `NEXANDRO_AGENT_ENABLED` configuration flag. Switching modes SHALL require only configuration change, no code change. Switch SHALL complete in ≤30 minutes.
 
 #### Scenario: Standalone mode (default)
-- **WHEN** `OPENTRATTOS_AGENT_ENABLED=false`
+- **WHEN** `NEXANDRO_AGENT_ENABLED=false`
 - **THEN** the MCP server is not deployed; UI hides AgentChatWidget; API ignores `X-Via-Agent` headers (no audit fields populated)
 
 #### Scenario: Agent-integrated mode
-- **WHEN** `OPENTRATTOS_AGENT_ENABLED=true`
-- **THEN** the MCP server `opentrattos` is deployed; UI exposes optional AgentChatWidget; API honours `X-Via-Agent` + `X-Agent-Name` headers
+- **WHEN** `NEXANDRO_AGENT_ENABLED=true`
+- **THEN** the MCP server `nexandro` is deployed; UI exposes optional AgentChatWidget; API honours `X-Via-Agent` + `X-Agent-Name` headers
 
 #### Scenario: Switch standalone → agent-integrated
 - **WHEN** an operator changes the flag from `false` to `true` and restarts the stack
 - **THEN** within 30 minutes the MCP server is reachable, the UI surfaces the widget, and the audit middleware populates agent fields
 
-### Requirement: MCP server `opentrattos` exposes Recipes, MenuItems, Ingredients
+### Requirement: MCP server `nexandro` exposes Recipes, MenuItems, Ingredients
 
-The system SHALL expose an MCP-standard server named `opentrattos` that any MCP-compatible client can connect to. Capabilities SHALL include Recipes, MenuItems, Ingredients with their full CRUD parity from the REST API.
+The system SHALL expose an MCP-standard server named `nexandro` that any MCP-compatible client can connect to. Capabilities SHALL include Recipes, MenuItems, Ingredients with their full CRUD parity from the REST API.
 
 #### Scenario: MCP client connects and lists capabilities
-- **WHEN** an MCP client (Hermes, Claude Desktop, custom) connects to the `opentrattos` server
+- **WHEN** an MCP client (Hermes, Claude Desktop, custom) connects to the `nexandro` server
 - **THEN** the server responds with capability descriptors for `recipes.*`, `menu-items.*`, `ingredients.*` including read and write operations
 
 #### Scenario: MCP client invokes a Recipe creation
@@ -81,12 +81,12 @@ The system SHALL enforce zero compile-time dependency from `apps/api/` to agent 
 - **THEN** ESLint reports an error with the rule name `no-import-agent-vendors-from-api`; CI rejects the PR
 
 #### Scenario: MCP package is allowed to import vendor SDK
-- **WHEN** the same import appears in `packages/mcp-server-opentrattos/src/...`
+- **WHEN** the same import appears in `packages/mcp-server-nexandro/src/...`
 - **THEN** ESLint passes; CI accepts (the rule is scoped to `apps/api/` only)
 
 ### Requirement: Dual-mode CI runs standalone and agent-integrated smokes per PR
 
-The system SHALL run two CI smoke pipelines per PR: one with `OPENTRATTOS_AGENT_ENABLED=false` (standalone) and one with `=true` (agent-integrated).
+The system SHALL run two CI smoke pipelines per PR: one with `NEXANDRO_AGENT_ENABLED=false` (standalone) and one with `=true` (agent-integrated).
 
 #### Scenario: Both pipelines pass
 - **WHEN** a PR is opened that touches Recipe / MenuItem / Ingredient code

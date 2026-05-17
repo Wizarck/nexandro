@@ -2,11 +2,11 @@
 
 ### Requirement: Hermes exposes a generic `web_via_http_sse` platform
 
-Hermes SHALL expose a new platform adapter `web_via_http_sse` (file `gateway/platforms/web_via_http_sse.py`) inheriting `BasePlatformAdapter` and following the same shape as `whatsapp_via_mcp_meta_business_api`. The platform SHALL accept `POST {WEB_VIA_HTTP_SSE_PATH}/{session_id}` with body `{message, bank_id, user_attribution, metadata?}` and respond with `text/event-stream` carrying events `token`, `tool-calling`, `proactive`, `done`, `error`. The platform SHALL NOT contain any openTrattOS-specific logic — `bank_id` is supplied by the consumer per request.
+Hermes SHALL expose a new platform adapter `web_via_http_sse` (file `gateway/platforms/web_via_http_sse.py`) inheriting `BasePlatformAdapter` and following the same shape as `whatsapp_via_mcp_meta_business_api`. The platform SHALL accept `POST {WEB_VIA_HTTP_SSE_PATH}/{session_id}` with body `{message, bank_id, user_attribution, metadata?}` and respond with `text/event-stream` carrying events `token`, `tool-calling`, `proactive`, `done`, `error`. The platform SHALL NOT contain any nexandro-specific logic — `bank_id` is supplied by the consumer per request.
 
 #### Scenario: valid request streams agent response
 
-- **WHEN** a consumer POSTs `{message: {type: 'text', content: 'Hola'}, bank_id: 'opentrattos-acme', user_attribution: {user_id: 'u1', display_name: 'Lourdes'}}` with the correct `X-Web-Auth-Secret` header
+- **WHEN** a consumer POSTs `{message: {type: 'text', content: 'Hola'}, bank_id: 'nexandro-acme', user_attribution: {user_id: 'u1', display_name: 'Lourdes'}}` with the correct `X-Web-Auth-Secret` header
 - **THEN** the response is HTTP 200 `text/event-stream` carrying `event: token` chunks for each token of the agent reply, ending with `event: done data: {finishReason: 'stop'}`
 
 #### Scenario: missing or wrong auth secret
@@ -21,7 +21,7 @@ Hermes SHALL expose a new platform adapter `web_via_http_sse` (file `gateway/pla
 
 #### Scenario: bank_id is forwarded into Hindsight cascade
 
-- **WHEN** a request carries `bank_id: 'opentrattos-acme'`
+- **WHEN** a request carries `bank_id: 'nexandro-acme'`
 - **THEN** the agent's Hindsight `recall` calls scope to that bank id; memory writes target that bank id
 
 #### Scenario: tool-calling event surfaces invocation
@@ -36,27 +36,27 @@ Hermes SHALL expose a new platform adapter `web_via_http_sse` (file `gateway/pla
 
 ### Requirement: apps/api exposes `POST /agent-chat/stream` SSE relay
 
-The system SHALL expose `POST /agent-chat/stream` in `apps/api`. The endpoint SHALL be feature-flagged on `OPENTRATTOS_AGENT_ENABLED`: when `false`, the endpoint returns HTTP 404 with no audit emission. When `true`, the endpoint SHALL relay the SSE stream from Hermes' `web_via_http_sse` platform, injecting `bank_id = opentrattos-{tenant_slug}` derived from the authenticated user's organization. The endpoint SHALL audit one `AGENT_ACTION_EXECUTED` row per turn with `agentName='hermes-web'`, `aggregateType='chat_session'`.
+The system SHALL expose `POST /agent-chat/stream` in `apps/api`. The endpoint SHALL be feature-flagged on `NEXANDRO_AGENT_ENABLED`: when `false`, the endpoint returns HTTP 404 with no audit emission. When `true`, the endpoint SHALL relay the SSE stream from Hermes' `web_via_http_sse` platform, injecting `bank_id = nexandro-{tenant_slug}` derived from the authenticated user's organization. The endpoint SHALL audit one `AGENT_ACTION_EXECUTED` row per turn with `agentName='hermes-web'`, `aggregateType='chat_session'`.
 
 #### Scenario: flag-disabled returns 404
 
-- **WHEN** `OPENTRATTOS_AGENT_ENABLED=false` AND a client POSTs `/agent-chat/stream` with valid auth
+- **WHEN** `NEXANDRO_AGENT_ENABLED=false` AND a client POSTs `/agent-chat/stream` with valid auth
 - **THEN** the response is HTTP 404; no audit row is written; the endpoint reveals no detail about the flag's state
 
 #### Scenario: flag-enabled streams Hermes response
 
-- **WHEN** `OPENTRATTOS_AGENT_ENABLED=true` AND a client POSTs `/agent-chat/stream` with `{message: {type: 'text', content: '¿qué dish lleva tomate?'}}`
+- **WHEN** `NEXANDRO_AGENT_ENABLED=true` AND a client POSTs `/agent-chat/stream` with `{message: {type: 'text', content: '¿qué dish lleva tomate?'}}`
 - **THEN** the response is HTTP 200 `text/event-stream` relaying Hermes' `event: token`/`tool-calling`/`done` events 1:1
 
 #### Scenario: bank id derived from organization
 
 - **WHEN** a user from organization "Acme Trattoria" POSTs to the endpoint
-- **THEN** apps/api forwards `bank_id: 'opentrattos-acme-trattoria'` to Hermes; the `bank_id` is NOT exposed in the response
+- **THEN** apps/api forwards `bank_id: 'nexandro-acme-trattoria'` to Hermes; the `bank_id` is NOT exposed in the response
 
 #### Scenario: bank id collision appended with org id hash
 
 - **WHEN** two organizations both slugify to `la-tradicional`
-- **THEN** the second org's bank id resolves to `opentrattos-la-tradicional-{shortHash}` deterministically
+- **THEN** the second org's bank id resolves to `nexandro-la-tradicional-{shortHash}` deterministically
 
 #### Scenario: audit row written per chat turn
 
@@ -133,19 +133,19 @@ The slice SHALL include two INT specs in `apps/api/src/agent-chat/` that guard t
 - **WHEN** an operator runs Storybook
 - **THEN** a `FlagDisabled` story exists for `AgentChatWidget`; it asserts that the component renders nothing
 
-### Requirement: Hindsight bank id pattern is `opentrattos-{tenant_slug}`
+### Requirement: Hindsight bank id pattern is `nexandro-{tenant_slug}`
 
-The slice SHALL reserve the bank id pattern `opentrattos-{tenant_slug}` where `tenant_slug` is `slugify(organization.name)` (lowercase ASCII, dash-separated, ≤32 chars), with collisions resolved by appending a short hash of `organization.id`. There SHALL NOT be per-domain banks (`opentrattos-chef`, `opentrattos-recipes`, etc.) in this slice. Hermes initialises the bank lazily on first message; openTrattOS does NOT pre-provision.
+The slice SHALL reserve the bank id pattern `nexandro-{tenant_slug}` where `tenant_slug` is `slugify(organization.name)` (lowercase ASCII, dash-separated, ≤32 chars), with collisions resolved by appending a short hash of `organization.id`. There SHALL NOT be per-domain banks (`nexandro-chef`, `nexandro-recipes`, etc.) in this slice. Hermes initialises the bank lazily on first message; nexandro does NOT pre-provision.
 
 #### Scenario: tenant_slug derives from organization name
 
 - **WHEN** an organization is named "La Tradicional"
-- **THEN** the bank id resolves to `opentrattos-la-tradicional`
+- **THEN** the bank id resolves to `nexandro-la-tradicional`
 
 #### Scenario: collision handling
 
 - **WHEN** two organizations both have name "La Tradicional"
-- **THEN** the second org's bank id appends an 8-char hex hash of `organization.id`: `opentrattos-la-tradicional-{shortHash}`; resolution is deterministic
+- **THEN** the second org's bank id appends an 8-char hex hash of `organization.id`: `nexandro-la-tradicional-{shortHash}`; resolution is deterministic
 
 #### Scenario: bank not pre-provisioned
 

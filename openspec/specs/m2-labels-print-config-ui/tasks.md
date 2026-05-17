@@ -49,12 +49,12 @@
 ## Stage 5 — Cross-cutting + verification
 
 - [ ] grep `RoleGuard` to confirm only used in expected places.
-- [ ] `npm run build --workspace=@opentrattos/ui-kit` clean.
+- [ ] `npm run build --workspace=@nexandro/ui-kit` clean.
 - [ ] `npm run build --workspace=apps/web` clean.
-- [ ] `npm test --workspace=@opentrattos/ui-kit` green (current 166 → ≥175).
+- [ ] `npm test --workspace=@nexandro/ui-kit` green (current 166 → ≥175).
 - [ ] `npm test --workspace=apps/web` green.
 - [ ] `npm run lint` passes across workspaces.
-- [ ] `npm run storybook:build --workspace=@opentrattos/ui-kit` clean.
+- [ ] `npm run storybook:build --workspace=@nexandro/ui-kit` clean.
 
 ## Stage 6 — PR + Gate F
 

@@ -86,27 +86,27 @@ describe('RollupSchedulerService', () => {
   let originalFlag: string | undefined;
 
   beforeEach(() => {
-    originalFlag = process.env.OPENTRATTOS_AI_BUDGET_SCHEDULER_ENABLED;
+    originalFlag = process.env.NEXANDRO_AI_BUDGET_SCHEDULER_ENABLED;
   });
 
   afterEach(() => {
     if (originalFlag === undefined) {
-      delete process.env.OPENTRATTOS_AI_BUDGET_SCHEDULER_ENABLED;
+      delete process.env.NEXANDRO_AI_BUDGET_SCHEDULER_ENABLED;
     } else {
-      process.env.OPENTRATTOS_AI_BUDGET_SCHEDULER_ENABLED = originalFlag;
+      process.env.NEXANDRO_AI_BUDGET_SCHEDULER_ENABLED = originalFlag;
     }
   });
 
   describe('env-flag gate', () => {
     it('runTick is a no-op when env flag is not "true"', async () => {
-      delete process.env.OPENTRATTOS_AI_BUDGET_SCHEDULER_ENABLED;
+      delete process.env.NEXANDRO_AI_BUDGET_SCHEDULER_ENABLED;
       const { svc, mocks } = build();
       await svc.runTick();
       expect(mocks.aggregator.listActiveOrgs).not.toHaveBeenCalled();
     });
 
     it('runTick is a no-op when env flag is "false"', async () => {
-      process.env.OPENTRATTOS_AI_BUDGET_SCHEDULER_ENABLED = 'false';
+      process.env.NEXANDRO_AI_BUDGET_SCHEDULER_ENABLED = 'false';
       const { svc, mocks } = build();
       await svc.runTick();
       expect(mocks.aggregator.listActiveOrgs).not.toHaveBeenCalled();
@@ -115,7 +115,7 @@ describe('RollupSchedulerService', () => {
 
   describe('per-org pipeline', () => {
     beforeEach(() => {
-      process.env.OPENTRATTOS_AI_BUDGET_SCHEDULER_ENABLED = 'true';
+      process.env.NEXANDRO_AI_BUDGET_SCHEDULER_ENABLED = 'true';
     });
 
     it('NULL budget short-circuits tier evaluation', async () => {

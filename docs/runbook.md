@@ -1,6 +1,6 @@
-# openTrattOS — Runbook
+# nexandro — Runbook
 
-> **What this is.** Thin project-specific guide. The universal runbook lives at `.ai-playbook/` (T11 will finalize the BMAD+OpenSpec reference). Add only what is **openTrattOS-specific** here.
+> **What this is.** Thin project-specific guide. The universal runbook lives at `.ai-playbook/` (T11 will finalize the BMAD+OpenSpec reference). Add only what is **nexandro-specific** here.
 
 ## Flow (BMAD + OpenSpec)
 
@@ -43,7 +43,7 @@ Verdicts: `✅ APPROVED | ⚠️ ISSUES FOUND (iter N) | ❓ CLARIFICATION NEEDE
 
 Block state: `blocked-by-spec` when QA emits `❓ CLARIFICATION` or `openspec validate` fails. **Never** implement despite a block.
 
-## openTrattOS-specific deviations
+## nexandro-specific deviations
 
 - **TDD selectivity.** Per layer, per ADR. See `AGENTS.md` §4.
 - **Dual repo.** Community PRs via GitHub Issues; enterprise work never lands here.

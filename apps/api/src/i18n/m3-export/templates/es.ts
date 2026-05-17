@@ -70,5 +70,5 @@ export const ES_TEMPLATE: Readonly<Record<string, string>> = Object.freeze({
     'Sin acciones correctivas registradas en este rango.',
   'footer.page': 'Página {page} de {total}',
   'footer.legal':
-    'Documento generado por openTrattOS · trazable por audit_log',
+    'Documento generado por nexandro · trazable por audit_log',
 });

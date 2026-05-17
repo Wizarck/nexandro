@@ -68,9 +68,9 @@ export class SendGridEmailAdapter implements EmailDispatchService {
   }
 
   static fromEnv(env: NodeJS.ProcessEnv = process.env): SendGridEmailAdapter {
-    const apiKey = env.OPENTRATTOS_SENDGRID_API_KEY ?? '';
+    const apiKey = env.NEXANDRO_SENDGRID_API_KEY ?? '';
     const from =
-      env.OPENTRATTOS_EMAIL_FROM ?? 'notifications@opentrattos.local';
+      env.NEXANDRO_EMAIL_FROM ?? 'notifications@nexandro.local';
     return new SendGridEmailAdapter({ apiKey, from });
   }
 
@@ -141,8 +141,8 @@ export class SendGridEmailAdapter implements EmailDispatchService {
         disposition: 'attachment',
       })),
       customArgs: {
-        'opentrattos-tag': input.tag,
-        'opentrattos-organization-id': input.organizationId,
+        'nexandro-tag': input.tag,
+        'nexandro-organization-id': input.organizationId,
       },
     } as unknown as MailDataRequired;
 

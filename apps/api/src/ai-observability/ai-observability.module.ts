@@ -15,7 +15,7 @@ import { SpanEnricherInterceptor } from './span-enricher.interceptor';
  * Exports:
  *  - `OtelService` — `gen_ai.*` span helpers.
  *  - `SpanEnricherInterceptor` — registered as a global APP_INTERCEPTOR
- *    so EVERY M2 + M3 AI capability emits an `opentrattos.tag`-annotated
+ *    so EVERY M2 + M3 AI capability emits an `nexandro.tag`-annotated
  *    span without per-controller wiring.
  *  - `SharedVisionLlmModule` (re-exported) — `VISION_LLM_PROVIDER` DI
  *    token + factory consumed by slice #17a (`m3-photo-ingest-backend`).

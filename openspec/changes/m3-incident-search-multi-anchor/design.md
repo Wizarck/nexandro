@@ -148,7 +148,7 @@ Migration 0035 SHALL create the following indexes:
 
 The `IncidentSearchHit` type SHALL be declared inline in `apps/api/src/recall/types.ts` (the apps/api source of truth) AND re-declared locally in `apps/web/src/api/recall.ts`. There is NO `packages/contracts` import.
 
-**Rationale**: Wave 2.1+ hard constraint (TS6059 rootDir; project rebuild semantics inside the monorepo). Past slices have burned on `import { ... } from '@opentrattos/contracts'` in `apps/api/` — the cost of duplication is one ~15-line interface in two files; the cost of the rootDir error cascade is hours of CI fix rounds.
+**Rationale**: Wave 2.1+ hard constraint (TS6059 rootDir; project rebuild semantics inside the monorepo). Past slices have burned on `import { ... } from '@nexandro/contracts'` in `apps/api/` — the cost of duplication is one ~15-line interface in two files; the cost of the rootDir error cascade is hours of CI fix rounds.
 
 **Synchronisation contract**: the two files declare identical fields and types. A `// SYNC` comment in each cites the other. A followup INT spec that asserts shape parity is filed in tasks.md §Deferred.
 
@@ -193,7 +193,7 @@ The MCP server SHALL register a `recall.search-incident` capability that proxies
 
 ## Open Questions
 
-- **MCP capability kill-switch env flag**: should `recall.search-incident` ship with `OPENTRATTOS_AGENT_RECALL_SEARCH_INCIDENT_ENABLED` even as read-only? **Proposed answer**: no. Read-only capabilities (`ingredients.search`, `recipes.search`) do NOT ship kill-switches in M2; the pattern is for mutations. M3.x rate-limit per-agent will introduce per-cap throttling; that's the right hook, not a binary flag.
+- **MCP capability kill-switch env flag**: should `recall.search-incident` ship with `NEXANDRO_AGENT_RECALL_SEARCH_INCIDENT_ENABLED` even as read-only? **Proposed answer**: no. Read-only capabilities (`ingredients.search`, `recipes.search`) do NOT ship kill-switches in M2; the pattern is for mutations. M3.x rate-limit per-agent will introduce per-cap throttling; that's the right hook, not a binary flag.
 - **8-result cap configurability**: should orgs configure a higher limit? **Proposed answer**: no for MVP. The 8 cap is a UX invariant (j6.md mandates no-scroll). M3.x telemetry will surface orgs that consistently hit the cap; the operator can then refine the query (which is the design intent).
 - **`payload_after->>'symptom'` not yet emitted**: should this slice add a `LOT_FLAGGED` emitter so the symptom-match path has anything to bind to? **Proposed answer**: no. The slice ships the SCORE primitive against a hypothetical field. The first emitter is slice #13's manual-flag dispatch path. Until then, `symptomMatchScore = 0` for every hit and ranking falls back to recency, which is the desired MVP behaviour.
 - **`receivedAt` for non-temporal hits** (suppliers, ingredients): how do they rank against lot hits? **Proposed answer**: `receivedAt = null` ranks last (NULLS LAST in the JS sort). Supplier / ingredient hits show up at the bottom of the list as discovery aides; the lot hits dominate because the operator's anchor is almost always a lot.
