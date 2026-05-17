@@ -65,9 +65,24 @@ async function run(): Promise<void> {
         console.log(`seed-demo: user ${DEMO_OWNER_USER_ID} already exists`);
       }
 
-      // 3. Default category taxonomy (idempotent — repository helper handles dups).
-      const seeded = await seedDefaultCategories(em, DEMO_ORG_ID, { actorUserId: DEMO_OWNER_USER_ID });
-      console.log(`seed-demo: seeded ${seeded} default categories`);
+      // 3. Default category taxonomy. seedDefaultCategories itself is NOT
+      // idempotent — it blindly INSERTs and hits uq_categories_org_parent_name
+      // on re-run. Gate it on "no rows for this org yet" so re-running seed-demo
+      // after the first successful boot is a no-op.
+      const existingCategoryCount: number = await em
+        .createQueryBuilder()
+        .select('COUNT(*)', 'count')
+        .from('categories', 'c')
+        .where('c.organization_id = :orgId', { orgId: DEMO_ORG_ID })
+        .getRawOne<{ count: string }>()
+        .then((r) => (r ? Number(r.count) : 0));
+
+      if (existingCategoryCount === 0) {
+        const seeded = await seedDefaultCategories(em, DEMO_ORG_ID, { actorUserId: DEMO_OWNER_USER_ID });
+        console.log(`seed-demo: seeded ${seeded} default categories`);
+      } else {
+        console.log(`seed-demo: ${existingCategoryCount} categories already exist — skipping taxonomy seed`);
+      }
     });
   } finally {
     await dataSource.destroy();
