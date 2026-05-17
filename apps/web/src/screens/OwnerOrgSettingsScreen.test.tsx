@@ -106,7 +106,7 @@ describe('OwnerOrgSettingsScreen', () => {
     fireEvent.change(screen.getByLabelText('Nombre del negocio'), {
       target: { value: 'New' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+    fireEvent.click(screen.getByRole('button', { name: /Guardar cambios/ }));
 
     await waitFor(() => {
       const putCall = fetchMock.mock.calls.find(
