@@ -86,6 +86,53 @@ export function RecipeBuilderJ1Screen() {
         canonical Recipe Builder ships with <code>#5 m2-ingredients-extension</code>.
       </div>
 
+      {/* Sprint 4 W4 (J5) — WhatsApp ingest discoverability banner.
+          End-to-end integration requires external Meta WhatsApp Business
+          API setup; see docs/sprint4-j5-whatsapp-assessment.md. The banner
+          is honest about the "no configurada" default: when the
+          operator wires Meta the backend webhook starts accepting
+          messages but the recipe-draft surface (M2.x) is not yet built.
+          Per j5.md §M2 must keep open — discoverability now so we don't
+          surprise operators with a hidden feature later. */}
+      <aside
+        className="rounded-md border border-border-subtle bg-surface px-4 py-3 text-sm text-ink"
+        role="note"
+        aria-label="WhatsApp integration discoverability"
+      >
+        <p className="font-medium">
+          <span aria-hidden="true">🟢 </span>
+          Próximamente: crea recetas por WhatsApp
+        </p>
+        <p className="mt-1 text-xs text-mute">
+          Diseño en{' '}
+          <a
+            href="https://github.com/Wizarck/nexandro/blob/master/docs/ux/j5.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-ink focus:outline-none focus:ring-2 focus:ring-(--color-focus)"
+          >
+            docs/ux/j5.md
+          </a>
+          . Necesita configuración Meta WhatsApp Business —{' '}
+          <a
+            href="https://github.com/Wizarck/nexandro/blob/master/docs/sprint4-j5-whatsapp-assessment.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-ink focus:outline-none focus:ring-2 focus:ring-(--color-focus)"
+          >
+            instrucciones operador
+          </a>
+          . Tras configurar, revisa el estado en{' '}
+          <a
+            href="/owner-settings/ia"
+            className="underline hover:text-ink focus:outline-none focus:ring-2 focus:ring-(--color-focus)"
+          >
+            Configuración → IA
+          </a>
+          .
+        </p>
+      </aside>
+
       <header>
         <h1 className="text-2xl font-semibold text-ink">Recipe Builder (J1)</h1>
         <p className="text-sm text-mute">

@@ -115,6 +115,21 @@ describe('OwnerAgentCredentialsSection', () => {
     expect(screen.getAllByText(/BYO key/).length).toBeGreaterThanOrEqual(1);
   });
 
+  it('renders the WhatsApp integration card with the honest "no configurada" badge', async () => {
+    // Sprint 4 W4 (J5) — the card is discoverability-only; backend webhook
+    // is wired but end-to-end requires Meta Business API setup. This test
+    // asserts the operator-visible scope-honesty copy.
+    setupRouter([
+      { match: (u) => u.endsWith(AGENTS_PATH), response: jsonResponse([]) },
+      { match: (u) => u.endsWith(LLM_STATUS_PATH), response: jsonResponse(noKeyStatus) },
+    ]);
+    renderSurface();
+    await waitFor(() => screen.getByLabelText(/Integración WhatsApp/i));
+    expect(screen.getByText(/no configurada/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Meta Business/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/Ver runbook de configuración/i)).toBeInTheDocument();
+  });
+
   it('surfaces an agents-list load error as a role=alert', async () => {
     setupRouter([
       { match: (u) => u.endsWith(AGENTS_PATH), response: new Response('boom', { status: 500 }) },

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Eye, EyeOff, KeyRound, ShieldCheck, Trash2 } from 'lucide-react';
+import { Eye, EyeOff, KeyRound, MessageCircle, ShieldCheck, Trash2 } from 'lucide-react';
 import {
   useAgentCredentialsQuery,
   useCreateAgentCredentialMutation,
@@ -44,7 +44,91 @@ export function OwnerAgentCredentialsSection() {
 
       <AgentsCard />
       <LlmProviderCard />
+      <WhatsappIntegrationCard />
     </section>
+  );
+}
+
+// ============================================================================
+// Card 3 — WhatsApp integration (Sprint 4 W4, skeleton-only)
+// ============================================================================
+//
+// Honest discoverability card for the j5.md WhatsApp recipe-creation
+// flow. The backend webhook + persistence ship in this PR; the
+// end-to-end flow requires Meta WhatsApp Business API setup (account,
+// app review, phone-number registration, secret + token generation)
+// which the operator must do outside nexandro. Status reads env-derived
+// hints via the BFF (deferred to a follow-up backend endpoint); for
+// Sprint 4 W4 we surface the static "no configurada" state pointing at
+// the assessment doc.
+
+function WhatsappIntegrationCard() {
+  return (
+    <article className="rounded-lg border border-border-subtle p-5" aria-label="Integración WhatsApp">
+      <header className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-base font-semibold text-ink">
+            <MessageCircle aria-hidden="true" size={14} className="mr-1 inline" />
+            Integración WhatsApp
+          </h3>
+          <p className="mt-1 text-xs text-mute">
+            Permite a tu jefe de cocina enviar mensajes al número de tu organización
+            («Risotto de setas, 400g champiñones…») y crear borradores de receta sin
+            abrir la tablet. Diseño en{' '}
+            <a
+              href="https://github.com/Wizarck/nexandro/blob/master/docs/ux/j5.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-ink focus:outline-none focus:ring-2 focus:ring-(--color-focus)"
+            >
+              docs/ux/j5.md
+            </a>
+            .
+          </p>
+        </div>
+        <span
+          className="inline-flex items-center rounded-full border border-border-strong px-2 py-0.5 text-xs font-medium text-mute"
+          title="Estado: requiere configuración externa de Meta Business"
+        >
+          no configurada
+        </span>
+      </header>
+
+      <div className="mt-4 space-y-3 text-sm text-ink">
+        <p>
+          La integración requiere configuración externa en Meta Business que <strong>no</strong> se puede
+          automatizar desde nexandro:
+        </p>
+        <ul className="list-disc pl-5 text-xs text-mute space-y-1">
+          <li>Cuenta Meta Business + app WhatsApp Business API (revisión por Meta, 1-5 días)</li>
+          <li>Número de teléfono registrado y verificado (SMS o llamada)</li>
+          <li>URL de webhook con HTTPS válido (nexandro.palafitofood.com sirve)</li>
+          <li>Verify token + App secret + Access token (variables de entorno en tu deploy)</li>
+        </ul>
+        <p className="text-xs text-mute">
+          <strong>Coste estimado</strong>: ~€0,01–0,05 por conversación según país (Meta cobra
+          por «conversación de 24h», no por mensaje).
+        </p>
+        <div className="flex flex-wrap gap-2 pt-2">
+          <a
+            href="https://github.com/Wizarck/nexandro/blob/master/docs/sprint4-j5-whatsapp-assessment.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 rounded-md border border-border-strong bg-transparent px-3 py-1.5 text-sm font-medium text-mute transition hover:bg-(--color-bg) focus:outline-none focus:ring-2 focus:ring-(--color-focus)"
+          >
+            Ver runbook de configuración
+          </a>
+          <a
+            href="https://developers.facebook.com/docs/whatsapp/cloud-api/get-started"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 rounded-md border border-border-strong bg-transparent px-3 py-1.5 text-sm font-medium text-mute transition hover:bg-(--color-bg) focus:outline-none focus:ring-2 focus:ring-(--color-focus)"
+          >
+            Docs Meta WhatsApp Cloud API
+          </a>
+        </div>
+      </div>
+    </article>
   );
 }
 
