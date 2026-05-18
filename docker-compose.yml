@@ -49,8 +49,17 @@ services:
       PHOTO_STORAGE_ENABLED: "false"
       M3_PO_AGGREGATE_ENABLED: "false"
       NEXANDRO_AGENT_ENABLED: "false"
+      # Brand-mark uploads land here by default. The S3 adapter is opt-in
+      # via NEXANDRO_BRAND_ASSET_STORAGE=s3 plus the matching S3_* env vars
+      # (see apps/api/src/brand-assets/brand-assets.module.ts).
+      NEXANDRO_BRAND_ASSET_STORAGE: "${NEXANDRO_BRAND_ASSET_STORAGE:-local}"
+      NEXANDRO_BRAND_ASSET_LOCAL_DIR: "/var/lib/nexandro/brand-marks"
+      NEXANDRO_BRAND_ASSET_PUBLIC_URL_BASE: "/static/brand-marks"
     ports:
       - "0.0.0.0:3000:3001"
+    volumes:
+      - nexandro_brand_marks:/var/lib/nexandro/brand-marks
 
 volumes:
   nexandro_pgdata:
+  nexandro_brand_marks:

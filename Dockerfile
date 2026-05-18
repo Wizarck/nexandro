@@ -89,8 +89,11 @@ COPY --from=build /workspace/packages/label-renderer/package.json ./packages/lab
 COPY --from=build /workspace/apps/web/dist ./web/dist
 
 # Make the migrate-and-start script executable + drop to non-root.
+# Pre-create the brand-marks volume mount point with `node` ownership so the
+# first `LocalFsBrandAssetStorage.put()` doesn't EACCES against root-owned dirs.
 RUN chmod +x ./api/scripts/migrate-and-start.sh \
- && chown -R node:node /app
+ && mkdir -p /var/lib/nexandro/brand-marks \
+ && chown -R node:node /app /var/lib/nexandro
 
 USER node
 
