@@ -83,6 +83,8 @@ export {
   MAX_BRAND_BYTES,
 } from './components/BrandMarkPicker';
 export type { BrandMarkPickerProps } from './components/BrandMarkPicker';
+export { KpiHeader } from './components/KpiHeader';
+export type { KpiCard, KpiHeaderProps } from './components/KpiHeader';
 export { AuditLogTable } from './components/AuditLogTable';
 export type { AuditLogRow, AuditLogTableProps } from './components/AuditLogTable';
 export { AuditLogRowDetail } from './components/AuditLogRowDetail';

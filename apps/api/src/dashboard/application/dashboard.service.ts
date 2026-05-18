@@ -15,6 +15,27 @@ export interface DashboardMenuItem {
   margin: MarginReport;
 }
 
+export interface KpiMoney {
+  valueEur: number | null;
+  note?: string;
+}
+
+export interface KpiPct {
+  value: number | null;
+}
+
+export interface KpisResult {
+  organizationId: string;
+  windowDays: number;
+  hasMenuItems: boolean;
+  sales: KpiMoney;
+  cost: KpiMoney;
+  marginEur: KpiMoney;
+  marginPct: KpiPct;
+  /** Reserved for week-over-week comparison; null until margin time-series ships. */
+  deltaVsPrev: null;
+}
+
 export interface RankingResult {
   organizationId: string;
   windowDays: number;
@@ -137,6 +158,85 @@ export class DashboardService {
   /** Test helper — flush all cache entries (e.g., between unit tests). */
   flushCache(): void {
     this.cache.clear();
+  }
+
+  /**
+   * KPI snapshot for the Owner Sunday-night header strip (audit 2026-05-18
+   * L1-8). Aggregates per-MenuItem margins into 4 cards:
+   *   - sales   : null today (no POS integration yet)
+   *   - cost    : sum of plate-level costs across all active MenuItems
+   *   - margin€ : sum of margins across MenuItems with known margins
+   *   - margin% : weighted by sales price; fallback to mean when prices missing
+   *
+   * "Honest stub" approach per ADR-NULL-BUDGET-UNLIMITED precedent: when
+   * the underlying data isn't there, return `null` + a `note` so the UI can
+   * render "Pendiente · integrar POS" instead of a fake number.
+   */
+  async getKpis(
+    organizationId: string,
+    windowDays = 7,
+  ): Promise<KpisResult> {
+    const views = await this.menuItems.findAll(organizationId, { isActive: true });
+    if (views.length === 0) {
+      return {
+        organizationId,
+        windowDays,
+        hasMenuItems: false,
+        sales: { valueEur: null, note: 'Aún no hay platos activos. Crea platos para ver KPIs.' },
+        cost: { valueEur: 0 },
+        marginEur: { valueEur: null, note: 'Disponible cuando haya platos con margen calculado.' },
+        marginPct: { value: null },
+        deltaVsPrev: null,
+      };
+    }
+
+    let totalCost = 0;
+    let totalMargin = 0;
+    let totalSales = 0;
+    let knownMarginCount = 0;
+    let salesKnown = true;
+
+    for (const view of views) {
+      const margin = await this.menuItems.getMargin(organizationId, view.menuItem.id);
+      if (margin.cost !== null) {
+        totalCost += margin.cost;
+      }
+      if (margin.marginAbsolute !== null) {
+        totalMargin += margin.marginAbsolute;
+        knownMarginCount++;
+      }
+      // sellingPrice is non-nullable on the entity; if 0 we treat as "not configured".
+      if (margin.sellingPrice > 0) {
+        totalSales += margin.sellingPrice;
+      } else {
+        salesKnown = false;
+      }
+    }
+
+    // Without POS we have at most "potential" sales (sum of prices × 1 plate).
+    // Be honest: surface "potencial" rather than imply real sales.
+    return {
+      organizationId,
+      windowDays,
+      hasMenuItems: true,
+      sales: salesKnown
+        ? {
+            valueEur: totalSales,
+            note: 'Potencial · suma de precios de venta de platos activos (sin POS integrado).',
+          }
+        : { valueEur: null, note: 'Configura precios de venta para calcular ventas potenciales.' },
+      cost: { valueEur: Math.round(totalCost * 100) / 100 },
+      marginEur:
+        knownMarginCount > 0
+          ? { valueEur: Math.round(totalMargin * 100) / 100 }
+          : { valueEur: null, note: 'Disponible cuando haya platos con margen calculado.' },
+      marginPct:
+        knownMarginCount > 0 && totalSales > 0
+          ? { value: Math.round((totalMargin / totalSales) * 1000) / 10 }
+          : { value: null },
+      // Period-over-period delta deferred until we persist a margin time-series.
+      deltaVsPrev: null,
+    };
   }
 
   private cacheKey(

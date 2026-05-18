@@ -12,6 +12,7 @@ import { Roles } from '../../shared/decorators/roles.decorator';
 import {
   DashboardService,
   RankingDirection,
+  type KpisResult,
 } from '../application/dashboard.service';
 import { RankingResultDto } from './dto/dashboard.dto';
 
@@ -60,5 +61,25 @@ export class DashboardController {
       n,
     );
     return RankingResultDto.from(result);
+  }
+
+  @Get('kpis')
+  @Roles('OWNER', 'MANAGER')
+  @ApiOperation({
+    summary: 'KPI header for the Owner dashboard (ventas potenciales · coste · margen · margen %)',
+    description:
+      'Audit 2026-05-18 L1-8. Sales is honest-stub (POS not integrated) — returns potencial = sum of active MenuItem sellingPrices, OR null with a note. Cost / margen / margen % computed live from CostService.',
+  })
+  async getKpis(
+    @Query('organizationId', new ParseUUIDPipe({ version: '4' })) organizationId: string,
+    @Query('windowDays', new DefaultValuePipe(7), new ParseIntPipe()) windowDays: number,
+  ): Promise<KpisResult> {
+    if (windowDays < 1 || windowDays > 365) {
+      throw new BadRequestException({
+        code: 'DASHBOARD_INVALID_WINDOW',
+        detail: 'windowDays must be between 1 and 365',
+      });
+    }
+    return this.dashboard.getKpis(organizationId, windowDays);
   }
 }

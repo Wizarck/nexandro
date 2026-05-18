@@ -1,5 +1,11 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MenuItemRanker, type DashboardMenuItem } from '@nexandro/ui-kit';
+import {
+  KpiHeader,
+  MenuItemRanker,
+  type DashboardMenuItem,
+  type KpiCard,
+} from '@nexandro/ui-kit';
+import { useDashboardKpis } from '../hooks/useDashboardKpis';
 import { useDashboardMenuItems } from '../hooks/useDashboardMenuItems';
 
 /**
@@ -20,8 +26,43 @@ export function OwnerDashboardScreen() {
 
   const top = useDashboardMenuItems(orgId, 'top', 7);
   const bottom = useDashboardMenuItems(orgId, 'bottom', 7);
+  const kpis = useDashboardKpis(orgId, 7);
 
   const loading = top.isLoading || bottom.isLoading;
+
+  // Audit 2026-05-18 L1-8: 4 KPI cards above the ranker. "Sales" honest-
+  // stubbed (no POS integration today); backend returns null + a `note`
+  // when the underlying data isn't there. Render shape stays stable.
+  const k = kpis.data;
+  const kpiCards: KpiCard[] = [
+    {
+      label: 'Ventas potenciales · 7d',
+      value: k?.sales.valueEur ?? null,
+      kind: 'eur',
+      note: k?.sales.note,
+      hint: 'Suma de precios de venta de los platos activos. Cuando integremos POS, mostraremos ventas reales.',
+    },
+    {
+      label: 'Coste · 7d',
+      value: k?.cost.valueEur ?? null,
+      kind: 'eur',
+      note: k?.cost.note,
+      hint: 'Coste agregado por plato (vía CostService + lotes consumidos).',
+    },
+    {
+      label: 'Margen · 7d',
+      value: k?.marginEur.valueEur ?? null,
+      kind: 'eur',
+      note: k?.marginEur.note,
+      hint: 'Margen absoluto: precio de venta − coste, por plato activo.',
+    },
+    {
+      label: '% margen',
+      value: k?.marginPct.value ?? null,
+      kind: 'percent',
+      hint: 'Margen sobre ventas potenciales.',
+    },
+  ];
 
   function onViewDetails(item: DashboardMenuItem) {
     navigate(`/poc/cost-investigation-j2?recipeId=${item.recipeId}`);
@@ -48,6 +89,8 @@ export function OwnerDashboardScreen() {
           Error: {((top.error ?? bottom.error) as Error).message}
         </p>
       )}
+
+      <KpiHeader cards={kpiCards} loading={kpis.isLoading && !kpis.data} />
 
       <MenuItemRanker
         top={top.data?.items ?? []}
