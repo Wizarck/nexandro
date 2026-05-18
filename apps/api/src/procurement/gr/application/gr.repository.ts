@@ -65,6 +65,46 @@ export class GoodsReceiptRepository {
     });
   }
 
+  /**
+   * Sprint 4 W3-9 — most-recent GRs filtered by location + state. Both
+   * filters are optional; omit either to broaden the result set.
+   * `locationIds` translates to a parameterised `IN (...)`. The
+   * existing `idx_gr_org_received` covers the org+receivedAt
+   * cardinality; the planner can drive further on the
+   * `received_at_location_id` filter when callers narrow.
+   */
+  async findRecentFiltered(
+    organizationId: string,
+    limit: number,
+    offset: number,
+    filters: {
+      locationIds?: string[];
+      state?: GoodsReceiptState;
+    } = {},
+  ): Promise<GoodsReceipt[]> {
+    // Short-circuit the explicit empty multi-select (callers should not
+    // round-trip with `locationIds=[]` but the contract stays safe).
+    if (filters.locationIds && filters.locationIds.length === 0) {
+      return [];
+    }
+    const qb = this.typeormRepo
+      .createQueryBuilder('gr')
+      .where('gr.organization_id = :organizationId', { organizationId });
+    if (filters.locationIds && filters.locationIds.length > 0) {
+      qb.andWhere('gr.received_at_location_id IN (:...locationIds)', {
+        locationIds: filters.locationIds,
+      });
+    }
+    if (filters.state !== undefined) {
+      qb.andWhere('gr.state = :state', { state: filters.state });
+    }
+    return qb
+      .orderBy('gr.received_at', 'DESC')
+      .take(limit)
+      .skip(offset)
+      .getMany();
+  }
+
   /** All GRs for a PO (drill-down). Uses partial `idx_gr_org_po`. */
   async findByPoId(
     organizationId: string,

@@ -178,11 +178,84 @@ export interface GrListResponse {
   total: number;
 }
 
+/**
+ * UI-facing filter state for the j11 Recepciones tab (Sprint 4 W3-9).
+ *
+ * `locationIds` is a multi-select; the API serialises as
+ * comma-separated UUIDs. `state` mirrors the j11 §5 visual chips
+ * (pendiente / confirmada / parcial / rechazada) — the backend maps
+ * them to the domain `GoodsReceiptState` enum
+ * (draft / confirmed / cancelled / — `parcial` is reserved for a
+ * future domain state and currently returns the empty list).
+ *
+ * `pendingOnly` is a fast-path equivalent to `state=pendiente` that
+ * the dock workflow defaults to so a freshly opened tablet lands on
+ * "what's waiting to be received" without a second round-trip.
+ */
+export type GrUiState =
+  | 'pendiente'
+  | 'confirmada'
+  | 'parcial'
+  | 'rechazada';
+
+export interface GrListFilters {
+  locationIds?: string[];
+  state?: GrUiState;
+  pendingOnly?: boolean;
+}
+
 export async function getGoodsReceipts(
   organizationId: string,
+  filters: GrListFilters = {},
 ): Promise<GrListResponse> {
-  const qs = new URLSearchParams({ organizationId }).toString();
-  return api<GrListResponse>(`/m3/procurement/gr?${qs}`);
+  const params = new URLSearchParams({ organizationId });
+  if (filters.locationIds && filters.locationIds.length > 0) {
+    params.set('locationIds', filters.locationIds.join(','));
+  }
+  if (filters.state) {
+    params.set('state', filters.state);
+  }
+  if (filters.pendingOnly) {
+    params.set('pendingOnly', 'true');
+  }
+  return api<GrListResponse>(`/m3/procurement/gr?${params.toString()}`);
+}
+
+/**
+ * Sprint 4 W3-3 — bulk-confirm `pendientes` GRs that match the j11
+ * BULK_CONFIRM_PREDICATE (docs/ux/j11.md §Notes-for-implementation).
+ *
+ * Backend status: NOT yet wired end-to-end. The
+ * `GrConfirmationService.confirm()` seam takes a full `CreateGrInput`
+ * (header + lines) — it cannot transition an existing draft GR by id
+ * alone. Both per-line confirm AND bulk-confirm endpoints are
+ * followup-tracked (see the matching FOLLOWUP comment in
+ * gr.controller.ts). The frontend ships the CTA in a `disabled`
+ * state with an explicit tooltip so dock operators know the
+ * affordance exists and is wired-pending; the click path renders a
+ * confirmation modal that surfaces the same "pendiente de wiring"
+ * banner so review can sign off on copy + interaction shape today.
+ */
+export interface BulkConfirmGrPayload {
+  grIds: string[];
+}
+
+export interface BulkConfirmGrResponse {
+  confirmed: string[];
+  skipped: Array<{ grId: string; reason: string }>;
+}
+
+export async function bulkConfirmGoodsReceipts(
+  organizationId: string,
+  payload: BulkConfirmGrPayload,
+): Promise<BulkConfirmGrResponse> {
+  return api<BulkConfirmGrResponse>(`/m3/procurement/gr/bulk-confirm`, {
+    method: 'POST',
+    body: JSON.stringify({
+      organizationId,
+      grIds: payload.grIds,
+    }),
+  });
 }
 
 export type ReconciliationDiscrepancyType =

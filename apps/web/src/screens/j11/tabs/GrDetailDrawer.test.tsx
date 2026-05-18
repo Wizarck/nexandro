@@ -301,4 +301,40 @@ describe('GrDetailDrawer (Sprint 4 W3-2 — j11 dock UX)', () => {
     fireEvent.keyDown(row, { key: 'Enter' });
     expect(await screen.findByTestId('gr-detail-drawer')).toBeInTheDocument();
   });
+
+  it('W3-8: footer surfaces audit chip with AL-YYYY-NNNNNN + chain link', async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse({
+          items: [
+            makeListItem({ id: 'abcdef01-2345-6789-abcd-ef0123456789' }),
+          ],
+          total: 1,
+        }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse(
+          makeDetail({ id: 'abcdef01-2345-6789-abcd-ef0123456789' }),
+        ),
+      );
+
+    renderScreen();
+
+    fireEvent.click(await screen.findByTestId('gr-row'));
+    await screen.findByTestId('gr-detail-drawer');
+
+    const chip = await screen.findByTestId('gr-detail-audit-chip');
+    expect(chip.textContent).toContain('audit_log');
+    // Tail of the uuid (last 6 hex chars uppercased) becomes the
+    // human-readable AL short id slot until the canonical
+    // AL-YYYY-NNNNNN is denormalised onto the GR detail payload.
+    expect(chip.textContent).toContain('456789');
+
+    const link = await screen.findByTestId('gr-detail-audit-chip-link');
+    expect(link).toHaveAttribute(
+      'href',
+      '/audit-log?aggregate_id=abcdef01-2345-6789-abcd-ef0123456789',
+    );
+    expect(link.textContent).toContain('ver chain');
+  });
 });

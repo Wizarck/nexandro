@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '../api/client';
 import {
+  bulkConfirmGoodsReceipts,
   cancelPurchaseOrder,
   closePurchaseOrder,
   confirmGoodsReceiptLine,
@@ -11,9 +12,12 @@ import {
   getPurchaseOrders,
   getReconciliations,
   resolveReconciliation,
+  type BulkConfirmGrPayload,
+  type BulkConfirmGrResponse,
   type ConfirmGrLineInput,
   type CreatePoPayload,
   type GrDetail,
+  type GrListFilters,
   type GrListResponse,
   type PoDetail,
   type PoListFilters,
@@ -120,15 +124,50 @@ export function useClosePo(orgId: string | undefined) {
   });
 }
 
-export function useGoodsReceipts(orgId: string | undefined) {
+/**
+ * Sprint 4 W3-9 — filtered GR list. `filters` is part of the cache
+ * key so two tabs viewing the same org with different chip selections
+ * share neither cache nor in-flight requests. The hook is backwards-
+ * compatible: callers that don't pass `filters` (Sprint 3 shell path)
+ * get the unfiltered most-recent-50 surface unchanged.
+ */
+export function useGoodsReceipts(
+  orgId: string | undefined,
+  filters: GrListFilters = {},
+) {
   return useQuery<GrListResponse, ApiError>({
-    queryKey: ['procurement', 'gr', orgId],
+    queryKey: ['procurement', 'gr', orgId, filters],
     queryFn: () => {
       if (!orgId) throw new Error('orgId required');
-      return getGoodsReceipts(orgId);
+      return getGoodsReceipts(orgId, filters);
     },
     enabled: !!orgId,
     staleTime: STALE_30_S,
+  });
+}
+
+/**
+ * Sprint 4 W3-3 — bulk-confirm wrapper. The hook calls the (currently
+ * NOT-wired) `POST /m3/procurement/gr/bulk-confirm` endpoint; on the
+ * 404 the GR tab surfaces the "pendiente de wiring" banner so the
+ * dock operator gets explicit feedback instead of a silent no-op.
+ * Cache invalidation matches the per-line confirm hook so a successful
+ * batch refreshes both the list and any open detail drawer.
+ */
+export function useBulkConfirmGoodsReceipts(orgId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation<
+    BulkConfirmGrResponse,
+    ApiError,
+    BulkConfirmGrPayload
+  >({
+    mutationFn: (payload) => {
+      if (!orgId) throw new Error('orgId required');
+      return bulkConfirmGoodsReceipts(orgId, payload);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['procurement', 'gr', orgId] });
+    },
   });
 }
 
