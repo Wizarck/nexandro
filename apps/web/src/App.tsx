@@ -31,7 +31,7 @@ interface NavGroup {
  * on mobile (overflow + wrap). Groups:
  *
  *   Negocio       — Owner Sunday-night surfaces (Dashboard, Auditoría)
- *   Operaciones   — Manager/Staff daily work (HACCP, Recall, Foto, Cola)
+ *   Operaciones   — Manager/Staff daily work (HACCP, Retiradas, Foto, Cola)
  *   Configuración — Owner one-time + tech config (Configuración, IA)
  *
  * Mobile: hamburger toggles a slide-in drawer.
@@ -50,7 +50,10 @@ const NAV_GROUPS: ReadonlyArray<NavGroup> = [
     items: [
       { to: '/haccp/record', label: 'HACCP' },
       { to: '/compliance/export', label: 'Expediente APPCC', roles: ['OWNER', 'MANAGER'] },
-      { to: '/recall/investigate', label: 'Recall', roles: ['OWNER', 'MANAGER'] },
+      // Master feedback 2026-05-18: "Recall" era spanglish; el término legal
+      // EU en español es "retirada de productos del mercado" (Reg. 178/2002
+      // art. 19). URL queda como /recall/investigate para no romper enlaces.
+      { to: '/recall/investigate', label: 'Retiradas', roles: ['OWNER', 'MANAGER'] },
       { to: '/photo-ingest/review', label: 'Foto-ingestión', roles: ['OWNER', 'MANAGER'] },
       { to: '/m3/review-queue', label: 'Cola revisión', roles: ['OWNER', 'MANAGER'] },
     ],
