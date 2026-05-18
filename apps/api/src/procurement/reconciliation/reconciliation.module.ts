@@ -1,25 +1,39 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { DiscrepancyDetectorService } from './application/discrepancy-detector.service';
+import { ReconciliationService } from './application/reconciliation.service';
 import { Reconciliation } from './domain/reconciliation.entity';
+import { ReconciliationRepository } from './infrastructure/reconciliation.repository';
 import { ReconciliationController } from './interface/reconciliation.controller';
 
 /**
  * procurement.reconciliation bounded context (Sprint 4 W3-5).
  *
- * Sprint 3 Block C (PR #218) shipped a placeholder controller returning
- * `[]`. This module registers the real `Reconciliation` entity so the
- * migration (0046) has a TypeORM repository at boot; the controller +
- * service + repository + detector land in the same PR (checkpoint 2 of
- * the Sprint 4 W3-5 task).
+ * Replaces the PR #218 placeholder. Surface:
  *
- * Multi-tenant invariant: every read/write goes through the dedicated
- * repository which always WHERE-clauses `organization_id`. No direct
- * `TypeOrmModule.forFeature` consumers outside this module.
+ *  - GET  /m3/procurement/reconciliation        — Owner + Manager
+ *  - POST /m3/procurement/reconciliation/:id/resolve — Owner only
+ *
+ * Providers:
+ *  - ReconciliationRepository — multi-tenant data access (org-id gated).
+ *  - ReconciliationService    — read/resolve state-machine guardian.
+ *  - DiscrepancyDetectorService — pure (no repo) so GR confirmation
+ *    can wire it later without import cycles.
+ *
+ * Exports `DiscrepancyDetectorService` + `ReconciliationRepository`
+ * so the GR module can wire detection on GR confirmation in a
+ * follow-up slice without re-instantiating providers.
  *
  * Spec: docs/ux/j11.md §6.
  */
 @Module({
   imports: [TypeOrmModule.forFeature([Reconciliation])],
   controllers: [ReconciliationController],
+  providers: [
+    ReconciliationRepository,
+    ReconciliationService,
+    DiscrepancyDetectorService,
+  ],
+  exports: [ReconciliationRepository, DiscrepancyDetectorService],
 })
 export class ReconciliationModule {}

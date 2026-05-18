@@ -1,37 +1,114 @@
-import { Controller, Get } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Query,
+  Req,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { IsUUID } from 'class-validator';
+import type { Request } from 'express';
+import {
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Max,
+  MaxLength,
+  Min,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 import { Roles } from '../../../shared/decorators/roles.decorator';
+import { AuthenticatedUserPayload } from '../../../shared/guards/roles.guard';
+import { ReconciliationService } from '../application/reconciliation.service';
+import {
+  IllegalReconciliationTransition,
+  ReconciliationInvariantError,
+  ReconciliationNotFoundError,
+} from '../domain/errors';
+import {
+  DISCREPANCY_TYPES,
+  RECONCILIATION_STATES,
+  Reconciliation,
+  ReconciliationState,
+} from '../domain/reconciliation.entity';
 
 /**
- * GET /m3/procurement/reconciliation — placeholder read surface for the
- * j11 Reconciliación tab (Sprint 3 Block C).
+ * Query DTO for GET /m3/procurement/reconciliation.
  *
- * RBAC: Owner + Manager only.
- *
- * SHELL ONLY — there is NO reconciliation domain yet.
- *   FOLLOWUP — the reconciliation aggregate (discrepancy detection on
- *   GR-vs-PO confirm; rows of {type: cantidad|precio|producto|
- *   lote-no-conforme}; resolution actions Aceptar / Solicitar nota de
- *   crédito / Devolver; supplier-email template links; audit chip per
- *   resolution) has not been implemented in apps/api. The endpoint
- *   returns an empty list so the frontend can render its empty state
- *   ("Aún no hay reconciliaciones · próximamente") without 404-ing.
- *   Spec: docs/ux/j11.md §6.
+ * Default surface (no `state` param) returns ALL states so the j11 tab
+ * can render the "abierta" counter alongside the resolved history.
+ * `state=abierta` is the explicit default the frontend sends for the
+ * tab landing view.
  */
 export class ReconciliationListQueryDto {
   @IsUUID()
   organizationId!: string;
+
+  @IsOptional()
+  @IsIn(RECONCILIATION_STATES as unknown as string[])
+  state?: ReconciliationState;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(200)
+  limit?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  offset?: number;
+}
+
+/**
+ * Body for POST /m3/procurement/reconciliation/:id/resolve.
+ *
+ * `state` must be one of the 3 terminal states. `notes` is optional
+ * but capped at 1000 chars (operators can be verbose on `nota-credito`
+ * supplier-template lookups; service layer caps + DB column is `text`).
+ *
+ * `organizationId` lives in the body (not the URL) for parity with the
+ * GET surface and the other procurement endpoints — the auth layer
+ * does NOT yet stamp organizationId from JWT alone.
+ */
+const RESOLVABLE_STATES: ReadonlyArray<
+  Exclude<ReconciliationState, 'abierta'>
+> = ['aceptada', 'nota-credito', 'devuelta'];
+
+export class ResolveReconciliationDto {
+  @IsUUID()
+  organizationId!: string;
+
+  @IsIn(RESOLVABLE_STATES as unknown as string[])
+  state!: Exclude<ReconciliationState, 'abierta'>;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  notes?: string;
 }
 
 export interface ReconciliationListItemResponseDto {
   id: string;
-  poId: string;
-  poNumber: string;
+  poId: string | null;
+  poNumber: string | null;
+  grId: string;
   supplierId: string;
-  discrepancyType: 'cantidad' | 'precio' | 'producto' | 'lote-no-conforme';
-  diff: string;
-  state: 'abierta' | 'aceptada' | 'nota-credito' | 'devuelta';
+  discrepancyType: (typeof DISCREPANCY_TYPES)[number];
+  diff: Record<string, unknown>;
+  state: ReconciliationState;
+  resolvedAt: string | null;
+  resolvedByUserId: string | null;
+  resolutionNotes: string | null;
   createdAt: string;
 }
 
@@ -40,22 +117,113 @@ export interface ReconciliationListResponseDto {
   total: number;
 }
 
+/**
+ * REST surface for the j11 Reconciliación tab (docs/ux/j11.md §6).
+ *
+ * Replaces the placeholder controller shipped in PR #218 (Sprint 3
+ * Block C). Two endpoints:
+ *
+ *  - GET  /m3/procurement/reconciliation?state=abierta&limit=50
+ *    Owner + Manager. Lists reconciliations for the org with optional
+ *    state filter (defaults to all states; the j11 default tab passes
+ *    `state=abierta`).
+ *
+ *  - POST /m3/procurement/reconciliation/:id/resolve
+ *    Owner only. Body: `{ organizationId, state, notes? }`. Moves the
+ *    reconciliation to one of the 3 terminal states. Stamps
+ *    `resolved_by_user_id` from the authenticated user.
+ *
+ * Multi-tenant invariant enforced at the repository layer; this
+ * controller forwards `organizationId` from the DTO. The
+ * `userId` for resolution attribution comes from the authenticated
+ * `req.user.userId` (RolesGuard populates `req.user`).
+ *
+ * Domain errors → HTTP exceptions:
+ *   - ReconciliationNotFoundError      → 404
+ *   - IllegalReconciliationTransition  → 400
+ *   - ReconciliationInvariantError     → 400
+ */
 @ApiTags('procurement')
 @Controller('m3/procurement/reconciliation')
 export class ReconciliationController {
+  constructor(private readonly service: ReconciliationService) {}
+
   @Get()
   @Roles('OWNER', 'MANAGER')
   @ApiOperation({
     summary:
-      'List open reconciliation rows for the j11 Procurement shell (placeholder — domain pending).',
+      'List reconciliations for the j11 Procurement tab (filter by state).',
   })
   async list(
-    _query: ReconciliationListQueryDto,
+    @Query() query: ReconciliationListQueryDto,
   ): Promise<ReconciliationListResponseDto> {
-    // FOLLOWUP: query the reconciliation aggregate once it exists. For
-    // now the endpoint returns an empty list. The query DTO is validated
-    // upstream so a missing organizationId still throws 400 — that lets
-    // us ship the frontend shell with a real (non-404) endpoint.
-    return { items: [], total: 0 };
+    const rows = await this.service.list(query.organizationId, {
+      state: query.state,
+      limit: query.limit ?? 50,
+      offset: query.offset ?? 0,
+    });
+    return {
+      items: rows.map(toItemDto),
+      total: rows.length,
+    };
   }
+
+  @Post(':id/resolve')
+  @Roles('OWNER')
+  @ApiOperation({
+    summary:
+      'Resolve an open reconciliation (Owner only). Terminal target = aceptada | nota-credito | devuelta.',
+  })
+  async resolve(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Body() body: ResolveReconciliationDto,
+    @Req() req: Request,
+  ): Promise<ReconciliationListItemResponseDto> {
+    const user = requireUser(req);
+    try {
+      const updated = await this.service.resolve(
+        id,
+        body.organizationId,
+        { state: body.state, notes: body.notes ?? null },
+        user.userId,
+      );
+      return toItemDto(updated);
+    } catch (err) {
+      if (err instanceof ReconciliationNotFoundError) {
+        throw new NotFoundException({ code: err.code, message: err.message });
+      }
+      if (
+        err instanceof IllegalReconciliationTransition ||
+        err instanceof ReconciliationInvariantError
+      ) {
+        throw new BadRequestException({ code: err.code, message: err.message });
+      }
+      throw err;
+    }
+  }
+}
+
+function requireUser(req: Request): AuthenticatedUserPayload {
+  const user = (req as Request & { user?: AuthenticatedUserPayload }).user;
+  if (!user) {
+    throw new UnauthorizedException({ code: 'UNAUTHENTICATED' });
+  }
+  return user;
+}
+
+function toItemDto(row: Reconciliation): ReconciliationListItemResponseDto {
+  return {
+    id: row.id,
+    poId: row.poId,
+    poNumber: row.poNumber,
+    grId: row.grId,
+    supplierId: row.supplierId,
+    discrepancyType: row.discrepancyType,
+    diff: row.diff,
+    state: row.state,
+    resolvedAt: row.resolvedAt ? row.resolvedAt.toISOString() : null,
+    resolvedByUserId: row.resolvedByUserId,
+    resolutionNotes: row.resolutionNotes,
+    createdAt: row.createdAt.toISOString(),
+  };
 }
