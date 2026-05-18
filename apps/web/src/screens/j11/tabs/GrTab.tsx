@@ -1,8 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
+  flushGrConfirmQueue,
   useBulkConfirmGoodsReceipts,
   useGoodsReceipts,
 } from '../../../hooks/useProcurement';
+import { useOfflineStatus } from '../../../hooks/useOfflineStatus';
 import type {
   GrListFilters,
   GrListItem,
@@ -48,6 +51,7 @@ export function GrTab({ orgId }: { orgId: string }) {
 
   return (
     <div className="space-y-3">
+      <OfflineBanner orgId={orgId} />
       <GrFilterChips filters={filters} onChange={setFilters} />
       <BulkConfirmBar orgId={orgId} rows={rows} />
 
@@ -70,6 +74,94 @@ export function GrTab({ orgId }: { orgId: string }) {
           onClose={() => setOpenId(null)}
         />
       )}
+    </div>
+  );
+}
+
+/**
+ * Sprint 4 W3-13 — offline-mode banner at the top of the GR tab.
+ *
+ * Two states (j11 spec §Edge cases):
+ *   - Offline                  → destructive red banner
+ *                                `Modo offline · N confirmaciones en cola`
+ *   - Online with pending queue → amber banner
+ *                                `Reconectado · enviando N confirmaciones…`
+ *                                while the auto-flush is running.
+ *
+ * The reconnect effect is single-flight: a ref guards against a second
+ * flush starting while one is already in progress (radio flap during
+ * the replay would otherwise duplicate writes). On flush completion we
+ * invalidate the GR list + detail caches so the newly-persisted rows
+ * surface, and bump the local refresh token so `useOfflineStatus`
+ * re-reads the now-(hopefully-)zero queue count.
+ */
+function OfflineBanner({ orgId }: { orgId: string }) {
+  const [refreshToken, setRefreshToken] = useState(0);
+  const [flushing, setFlushing] = useState(false);
+  const flushInFlight = useRef(false);
+  const queryClient = useQueryClient();
+  const status = useOfflineStatus(orgId, refreshToken);
+
+  // Auto-flush on reconnect when there's pending work.
+  useEffect(() => {
+    if (!status.online) return;
+    if (status.queuedCount === 0) return;
+    if (flushInFlight.current) return;
+    flushInFlight.current = true;
+    setFlushing(true);
+    flushGrConfirmQueue(orgId)
+      .then(() => {
+        queryClient.invalidateQueries({ queryKey: ['procurement', 'gr', orgId] });
+      })
+      .catch(() => {
+        // Failures are surfaced via the persisted queue count; the
+        // banner will simply keep showing "N en cola" so the operator
+        // knows the radio came back but the writes didn't land.
+      })
+      .finally(() => {
+        flushInFlight.current = false;
+        setFlushing(false);
+        setRefreshToken((t) => t + 1);
+      });
+  }, [orgId, status.online, status.queuedCount, queryClient]);
+
+  if (status.online && status.queuedCount === 0 && !flushing) return null;
+
+  if (!status.online) {
+    return (
+      <div
+        role="status"
+        aria-live="polite"
+        data-testid="gr-offline-banner"
+        data-mode="offline"
+        className="rounded-md border px-3 py-2 text-sm font-medium"
+        style={{
+          color: 'var(--color-destructive)',
+          borderColor: 'var(--color-destructive)',
+          backgroundColor: 'var(--color-bg)',
+        }}
+      >
+        Modo offline · {status.queuedCount} {status.queuedCount === 1 ? 'confirmación' : 'confirmaciones'} en cola
+      </div>
+    );
+  }
+
+  // Online but still has queued items (mid-flush or pending re-attempt).
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      data-testid="gr-offline-banner"
+      data-mode="reconnecting"
+      className="rounded-md border px-3 py-2 text-sm font-medium"
+      style={{
+        color: 'var(--color-status-below-target-fg)',
+        borderColor: 'var(--color-status-below-target-fg)',
+        backgroundColor: 'var(--color-bg)',
+      }}
+    >
+      Reconectado · enviando {status.queuedCount}{' '}
+      {status.queuedCount === 1 ? 'confirmación' : 'confirmaciones'}…
     </div>
   );
 }

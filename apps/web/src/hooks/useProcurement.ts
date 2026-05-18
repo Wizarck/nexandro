@@ -29,6 +29,7 @@ import {
   type ReconciliationListResponse,
   type ResolveReconciliationPayload,
 } from '../api/procurement';
+import { enqueue as enqueueOfflineAction } from '../lib/offlineQueue';
 
 const STALE_30_S = 30_000;
 
@@ -195,6 +196,20 @@ export function useGoodsReceipt(
 }
 
 /**
+ * Sprint 4 W3-13 — queue-action discriminator + payload shape used by
+ * the offline replay handler. Kept narrow on purpose: the only action
+ * the GR dock queues today is per-line confirm; if/when bulk-confirm
+ * is added the type union grows here.
+ */
+export const GR_CONFIRM_ACTION_TYPE = 'procurement.gr.confirmLine';
+
+export interface QueuedGrConfirmPayload {
+  grId: string;
+  lineId: string;
+  input: ConfirmGrLineInput;
+}
+
+/**
  * Sprint 4 W3-2 — per-line confirm mutation. The backend endpoint is a
  * documented followup (`GrConfirmationService` only handles full-GR
  * confirmation today); the hook is wired so the UI can call it,
@@ -202,10 +217,24 @@ export function useGoodsReceipt(
  * change required is removing the stub throw in `procurement.ts`.
  * Invalidates BOTH the GR list and the open-GR detail on success so
  * the dock view stays in sync with the just-confirmed line.
+ *
+ * Sprint 4 W3-13 — offline-aware. When `navigator.onLine === false`
+ * at submit time we enqueue the action into the per-org IndexedDB
+ * queue (see `lib/offlineQueue`) and resolve with a synthetic
+ * `{ queued: true }` envelope so the optimistic UI can advance. The
+ * GrTab banner picks up the queued count from `useOfflineStatus` and
+ * shows "Modo offline · N confirmaciones en cola"; `flushGrConfirmQueue`
+ * (called from the banner's reconnect effect) replays the queue
+ * sequentially.
  */
+export interface OfflineQueuedAck {
+  queued: true;
+}
+
 export function useConfirmGrLine(
   orgId: string | undefined,
   grId: string | undefined,
+  options?: { onQueued?: () => void },
 ) {
   const queryClient = useQueryClient();
   return useMutation<
@@ -213,9 +242,26 @@ export function useConfirmGrLine(
     Error,
     { lineId: string; input: ConfirmGrLineInput }
   >({
-    mutationFn: ({ lineId, input }) => {
+    mutationFn: async ({ lineId, input }) => {
       if (!orgId || !grId) {
-        return Promise.reject(new Error('orgId + grId required'));
+        throw new Error('orgId + grId required');
+      }
+      // Offline path — enqueue + return synthetic ack. We deliberately
+      // do NOT throw: a thrown mutation surfaces as `error` in the UI,
+      // which would block the operator from progressing to the next
+      // line. Instead we resolve with `{ queued: true }` and let the
+      // GR tab banner inform them the row is queued.
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        const payload: QueuedGrConfirmPayload = { grId, lineId, input };
+        await enqueueOfflineAction({
+          orgId,
+          type: GR_CONFIRM_ACTION_TYPE,
+          payload,
+          createdAt: Date.now(),
+        });
+        options?.onQueued?.();
+        const ack: OfflineQueuedAck = { queued: true };
+        return ack;
       }
       return confirmGoodsReceiptLine(orgId, grId, lineId, input);
     },
@@ -225,6 +271,32 @@ export function useConfirmGrLine(
         queryKey: ['procurement', 'gr', orgId, 'detail', grId],
       });
     },
+  });
+}
+
+/**
+ * Sprint 4 W3-13 — flush helper used by the GrTab reconnect effect.
+ * Replays every queued GR-confirm action for `orgId` against the real
+ * backend endpoint. Failures stay in the queue for the next attempt
+ * (see `offlineQueue.flush` docstring). On flush completion the caller
+ * is expected to invalidate the GR list/detail caches so the freshly
+ * persisted confirmations surface.
+ */
+export async function flushGrConfirmQueue(orgId: string) {
+  const { flush } = await import('../lib/offlineQueue');
+  return flush(orgId, async (action) => {
+    if (action.type !== GR_CONFIRM_ACTION_TYPE) {
+      // Foreign actions are ignored (and intentionally NOT removed) so
+      // a future action type can be replayed by its own handler.
+      throw new Error(`unhandled action type: ${action.type}`);
+    }
+    const payload = action.payload as QueuedGrConfirmPayload;
+    await confirmGoodsReceiptLine(
+      action.orgId,
+      payload.grId,
+      payload.lineId,
+      payload.input,
+    );
   });
 }
 

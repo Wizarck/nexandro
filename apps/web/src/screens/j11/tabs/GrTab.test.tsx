@@ -1,8 +1,16 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { afterEach, describe, it, expect, beforeEach, vi } from 'vitest';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ProcurementScreen } from '../ProcurementScreen';
+import { __setOfflineQueueAdapter, enqueue } from '../../../lib/offlineQueue';
 
 /**
  * Tests for the Sprint 4 Wave 3 Block 2-B GrTab additions:
@@ -30,6 +38,16 @@ beforeEach(() => {
   vi.mocked(useCurrentRole).mockReturnValue('MANAGER');
   vi.mocked(useCurrentOrgId).mockReturnValue('org-1');
   global.fetch = fetchMock as unknown as typeof fetch;
+  // W3-13: a previous test may have flipped navigator.onLine to false
+  // via Object.defineProperty. Force it back to the jsdom default so
+  // the W3-3 / W3-9 suites that assume "online" stay green regardless
+  // of test ordering.
+  Object.defineProperty(window.navigator, 'onLine', {
+    configurable: true,
+    value: true,
+  });
+  // Same logic for the offline queue's module-level adapter cache.
+  __setOfflineQueueAdapter(null);
 });
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -148,6 +166,92 @@ describe('GrTab — W3-3 bulk-confirm CTA', () => {
     expect(
       await screen.findByTestId('gr-bulk-confirm-not-wired'),
     ).toBeInTheDocument();
+  });
+});
+
+describe('GrTab — W3-13 offline banner', () => {
+  // Always restore navigator.onLine to true after each case so other
+  // suites in the file (W3-3 / W3-9) keep their default online-state
+  // assumption. jsdom defines `onLine` on the Navigator prototype so
+  // we use Object.defineProperty + value to override per-test.
+  beforeEach(() => {
+    __setOfflineQueueAdapter(null);
+  });
+  afterEach(() => {
+    __setOfflineQueueAdapter(null);
+    Object.defineProperty(window.navigator, 'onLine', {
+      configurable: true,
+      value: true,
+    });
+    // TanStack Query listens to window 'online' events and pauses
+    // queries on offline; without dispatching the recovery event the
+    // subsequent suites (W3-9 filter chips) see queries that never
+    // fire a fetch. Dispatch the event so the focus manager re-arms.
+    window.dispatchEvent(new Event('online'));
+  });
+
+  function setOnline(value: boolean) {
+    Object.defineProperty(window.navigator, 'onLine', {
+      configurable: true,
+      value,
+    });
+    act(() => {
+      window.dispatchEvent(new Event(value ? 'online' : 'offline'));
+    });
+  }
+
+  it('is hidden when online with no queued actions', async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ items: [], total: 0 }));
+    renderScreen();
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(screen.queryByTestId('gr-offline-banner')).toBeNull();
+  });
+
+  it('shows the destructive offline banner with the queued count', async () => {
+    await enqueue({
+      orgId: 'org-1',
+      type: 'procurement.gr.confirmLine',
+      payload: { grId: 'gr-1', lineId: 'l1', input: { quantityReceived: 1 } },
+      createdAt: 1,
+    });
+    await enqueue({
+      orgId: 'org-1',
+      type: 'procurement.gr.confirmLine',
+      payload: { grId: 'gr-1', lineId: 'l2', input: { quantityReceived: 2 } },
+      createdAt: 2,
+    });
+
+    fetchMock.mockResolvedValueOnce(jsonResponse({ items: [], total: 0 }));
+    renderScreen();
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+
+    setOnline(false);
+
+    const banner = await screen.findByTestId('gr-offline-banner');
+    expect(banner).toHaveAttribute('data-mode', 'offline');
+    expect(banner.textContent).toContain('Modo offline');
+    expect(banner.textContent).toContain('2 confirmaciones en cola');
+  });
+
+  it('singularises copy when exactly one action is queued', async () => {
+    await enqueue({
+      orgId: 'org-1',
+      type: 'procurement.gr.confirmLine',
+      payload: { grId: 'gr-1', lineId: 'l1', input: { quantityReceived: 1 } },
+      createdAt: 1,
+    });
+
+    // Pre-render set offline so the reconnect auto-flush effect can't
+    // race the queue empty before the assertion runs (the previous test
+    // left the GR fetch queue spent — using `.mockResolvedValue` here
+    // is intentional in case the GR query re-fires after the offline→
+    // online flip the auto-flush triggers).
+    setOnline(false);
+    fetchMock.mockResolvedValue(jsonResponse({ items: [], total: 0 }));
+    renderScreen();
+
+    const banner = await screen.findByTestId('gr-offline-banner');
+    expect(banner.textContent).toContain('1 confirmación en cola');
   });
 });
 
