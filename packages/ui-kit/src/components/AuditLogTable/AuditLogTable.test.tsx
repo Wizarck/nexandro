@@ -36,7 +36,9 @@ describe('AuditLogTable', () => {
     render(
       <AuditLogTable rows={[baseRow]} expandedRowId={null} onToggleExpand={vi.fn()} />,
     );
-    expect(screen.getByText('AGENT_ACTION_FORENSIC')).toBeInTheDocument();
+    // Per L1-7: event type rendered as human-readable Spanish label
+    // (raw enum preserved in <td title>).
+    expect(screen.getByText('Agente · forense')).toBeInTheDocument();
     expect(screen.getByText('recipe:00000000…')).toBeInTheDocument();
     expect(screen.getByText('claude-desktop', { exact: false })).toBeInTheDocument();
     expect(screen.getByText('recipes.update')).toBeInTheDocument();
@@ -48,7 +50,7 @@ describe('AuditLogTable', () => {
     render(
       <AuditLogTable rows={[baseRow]} expandedRowId={null} onToggleExpand={toggle} />,
     );
-    fireEvent.click(screen.getByText('AGENT_ACTION_FORENSIC'));
+    fireEvent.click(screen.getByText('Agente · forense'));
     expect(toggle).toHaveBeenCalledWith('row-1');
   });
 

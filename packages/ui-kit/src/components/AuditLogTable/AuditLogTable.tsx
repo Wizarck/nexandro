@@ -1,6 +1,7 @@
 import { Fragment } from 'react';
 import { cn } from '../../lib/cn';
 import { AuditLogRowDetail } from '../AuditLogRowDetail';
+import { humanizeEventType } from './humanizeEventType';
 import type { AuditLogRow, AuditLogTableProps } from './AuditLogTable.types';
 
 /**
@@ -58,8 +59,11 @@ export function AuditLogTable({
                   aria-expanded={expanded}
                 >
                   <td className="px-3 py-2 font-mono text-xs">{formatTimestamp(row.createdAt)}</td>
-                  <td className="px-3 py-2 font-mono text-xs" title={row.eventType}>
-                    {truncate(row.eventType, 32)}
+                  <td className="px-3 py-2 text-xs" title={row.eventType}>
+                    {/* Audit 2026-05-18 L1-7: human-readable Spanish verb
+                        instead of raw `RECIPE_ALLERGENS_OVERRIDE_CHANGED`.
+                        Original enum preserved in `title` for power users. */}
+                    {humanizeEventType(row.eventType)}
                   </td>
                   <td className="px-3 py-2 font-mono text-xs">
                     {row.aggregateType}:{row.aggregateId.slice(0, 8)}…
