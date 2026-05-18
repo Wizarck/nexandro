@@ -290,6 +290,66 @@ describe('PhotoIngestReviewScreen', () => {
     });
   });
 
+  // Sprint 2 P1-2 (j12.md §Trigger ii): "+ Subir foto" upload affordance must
+  // be visible at the top-right of the header regardless of populated/empty
+  // state. Wiring to the real upload queue is M4 scope — for now the change
+  // event surfaces an alert.
+  describe('header upload affordance', () => {
+    it('renders the Subir foto button when the queue is EMPTY', async () => {
+      vi.mocked(useCurrentRole).mockReturnValue('MANAGER');
+      vi.mocked(useCurrentOrgId).mockReturnValue('org-demo');
+      fetchMock.mockImplementation(() =>
+        Promise.resolve(jsonResponse({ items: [] })),
+      );
+
+      renderWithClient();
+
+      await waitFor(() =>
+        expect(screen.getByText(/Cola vacía · todo al día/)).toBeInTheDocument(),
+      );
+      const btn = screen.getByTestId('photo-upload-button');
+      expect(btn).toBeInTheDocument();
+      expect(btn.textContent).toMatch(/Subir foto/);
+    });
+
+    it('renders the Subir foto button when the queue is POPULATED', async () => {
+      vi.mocked(useCurrentRole).mockReturnValue('MANAGER');
+      vi.mocked(useCurrentOrgId).mockReturnValue('org-demo');
+      fetchMock.mockImplementation((input: RequestInfo | URL, init?: RequestInit) =>
+        Promise.resolve(routeMock(String(input), init)),
+      );
+
+      renderWithClient();
+
+      await waitFor(() =>
+        expect(screen.getByText(/Mercabarna/)).toBeInTheDocument(),
+      );
+      expect(screen.getByTestId('photo-upload-button')).toBeInTheDocument();
+    });
+
+    it('the file input surfaces the M4-pending alert on change', async () => {
+      vi.mocked(useCurrentRole).mockReturnValue('MANAGER');
+      vi.mocked(useCurrentOrgId).mockReturnValue('org-demo');
+      fetchMock.mockImplementation(() =>
+        Promise.resolve(jsonResponse({ items: [] })),
+      );
+      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+
+      renderWithClient();
+
+      const input = (await screen.findByTestId(
+        'photo-upload-input',
+      )) as HTMLInputElement;
+      const file = new File(['fake-png'], 'recepcion.png', { type: 'image/png' });
+      fireEvent.change(input, { target: { files: [file] } });
+
+      expect(alertSpy).toHaveBeenCalledWith(
+        'Subida pendiente — entrará a la cola HITL',
+      );
+      alertSpy.mockRestore();
+    });
+  });
+
   it('suppresses keyboard shortcuts while typing inside an input', async () => {
     vi.mocked(useCurrentRole).mockReturnValue('MANAGER');
     vi.mocked(useCurrentOrgId).mockReturnValue('org-demo');

@@ -182,10 +182,19 @@ function Inner({
   // `?mode=inspeccion` widens scope + surfaces a paprika banner.
   // `?scope=haccp,lot,photo` cherry-picks individual capabilities.
   const [searchParams] = useSearchParams();
-  const inspectorMode = searchParams.get('mode') === 'inspeccion';
+  const urlInspectorMode = searchParams.get('mode') === 'inspeccion';
   const initialScope =
     parseScopeParam(searchParams.get('scope')) ??
-    (inspectorMode ? INSPECTOR_SCOPE : DEFAULT_SCOPE);
+    (urlInspectorMode ? INSPECTOR_SCOPE : DEFAULT_SCOPE);
+
+  // Sprint 2 P1-3 (audit 2026-05-18-v3-detail-06 Flag #1): when the operator
+  // lands on the bare `/compliance/export` URL (no `?mode=inspeccion`),
+  // surface a paprika-bordered "Modo inspección →" chip in the header that
+  // toggles the same widened scope + banner client-side. Owner Roberto's
+  // muscle memory is split between HACCP-dashboard entry (deep-link works)
+  // and direct top-nav tap (bare URL); the chip closes the panic-mode gap
+  // without a re-route.
+  const [inspectorMode, setInspectorMode] = useState(urlInspectorMode);
 
   const [chip, setChip] = useState<RangeChipKey>('90d');
   const initial = rangeFromChip('90d');
@@ -193,6 +202,19 @@ function Inner({
   const [to, setTo] = useState<string>(initial.to);
   const [locale, setLocale] = useState<AppccLocale>('es-ES');
   const [scope, setScope] = useState<Scope>(initialScope);
+
+  const enableInspectorMode = () => {
+    setInspectorMode(true);
+    // Only widen scope; preserve any explicit operator selections via the
+    // `INSPECTOR_SCOPE` union so previously checked rows stay checked.
+    setScope((prev) => ({
+      haccp: prev.haccp || INSPECTOR_SCOPE.haccp,
+      lot: prev.lot || INSPECTOR_SCOPE.lot,
+      procurement: prev.procurement || INSPECTOR_SCOPE.procurement,
+      photo: prev.photo || INSPECTOR_SCOPE.photo,
+      ai_obs: prev.ai_obs || INSPECTOR_SCOPE.ai_obs,
+    }));
+  };
   const [expanded, setExpanded] = useState(false);
   const [recipients, setRecipients] = useState<ReadonlyArray<string>>([]);
   const [bundleId, setBundleId] = useState<string | null>(null);
@@ -299,12 +321,32 @@ function Inner({
       >
         Exportación APPCC · expediente para autoridad sanitaria
       </div>
-      <h1
-        className="mt-2 text-3xl font-semibold leading-tight"
-        style={{ color: 'var(--color-ink)' }}
-      >
-        Generar bundle de auditoría
-      </h1>
+      <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
+        <h1
+          className="text-3xl font-semibold leading-tight"
+          style={{ color: 'var(--color-ink)' }}
+        >
+          Generar bundle de auditoría
+        </h1>
+        {!inspectorMode && (
+          <button
+            type="button"
+            name="enable-inspector-mode"
+            onClick={enableInspectorMode}
+            data-testid="enable-inspector-mode-chip"
+            className="inline-flex shrink-0 items-center gap-1 rounded-full border-2 bg-transparent px-3 py-1 text-sm font-semibold"
+            style={{
+              minHeight: '32px',
+              borderColor: 'var(--color-destructive)',
+              color: 'var(--color-destructive)',
+              cursor: 'pointer',
+            }}
+          >
+            Modo inspección
+            <span aria-hidden="true">→</span>
+          </button>
+        )}
+      </div>
 
       {inspectorMode && (
         <div

@@ -12,13 +12,14 @@ const DEFAULTS: Scope = {
 };
 
 describe('ScopeCheckboxList', () => {
-  it('renders 5 rows with the canonical labels + descriptions', () => {
+  it('renders 5 rows with the canonical Spanish labels + descriptions', () => {
     render(<ScopeCheckboxList value={DEFAULTS} onChange={() => {}} />);
-    expect(screen.getByText(/HACCP records/)).toBeInTheDocument();
-    expect(screen.getByText(/Lot lifecycle/)).toBeInTheDocument();
-    expect(screen.getByText(/Procurement/)).toBeInTheDocument();
-    expect(screen.getByText(/Photo-ingestion provenance/)).toBeInTheDocument();
-    expect(screen.getByText(/AI observability footprint/)).toBeInTheDocument();
+    // Sprint 2 P1-6: full Spanish labels — no EN/ES bilingual mix.
+    expect(screen.getByText(/Registros HACCP/)).toBeInTheDocument();
+    expect(screen.getByText(/Ciclo de vida de lotes/)).toBeInTheDocument();
+    expect(screen.getByText(/Compras/)).toBeInTheDocument();
+    expect(screen.getByText(/Trazabilidad de fotos/)).toBeInTheDocument();
+    expect(screen.getByText(/Métricas de IA/)).toBeInTheDocument();
   });
 
   it('renders the haccp + lot checkboxes checked by default', () => {
@@ -33,7 +34,7 @@ describe('ScopeCheckboxList', () => {
   it('fires onChange with the mutated scope when a row is toggled', () => {
     const onChange = vi.fn();
     render(<ScopeCheckboxList value={DEFAULTS} onChange={onChange} />);
-    const procurementCheckbox = screen.getByLabelText(/Procurement/);
+    const procurementCheckbox = screen.getByLabelText(/Compras/);
     fireEvent.click(procurementCheckbox);
     expect(onChange).toHaveBeenCalledWith({
       haccp: true,
@@ -47,7 +48,7 @@ describe('ScopeCheckboxList', () => {
   it('toggles a checked row off and emits the updated scope', () => {
     const onChange = vi.fn();
     render(<ScopeCheckboxList value={DEFAULTS} onChange={onChange} />);
-    fireEvent.click(screen.getByLabelText(/HACCP records/));
+    fireEvent.click(screen.getByLabelText(/Registros HACCP/));
     expect(onChange).toHaveBeenCalledWith({
       haccp: false,
       lot: true,

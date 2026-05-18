@@ -98,15 +98,15 @@ describe('AppccExportScreen', () => {
     ).find((b) => b.getAttribute('aria-pressed') === 'true');
     expect(pressedLocale?.textContent).toContain('Castellano (es-ES)');
 
-    // Default scope: haccp + lot checked
+    // Default scope: haccp + lot checked. Sprint 2 P1-6: Spanish labels.
     const haccpCheckbox = screen.getByLabelText(
-      /HACCP records/,
+      /Registros HACCP/,
     ) as HTMLInputElement;
     const lotCheckbox = screen.getByLabelText(
-      /Lot lifecycle/,
+      /Ciclo de vida de lotes/,
     ) as HTMLInputElement;
     const procurementCheckbox = screen.getByLabelText(
-      /Procurement/,
+      /Compras/,
     ) as HTMLInputElement;
     expect(haccpCheckbox.checked).toBe(true);
     expect(lotCheckbox.checked).toBe(true);
@@ -245,10 +245,11 @@ describe('AppccExportScreen', () => {
     ).toMatch(/Modo inspección activo/);
 
     // Inspector scope: haccp + lot + procurement + photo (not ai_obs).
-    const haccp = screen.getByLabelText(/HACCP records/) as HTMLInputElement;
-    const lot = screen.getByLabelText(/Lot lifecycle/) as HTMLInputElement;
-    const procurement = screen.getByLabelText(/Procurement/) as HTMLInputElement;
-    const photo = screen.getByLabelText(/Photo-ingestion/) as HTMLInputElement;
+    // Sprint 2 P1-6: Spanish labels.
+    const haccp = screen.getByLabelText(/Registros HACCP/) as HTMLInputElement;
+    const lot = screen.getByLabelText(/Ciclo de vida de lotes/) as HTMLInputElement;
+    const procurement = screen.getByLabelText(/Compras/) as HTMLInputElement;
+    const photo = screen.getByLabelText(/Trazabilidad de fotos/) as HTMLInputElement;
     expect(haccp.checked).toBe(true);
     expect(lot.checked).toBe(true);
     expect(procurement.checked).toBe(true);
@@ -262,11 +263,48 @@ describe('AppccExportScreen', () => {
 
     renderWithClient('/compliance/export?scope=haccp,photo');
 
-    const haccp = screen.getByLabelText(/HACCP records/) as HTMLInputElement;
-    const lot = screen.getByLabelText(/Lot lifecycle/) as HTMLInputElement;
-    const photo = screen.getByLabelText(/Photo-ingestion/) as HTMLInputElement;
+    const haccp = screen.getByLabelText(/Registros HACCP/) as HTMLInputElement;
+    const lot = screen.getByLabelText(/Ciclo de vida de lotes/) as HTMLInputElement;
+    const photo = screen.getByLabelText(/Trazabilidad de fotos/) as HTMLInputElement;
     expect(haccp.checked).toBe(true);
     expect(lot.checked).toBe(false); // overridden by explicit ?scope
     expect(photo.checked).toBe(true);
+  });
+
+  // Sprint 2 P1-3 (audit 2026-05-18-v3-detail-06 BLOCKER Flag #1): bare-URL
+  // surface must expose a paprika "Modo inspección →" chip that toggles
+  // inspector-mode client-side (no re-route). Closes the muscle-memory gap
+  // when Owner Roberto taps `Expediente APPCC` directly in the top nav
+  // instead of coming from the HACCP dashboard deep-link.
+  it('renders the "Modo inspección" chip on the bare URL and toggles inspector mode on click', async () => {
+    vi.mocked(useCurrentRole).mockReturnValue('OWNER');
+    vi.mocked(useCurrentOrgId).mockReturnValue('org-1');
+    fetchMock.mockImplementation(() => Promise.resolve(emptyArchive()));
+
+    renderWithClient('/compliance/export');
+
+    // Banner not present yet (bare URL = quarterly defaults).
+    expect(screen.queryByRole('alert')).toBeNull();
+
+    const chip = screen.getByTestId('enable-inspector-mode-chip');
+    expect(chip.textContent).toMatch(/Modo inspección/);
+
+    // Procurement + Photo are unchecked under the quarterly defaults.
+    const procurementBefore = screen.getByLabelText(/Compras/) as HTMLInputElement;
+    const photoBefore = screen.getByLabelText(/Trazabilidad de fotos/) as HTMLInputElement;
+    expect(procurementBefore.checked).toBe(false);
+    expect(photoBefore.checked).toBe(false);
+
+    fireEvent.click(chip);
+
+    // Banner mounts, chip hides, scope widens to the inspector set.
+    expect(screen.getByRole('alert').textContent).toMatch(/Modo inspección activo/);
+    expect(screen.queryByTestId('enable-inspector-mode-chip')).toBeNull();
+    expect(
+      (screen.getByLabelText(/Compras/) as HTMLInputElement).checked,
+    ).toBe(true);
+    expect(
+      (screen.getByLabelText(/Trazabilidad de fotos/) as HTMLInputElement).checked,
+    ).toBe(true);
   });
 });
