@@ -37,7 +37,7 @@ export function OwnerSettingsShell() {
           </div>
         }
       >
-        <div className="grid gap-6 md:grid-cols-[220px,1fr]">
+        <div className="grid gap-6 md:grid-cols-[220px_1fr]">
           <SectionNav />
           <section className="min-w-0">
             <Outlet />
