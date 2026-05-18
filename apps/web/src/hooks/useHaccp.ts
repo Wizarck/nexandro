@@ -29,10 +29,17 @@ import { ApiError } from '../api/client';
 
 const STALE_30_S = 30_000;
 
-// Per audit 2026-05-18 L0-1: CCP labels MUST follow the org's defaultLocale.
-// The seed-data labels below were mixed English/Spanish ("Cooling curve",
-// "Hot-hold") which is unparseable for the Line Cook persona (low tech
-// comfort, oily fingers, 30-second target). Real-kitchen Spanish vocabulary.
+// Per audit 2026-05-18 L0-1 + L1-2:
+// - Labels follow org defaultLocale (real-kitchen Spanish).
+// - Every CCP carries `dueBy` so the picker can render status — Carmen
+//   needs to scan red overdue rows in 2 seconds. Times are RELATIVE to
+//   load so the demo always shows variety (one overdue, one due-soon,
+//   one due-later).
+// - `lastReading.recordedAt` populated to demonstrate the "hace Xh" recency.
+const NOW = Date.now();
+const ONE_HOUR_MS = 60 * 60 * 1000;
+const isoFromNow = (deltaMs: number) => new Date(NOW + deltaMs).toISOString();
+
 const DEMO_CCPS: CcpSummary[] = [
   {
     id: 'ccp-cooling-curve',
@@ -43,9 +50,11 @@ const DEMO_CCPS: CcpSummary[] = [
     spec: { min: -2, max: 2, unit: '°C' },
     lastReading: {
       display: '1.5 °C',
-      recordedAt: '2026-05-13T15:28:00Z',
+      recordedAt: isoFromNow(-2 * ONE_HOUR_MS - 15 * 60_000), // hace 2h 15m
       actor: 'Carmen',
     },
+    // Due-soon: within the next ~45 min.
+    dueBy: isoFromNow(45 * 60_000),
   },
   {
     id: 'ccp-hot-hold',
@@ -54,6 +63,8 @@ const DEMO_CCPS: CcpSummary[] = [
     fsmsRef: 'FSMS-2026-v2',
     inputType: 'numeric',
     spec: { min: 60, max: 75, unit: '°C' },
+    // Overdue 51 h — Carmen sees red.
+    dueBy: isoFromNow(-51 * ONE_HOUR_MS),
   },
   {
     id: 'ccp-cleaning-fish',
@@ -61,6 +72,13 @@ const DEMO_CCPS: CcpSummary[] = [
     name: 'Limpieza · pase de pescado',
     fsmsRef: 'FSMS-2026-v2',
     inputType: 'checkbox',
+    lastReading: {
+      display: 'OK',
+      recordedAt: isoFromNow(-6 * ONE_HOUR_MS - 30 * 60_000), // hace 6h 30m
+      actor: 'Iker',
+    },
+    // Due in ~4h.
+    dueBy: isoFromNow(4 * ONE_HOUR_MS),
   },
 ];
 

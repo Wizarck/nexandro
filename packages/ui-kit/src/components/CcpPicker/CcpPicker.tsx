@@ -77,47 +77,74 @@ function CcpRow({ ccp, onSelect }: { ccp: Ccp; onSelect: () => void }) {
   const overdue =
     ccp.dueBy != null && Date.parse(ccp.dueBy) < Date.now();
   const dueLabel = ccp.dueBy ? formatDueBy(ccp.dueBy, overdue) : null;
+  const lastReadingAgo = ccp.lastReading?.recordedAt
+    ? formatHace(ccp.lastReading.recordedAt)
+    : null;
 
   return (
     <li>
       <button
         type="button"
         onClick={onSelect}
-        className="flex w-full items-center justify-between bg-transparent px-4 py-3 text-left text-sm"
-        style={{ color: 'var(--color-ink)' }}
+        className="relative flex w-full items-center justify-between bg-transparent py-3 pl-5 pr-4 text-left text-sm"
+        style={{
+          color: 'var(--color-ink)',
+          // Per audit 2026-05-18 L1-2: 2 px left-edge severity rule on
+          // overdue rows so Carmen can scan red CCPs at a glance even
+          // before reading the pill.
+          borderLeft: overdue
+            ? '3px solid var(--color-destructive)'
+            : '3px solid transparent',
+        }}
         data-overdue={overdue ? 'true' : 'false'}
         data-ccp-id={ccp.id}
       >
         <span className="flex flex-col">
           <span style={{ color: 'var(--color-ink)' }}>{ccp.name}</span>
-          {ccp.lastReading && (
+          {ccp.lastReading ? (
             <span
               className="mt-1 text-xs"
               style={{ color: 'var(--color-mute)' }}
             >
-              Última: {ccp.lastReading.display}
+              Última{lastReadingAgo ? ` ${lastReadingAgo}` : ''}: {ccp.lastReading.display}
               {ccp.lastReading.actor ? ` · ${ccp.lastReading.actor}` : ''}
+            </span>
+          ) : (
+            <span
+              className="mt-1 text-xs italic"
+              style={{ color: 'var(--color-mute)' }}
+            >
+              Sin lectura registrada
             </span>
           )}
         </span>
-        {dueLabel && (
+        <span className="ml-3 flex items-center gap-3">
+          {dueLabel && (
+            <span
+              className="rounded-pill border px-2 py-0.5 text-xs font-medium"
+              style={{
+                borderColor: overdue
+                  ? 'var(--color-destructive)'
+                  : 'var(--color-border)',
+                color: overdue
+                  ? 'var(--color-destructive)'
+                  : 'var(--color-mute)',
+                backgroundColor: overdue
+                  ? 'var(--color-warn-bg)'
+                  : 'transparent',
+              }}
+            >
+              {dueLabel}
+            </span>
+          )}
           <span
-            className="ml-3 rounded-pill border px-2 py-0.5 text-xs font-medium"
-            style={{
-              borderColor: overdue
-                ? 'var(--color-destructive)'
-                : 'var(--color-border)',
-              color: overdue
-                ? 'var(--color-destructive)'
-                : 'var(--color-mute)',
-              backgroundColor: overdue
-                ? 'var(--color-warn-bg)'
-                : 'transparent',
-            }}
+            aria-hidden="true"
+            className="text-xs font-medium"
+            style={{ color: 'var(--color-accent-press)' }}
           >
-            {dueLabel}
+            Registrar →
           </span>
-        )}
+        </span>
       </button>
     </li>
   );
@@ -134,4 +161,20 @@ function formatDueBy(dueByIso: string, overdue: boolean): string {
   if (minutes < 60) return `Vence en ${minutes} min`;
   const hours = Math.round(minutes / 60);
   return `Vence en ${hours} h`;
+}
+
+/** "hace 2h 15m" / "hace 18 min" / "hace 3 d". */
+function formatHace(iso: string): string {
+  const deltaMs = Date.now() - Date.parse(iso);
+  if (Number.isNaN(deltaMs) || deltaMs < 0) return '';
+  const minutes = Math.floor(deltaMs / 60_000);
+  if (minutes < 1) return 'hace <1 min';
+  if (minutes < 60) return `hace ${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const remainMin = minutes % 60;
+  if (hours < 24) {
+    return remainMin > 0 ? `hace ${hours}h ${remainMin}m` : `hace ${hours}h`;
+  }
+  const days = Math.floor(hours / 24);
+  return `hace ${days}d`;
 }

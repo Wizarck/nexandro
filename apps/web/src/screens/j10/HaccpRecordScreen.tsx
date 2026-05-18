@@ -162,6 +162,12 @@ function Inner({ orgId, actorUserId }: { orgId: string; actorUserId: string }) {
           : 'Elige un PCC para empezar a registrar la lectura.'}
       </p>
 
+      {/* Daily progress strip per j10.md §9 + audit L1-3: gives the Head
+          Chef + Inspector the at-a-glance state ("¿estamos al día?") and
+          gives Carmen pressure to log overdue rows. Hidden when a CCP is
+          selected — focus shifts to the recording form below. */}
+      {!selectedCcpId && <DailyProgressStrip ccps={ccpSummaries} />}
+
       <CcpPicker
         ccps={ccps}
         selectedId={selectedCcpId}
@@ -485,6 +491,60 @@ function ConfirmationStrip({
       >
         Registrar otra lectura
       </button>
+    </section>
+  );
+}
+
+function DailyProgressStrip({ ccps }: { ccps: ReadonlyArray<CcpSummary> }) {
+  const now = Date.now();
+  const total = ccps.length;
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayStartMs = todayStart.getTime();
+
+  // Logged today: lastReading.recordedAt falls on today.
+  let loggedToday = 0;
+  let overdue = 0;
+  let neverLogged = 0;
+  for (const c of ccps) {
+    if (c.lastReading?.recordedAt) {
+      const ms = Date.parse(c.lastReading.recordedAt);
+      if (!Number.isNaN(ms) && ms >= todayStartMs) loggedToday++;
+    } else {
+      neverLogged++;
+    }
+    if (c.dueBy && Date.parse(c.dueBy) < now) overdue++;
+  }
+  const hasIssue = overdue > 0 || neverLogged > 0;
+
+  if (total === 0) return null;
+
+  return (
+    <section
+      role="status"
+      aria-label="Resumen del día"
+      className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-md border px-4 py-3 text-sm"
+      style={{
+        backgroundColor: 'var(--color-surface)',
+        borderColor: hasIssue ? 'var(--color-destructive)' : 'var(--color-border)',
+        borderLeftWidth: '3px',
+        color: 'var(--color-ink)',
+      }}
+    >
+      <span>
+        <strong className="tabular-nums">{loggedToday} / {total}</strong>{' '}
+        <span style={{ color: 'var(--color-mute)' }}>lecturas hoy</span>
+      </span>
+      {overdue > 0 && (
+        <span style={{ color: 'var(--color-destructive)' }}>
+          · <strong className="tabular-nums">{overdue}</strong> vencidas
+        </span>
+      )}
+      {neverLogged > 0 && (
+        <span style={{ color: 'var(--color-mute)' }}>
+          · <strong className="tabular-nums">{neverLogged}</strong> sin lectura
+        </span>
+      )}
     </section>
   );
 }
