@@ -1,6 +1,6 @@
 # retros/m2-menus-margins.md
 
-> **Slice**: `m2-menus-margins` · **PR**: [#79](https://github.com/Wizarck/openTrattOS/pull/79) · **Merged**: 2026-05-05 · **Squash SHA**: `e81cd08`
+> **Slice**: `m2-menus-margins` · **PR**: [#79](https://github.com/Wizarck/nexandro/pull/79) · **Merged**: 2026-05-05 · **Squash SHA**: `e81cd08`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: Wave 1.3 main-thread slice, paired in parallel with subagent's `m2-allergens-article-21` (PR #80). First slice to consume the M2 cost engine end-to-end on a real customer-facing endpoint.
 

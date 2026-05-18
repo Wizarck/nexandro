@@ -1,6 +1,6 @@
 # retros/m2-agent-credential-rotation.md
 
-> **Slice**: `m2-agent-credential-rotation` · **PR**: [#110](https://github.com/Wizarck/openTrattOS/pull/110) · **Merged**: 2026-05-07 · **Squash SHA**: `a5c2ce9`
+> **Slice**: `m2-agent-credential-rotation` · **PR**: [#110](https://github.com/Wizarck/nexandro/pull/110) · **Merged**: 2026-05-07 · **Squash SHA**: `a5c2ce9`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: **Wave 1.17 — slice #2 of the 4-slice backend tech-debt batch**. Closes Wave 1.13 [3c] retro follow-up: atomic Ed25519 keypair rotation API. Single CI iteration (HTTP status code semantic).
 

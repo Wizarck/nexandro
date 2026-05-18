@@ -17,7 +17,7 @@ inputDocuments:
   - docs/project-structure.md
   - _bmad-output/planning-artifacts/implementation-readiness-report-2026-04-27.md
 workflowType: 'architecture'
-project_name: openTrattOS
+project_name: nexandro
 user_name: Master
 date: '2026-04-27'
 moduleScope: 'Module 2 — Recipes / Escandallo + Nutritional Intelligence + Auto-Labels'
@@ -33,7 +33,7 @@ explicitGapsToResolve:
   - 'M2.x WhatsApp allowlist policy (likely defer to M2.x PRD)'
 ---
 
-# Architecture Decision Document — openTrattOS Module 2
+# Architecture Decision Document — nexandro Module 2
 
 **Module:** 2 — Recipes / Escandallo + Nutritional Intelligence + Auto-Labels
 **Author:** Master (facilitated by Winston, BMAD Architect)

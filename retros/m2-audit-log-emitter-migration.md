@@ -1,6 +1,6 @@
 # retros/m2-audit-log-emitter-migration.md
 
-> **Slice**: `m2-audit-log-emitter-migration` · **PR**: [#111](https://github.com/Wizarck/openTrattOS/pull/111) · **Merged**: 2026-05-08 · **Squash SHA**: `3b94d15`
+> **Slice**: `m2-audit-log-emitter-migration` · **PR**: [#111](https://github.com/Wizarck/nexandro/pull/111) · **Merged**: 2026-05-08 · **Squash SHA**: `3b94d15`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: **Wave 1.18 — slice #3 of the 4-slice backend tech-debt batch**. Closes Wave 1.9 + Wave 1.14 (ADR-025) tech-debt: 5 cost.* legacy event channels migrate from ad-hoc per-event payloads to canonical `AuditEventEnvelope` shape. Subscriber's 5 translator handlers replaced with `persistEnvelope`-only handlers. **First-pass green CI** despite touching 12 files across 5 BCs.
 

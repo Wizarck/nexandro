@@ -11,7 +11,7 @@ import { buildServer } from '../src/index.js';
  *   2. The returned `McpServer` instance reports the 6 read tools + the 43
  *      write tools (= 49) via the official tool registry.
  *   3. A single read-flow (`recipes.read`) routes through the
- *      `OpenTrattosRestClient` against a mocked fetch, returning the body
+ *      `NexandroRestClient` against a mocked fetch, returning the body
  *      under the MCP content envelope.
  *
  * Replacing `globalThis.fetch` keeps the smoke hermetic — no live REST API

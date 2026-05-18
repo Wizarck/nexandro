@@ -43,10 +43,10 @@ pnpm exec tsx src/run.ts \
 ### Hermes-specific env
 
 ```bash
-OPENTRATTOS_HERMES_BASE_URL=http://127.0.0.1:8644
-OPENTRATTOS_HERMES_AUTH_SECRET=<see eligia-core/secrets/secrets.env>
+NEXANDRO_HERMES_BASE_URL=http://127.0.0.1:8644
+NEXANDRO_HERMES_AUTH_SECRET=<see eligia-core/secrets/secrets.env>
 HERMES_VERSION=wamba-overlay
-MCP_BENCH_BANK_ID=opentrattos-bench
+MCP_BENCH_BANK_ID=nexandro-bench
 MCP_BENCH_USER_ID=00000000-0000-4000-8000-00000000bench
 ```
 
@@ -104,8 +104,8 @@ gh workflow run mcp-bench.yml \
   -f commit_report=true
 ```
 
-Required GH Secrets: `OPENTRATTOS_HERMES_BASE_URL`,
-`OPENTRATTOS_HERMES_AUTH_SECRET`. Optional GH Variable:
+Required GH Secrets: `NEXANDRO_HERMES_BASE_URL`,
+`NEXANDRO_HERMES_AUTH_SECRET`. Optional GH Variable:
 `HERMES_VERSION` (defaults to `wamba-overlay`).
 
 The regression check fails the workflow run BEFORE the commit step
@@ -128,4 +128,4 @@ npx tsx scripts/regression-check.ts \
 
 ---
 
-Wave 1.13 [3c] · Wave 1.16 (CI integration) · openTrattOS
+Wave 1.13 [3c] · Wave 1.16 (CI integration) · nexandro

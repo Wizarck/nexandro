@@ -1,6 +1,6 @@
 # retros/m2-audit-log-fts.md
 
-> **Slice**: `m2-audit-log-fts` · **PR**: [#94](https://github.com/Wizarck/openTrattOS/pull/94) · **Merged**: 2026-05-06 · **Squash SHA**: `e7e1fb1`
+> **Slice**: `m2-audit-log-fts` · **PR**: [#94](https://github.com/Wizarck/nexandro/pull/94) · **Merged**: 2026-05-06 · **Squash SHA**: `e7e1fb1`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: **Wave 1.11 — first FTS slice on the project**. Adds Postgres dual-config (Spanish + English) full-text search over `audit_log` via TWO functional GIN indexes — no stored `tsv` column, no entity changes. The `GET /audit-log` endpoint gains an optional `?q=<text>` parameter ranked by `GREATEST(ts_rank_es, ts_rank_en) DESC` with `created_at DESC` as recency tiebreaker.
 

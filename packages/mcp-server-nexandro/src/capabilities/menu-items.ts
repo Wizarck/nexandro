@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import type { OpenTrattosRestClient } from '../http-client.js';
+import type { NexandroRestClient } from '../http-client.js';
 
 /**
  * Read-only MenuItem capabilities exposed via MCP.
@@ -10,7 +10,7 @@ import type { OpenTrattosRestClient } from '../http-client.js';
  */
 export function registerMenuItemsCapabilities(
   server: McpServer,
-  rest: OpenTrattosRestClient,
+  rest: NexandroRestClient,
 ): void {
   server.registerTool(
     'menu-items.read',

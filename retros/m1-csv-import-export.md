@@ -1,6 +1,6 @@
 # retros/m1-csv-import-export.md
 
-> **Slice**: `m1-csv-import-export` · **PR**: [#65](https://github.com/Wizarck/openTrattOS/pull/65) · **Merged**: 2026-05-01 · **Squash SHA**: `2c001b5`
+> **Slice**: `m1-csv-import-export` · **PR**: [#65](https://github.com/Wizarck/nexandro/pull/65) · **Merged**: 2026-05-01 · **Squash SHA**: `2c001b5`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 
 ## What we shipped

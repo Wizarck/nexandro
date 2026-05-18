@@ -84,9 +84,9 @@ function makeTransport(client: string): Transport {
   switch (client) {
     case 'hermes':
       return new HermesTransport({
-        baseUrl: process.env.OPENTRATTOS_HERMES_BASE_URL ?? 'http://127.0.0.1:8644',
-        authSecret: process.env.OPENTRATTOS_HERMES_AUTH_SECRET ?? '',
-        bankId: process.env.MCP_BENCH_BANK_ID ?? 'opentrattos-bench',
+        baseUrl: process.env.NEXANDRO_HERMES_BASE_URL ?? 'http://127.0.0.1:8644',
+        authSecret: process.env.NEXANDRO_HERMES_AUTH_SECRET ?? '',
+        bankId: process.env.MCP_BENCH_BANK_ID ?? 'nexandro-bench',
         userId: process.env.MCP_BENCH_USER_ID ?? '00000000-0000-4000-8000-00000000bench',
       });
     case 'claude-desktop':
@@ -187,7 +187,7 @@ function buildReport(
       startedAt: startedAt.toISOString(),
       endedAt: endedAt.toISOString(),
       durationSec,
-      openTrattOSGitSha: readGitSha(),
+      nexandroGitSha: readGitSha(),
       env: `${userInfo().username}@${hostname()} (${platform()} node ${process.version})`,
       capabilities: args.capabilities,
       status,

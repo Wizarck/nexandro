@@ -6,7 +6,7 @@ version: "3.9"
 services:
   rag-proxy:
     build: .
-    image: opentrattos/rag-proxy:latest
+    image: nexandro/rag-proxy:latest
     restart: unless-stopped
     environment:
       - LIGHTRAG_BASE_URL=http://lightrag:9621

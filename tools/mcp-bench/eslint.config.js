@@ -1,4 +1,4 @@
-// Minimal ESLint v9 flat config for @opentrattos/mcp-bench (Wave 1.16).
+// Minimal ESLint v9 flat config for @nexandro/mcp-bench (Wave 1.16).
 // Pattern matches apps/web/eslint.config.js — no React plugins (this is a
 // Node CLI tool, not a UI workspace).
 import tseslint from '@typescript-eslint/eslint-plugin';

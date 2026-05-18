@@ -1,6 +1,6 @@
 # retros/m2-recipes-core.md
 
-> **Slice**: `m2-recipes-core` · **PR**: [#69](https://github.com/Wizarck/openTrattOS/pull/69) · **Merged**: 2026-05-01 · **Squash SHA**: `d75d3fd`
+> **Slice**: `m2-recipes-core` · **PR**: [#69](https://github.com/Wizarck/nexandro/pull/69) · **Merged**: 2026-05-01 · **Squash SHA**: `d75d3fd`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 
 ## What we shipped

@@ -82,7 +82,7 @@ function buildQueryString(query: RestRequestOptions['query']): string {
   return s ? `?${s}` : '';
 }
 
-export class OpenTrattosRestClient {
+export class NexandroRestClient {
   private readonly baseUrl: string;
   private readonly agentName: string;
   private readonly authToken: string | undefined;
@@ -90,10 +90,10 @@ export class OpenTrattosRestClient {
 
   constructor(config: RestClientConfig) {
     if (!config.baseUrl) {
-      throw new Error('OpenTrattosRestClient: baseUrl is required');
+      throw new Error('NexandroRestClient: baseUrl is required');
     }
     if (!config.agentName) {
-      throw new Error('OpenTrattosRestClient: agentName is required');
+      throw new Error('NexandroRestClient: agentName is required');
     }
     this.baseUrl = normaliseBaseUrl(config.baseUrl);
     this.agentName = config.agentName;
@@ -147,7 +147,7 @@ export class OpenTrattosRestClient {
       throw new RestApiError(
         response.status,
         parsedBody,
-        `OpenTrattos REST ${method} ${opts.path} failed: ${response.status}`,
+        `Nexandro REST ${method} ${opts.path} failed: ${response.status}`,
       );
     }
 

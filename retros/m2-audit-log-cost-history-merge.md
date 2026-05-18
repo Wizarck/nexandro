@@ -1,6 +1,6 @@
 # retros/m2-audit-log-cost-history-merge.md
 
-> **Slice**: `m2-audit-log-cost-history-merge` · **PR**: [#91](https://github.com/Wizarck/openTrattOS/pull/91) · **Merged**: 2026-05-06 · **Squash SHA**: `c43456d`
+> **Slice**: `m2-audit-log-cost-history-merge` · **PR**: [#91](https://github.com/Wizarck/nexandro/pull/91) · **Merged**: 2026-05-06 · **Squash SHA**: `c43456d`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: **Wave 1.10 — first slice that actively drops a legacy table** instead of adding alongside. Closes the loop on `m2-audit-log` (Wave 1.9) for the cost-history concern: `audit_log` is now the SINGLE source of truth for cost rebuild events; `recipe_cost_history` table + entity + repository all retired in one transaction. Triggered by `m2-audit-log-cleanup` being archived as no-op (the original cleanup target was misclassified).
 

@@ -1,6 +1,6 @@
 # retros/m2-ai-yield-suggestions.md
 
-> **Slice**: `m2-ai-yield-suggestions` · **PR**: [#87](https://github.com/Wizarck/openTrattOS/pull/87) · **Merged**: 2026-05-05 · **Squash SHA**: `81019a8`
+> **Slice**: `m2-ai-yield-suggestions` · **PR**: [#87](https://github.com/Wizarck/nexandro/pull/87) · **Merged**: 2026-05-05 · **Squash SHA**: `81019a8`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: **M2 backlog closes** with this slice (Wave 1.7, single-thread). FR16-19 AI-Assisted Authoring with iron-rule citation contract — the M2 differentiator. First slice that ships a pluggable provider abstraction registered at the module layer (Claude Haiku / Hermes future swap). Fifth slice using the unified-table-as-cache+audit pattern (after #7 / #13 / #15 / #16).
 
@@ -17,7 +17,7 @@
 - `AiSuggestionProvider` interface: `suggestYield(input)` + `suggestWaste(input)` → `ProviderResult | null`. Pluggable via `AI_SUGGESTION_PROVIDER` DI token; future Claude Haiku / Hermes providers swap at config layer.
 - `GptOssRagProvider` HTTP client wrapping internal RAG endpoint. Wire format consumed: `POST {baseUrl}/yield body { organizationId, ingredientId, contextHash }` returning `{ value, citationUrl, snippet }`. The hybrid corpus + web-search fallback per Gate D 2c is the RAG endpoint's responsibility — this client just enforces the contract.
 - Failure modes (network errors / 4xx / 5xx / parse / timeout / aborted) all surface as `null` — the controller continues to serve a "no suggestion available" envelope. Provider NEVER crashes.
-- Config from env: `OPENTRATTOS_AI_RAG_BASE_URL`, `OPENTRATTOS_AI_RAG_API_KEY`, `OPENTRATTOS_AI_RAG_TIMEOUT_MS` (default 5000), `OPENTRATTOS_AI_RAG_MODEL_NAME/_VERSION` overrides.
+- Config from env: `NEXANDRO_AI_RAG_BASE_URL`, `NEXANDRO_AI_RAG_API_KEY`, `NEXANDRO_AI_RAG_TIMEOUT_MS` (default 5000), `NEXANDRO_AI_RAG_MODEL_NAME/_VERSION` overrides.
 
 **Iron-rule guard (FR19):**
 - `applyIronRule(result)` server-side check: rejects responses with empty/null `citationUrl` OR `snippet`, value out of `[0, 1]`, or NaN. Truncates snippet to 500 chars + ellipsis marker `…` (mirrors DB-level CHECK).
@@ -96,7 +96,7 @@
 
 ## Pending technical debt (filed)
 
-- **`m2-ai-yield-corpus`** — RAG corpus ingestion (CIAA + USDA + cookbook references) is operational, NOT code. Owns its own ADR + ops tooling. Required before flipping `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED=true` in production.
+- **`m2-ai-yield-corpus`** — RAG corpus ingestion (CIAA + USDA + cookbook references) is operational, NOT code. Owns its own ADR + ops tooling. Required before flipping `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED=true` in production.
 - **`m2-ai-yield-web-fallback`** — alternative orchestration if Gate D 2c moves out of the RAG endpoint into the apps/api layer. Currently the RAG endpoint owns the corpus + web-search fallback; if that becomes operationally awkward, we'd ship an explicit `WebSearchProvider` chained behind the corpus provider.
 - **`audit_log` table** — at least 5 events now reserved against it. Pressure increasing for a dedicated audit slice.
 - **DTO codegen pipeline** — hand-mirrored `AiSuggestionShape` (and `LabelApiError`, etc.) in ui-kit duplicates apps/api types. 14+ type files now hand-mirrored across slices. Codegen would unblock several slices' duplication.
@@ -107,7 +107,7 @@
 
 ## What to do next
 
-- **`m2-wrap-up`** is the natural next slice: flip `OPENTRATTOS_LABELS_PROD_ENABLED=true` after labels legal review + flip `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED=true` after corpus ingestion. Closes M2 in production.
+- **`m2-wrap-up`** is the natural next slice: flip `NEXANDRO_LABELS_PROD_ENABLED=true` after labels legal review + flip `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED=true` after corpus ingestion. Closes M2 in production.
 - **`m2-ai-yield-corpus`** — operational slice (not code-heavy); ingest curated culinary references into the RAG vector store.
 - **Update `project_m1_state.md` memory** — M2 backlog = 0; pivot to M2 wrap-up + M3 planning.
 - **Decide M2.x vs M3 jump**: M2.x candidates are bilingual labels, AgentChatWidget UI, WhatsApp routing. M3 candidates are HACCP / inventory / batches. Master's call.

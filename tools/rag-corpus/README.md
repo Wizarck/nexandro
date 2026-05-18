@@ -1,6 +1,6 @@
 # rag-corpus
 
-Authoritative corpus ingestion scripts for the openTrattOS AI yield/waste suggestion engine.
+Authoritative corpus ingestion scripts for the nexandro AI yield/waste suggestion engine.
 
 Pipes USDA FoodData Central, EU Reglamento 1169/2011, Escoffier *Le Guide Culinaire* (Project Gutenberg), and (when permitted) CIAA Spain materials through [RAGAnything](https://github.com/HKUDS/RAG-Anything) into the existing [LightRAG](https://github.com/HKUDS/LightRAG) instance.
 

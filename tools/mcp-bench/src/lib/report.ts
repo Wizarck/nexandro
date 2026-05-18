@@ -31,7 +31,7 @@ export function renderMarkdown(report: BenchReport): string {
   lines.push(`- **Started**: ${report.meta.startedAt}`);
   lines.push(`- **Ended**: ${report.meta.endedAt}`);
   lines.push(`- **Duration**: ${report.meta.durationSec}s`);
-  lines.push(`- **openTrattOS git SHA**: \`${report.meta.openTrattOSGitSha || '(unknown)'}\``);
+  lines.push(`- **nexandro git SHA**: \`${report.meta.nexandroGitSha || '(unknown)'}\``);
   lines.push(`- **Environment**: ${report.meta.env}`);
   lines.push(`- **Capabilities**: ${report.meta.capabilities.join(', ')}`);
   lines.push('');

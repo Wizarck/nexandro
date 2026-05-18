@@ -1,5 +1,5 @@
 {
-  "name": "@opentrattos/mcp-bench",
+  "name": "@nexandro/mcp-bench",
   "version": "0.1.0",
   "private": true,
   "description": "MCP-client benchmark harness — drives a fixed read-only capability matrix against Hermes / Claude Desktop / OpenCode and emits a markdown report. Wave 1.13 [3c].",

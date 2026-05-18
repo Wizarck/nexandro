@@ -1,6 +1,6 @@
 # retros/m2-mcp-bench-ci.md
 
-> **Slice**: `m2-mcp-bench-ci` · **PR**: [#109](https://github.com/Wizarck/openTrattOS/pull/109) · **Merged**: 2026-05-07 · **Squash SHA**: `772080e`
+> **Slice**: `m2-mcp-bench-ci` · **PR**: [#109](https://github.com/Wizarck/nexandro/pull/109) · **Merged**: 2026-05-07 · **Squash SHA**: `772080e`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: **Wave 1.16 — first slice in the post-M2 backend tech-debt batch (4 slices the user picked together)**. Wires `tools/mcp-bench/` into a GitHub Actions workflow with PR-level lint/test/build + manual `workflow_dispatch` for real bench runs against VPS Hermes + automated regression detection. **First-pass green CI**, including the new workflow exercising itself for the first time.
 
@@ -14,7 +14,7 @@
   1. Checks out with `fetch-depth: 0` (full history needed for the bot push).
   2. `npm ci` against the cached `tools/mcp-bench/package-lock.json`.
   3. Locates the **previous** baseline report BEFORE running the bench (so the new report doesn't overwrite the basis of comparison).
-  4. Runs `npx tsx src/run.ts --client=$client --duration=$duration` with `OPENTRATTOS_HERMES_BASE_URL` + `OPENTRATTOS_HERMES_AUTH_SECRET` from GH Secrets, `HERMES_VERSION` from a GH Variable (defaults `wamba-overlay`).
+  4. Runs `npx tsx src/run.ts --client=$client --duration=$duration` with `NEXANDRO_HERMES_BASE_URL` + `NEXANDRO_HERMES_AUTH_SECRET` from GH Secrets, `HERMES_VERSION` from a GH Variable (defaults `wamba-overlay`).
   5. Uploads the new report as a workflow artifact regardless of regression result.
   6. Runs the regression check vs the located baseline (skipped when no baseline exists).
   7. When `commit_report=true` AND nothing already cached for commit, configures the `github-actions[bot]` user, stages `docs/bench/`, commits with message `bench(mcp): <client> run <YYYY-MM-DD> (workflow_dispatch by <actor>)`, and pushes to whatever ref dispatched the workflow (`HEAD:${GITHUB_REF_NAME}`).

@@ -9,7 +9,7 @@ inputDocuments:
   - docs/project-structure.md
   - _bmad-output/research/ai-playbook-ux-skills-analysis.md
 workflowType: 'ux-design'
-projectName: openTrattOS
+projectName: nexandro
 moduleScope: 'Module 2 — Recipes / Escandallo + Nutritional Intelligence + Auto-Labels'
 gateContext: 'UX Track of BMAD+OpenSpec runbook v0.5.0 — between Gate A (post-PRD, APPROVED 2026-04-27) and Gate B (post-Architecture+UX). Architecture done.'
 canonicalOutputs:
@@ -19,7 +19,7 @@ canonicalOutputs:
 brandVoiceForkPending: true
 ---
 
-# UX Design Specification — openTrattOS Module 2
+# UX Design Specification — nexandro Module 2
 
 **Author:** Master (facilitated by Sally, BMAD UX Designer)
 **Date:** 2026-04-27

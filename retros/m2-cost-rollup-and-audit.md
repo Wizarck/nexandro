@@ -1,6 +1,6 @@
 # retros/m2-cost-rollup-and-audit.md
 
-> **Slice**: `m2-cost-rollup-and-audit` · **PR**: [#75](https://github.com/Wizarck/openTrattOS/pull/75) · **Merged**: 2026-05-04 · **Squash SHA**: `f2c9207`
+> **Slice**: `m2-cost-rollup-and-audit` · **PR**: [#75](https://github.com/Wizarck/nexandro/pull/75) · **Merged**: 2026-05-04 · **Squash SHA**: `f2c9207`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: First slice that consumed and **closed** the `InventoryCostResolver` seam introduced in M1. Wave 1.2 (sequential after Wave 1.1's parallel pair).
 

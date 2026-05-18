@@ -25,7 +25,7 @@ export default [
       '@typescript-eslint/no-explicit-any': 'error',
       // m2-mcp-server / ADR-013: zero compile-time dependency from apps/api/
       // on agent vendor packages. The MCP layer lives in
-      // packages/mcp-server-opentrattos/ and proxies to apps/api/ via REST;
+      // packages/mcp-server-nexandro/ and proxies to apps/api/ via REST;
       // a direct import here would couple the API to an agent SDK and
       // violate the separability contract.
       'no-restricted-imports': [
@@ -35,7 +35,7 @@ export default [
             {
               group: ['@modelcontextprotocol/*', '@modelcontextprotocol/sdk'],
               message:
-                'apps/api/ must not import agent vendor packages (ADR-013 / m2-mcp-server). Move the call to packages/mcp-server-opentrattos/ and consume apps/api/ via REST.',
+                'apps/api/ must not import agent vendor packages (ADR-013 / m2-mcp-server). Move the call to packages/mcp-server-nexandro/ and consume apps/api/ via REST.',
             },
           ],
         },
@@ -71,7 +71,7 @@ export default [
             {
               group: ['@modelcontextprotocol/*', '@modelcontextprotocol/sdk'],
               message:
-                'apps/api/ must not import agent vendor packages (ADR-013 / m2-mcp-server). Move the call to packages/mcp-server-opentrattos/ and consume apps/api/ via REST.',
+                'apps/api/ must not import agent vendor packages (ADR-013 / m2-mcp-server). Move the call to packages/mcp-server-nexandro/ and consume apps/api/ via REST.',
             },
           ],
         },

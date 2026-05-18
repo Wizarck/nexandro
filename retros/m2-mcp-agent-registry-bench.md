@@ -1,6 +1,6 @@
 # retros/m2-mcp-agent-registry-bench.md
 
-> **Slice**: `m2-mcp-agent-registry-bench` · **PR**: [#106](https://github.com/Wizarck/openTrattOS/pull/106) · **Merged**: 2026-05-07 · **Squash SHA**: `17b37c1`
+> **Slice**: `m2-mcp-agent-registry-bench` · **PR**: [#106](https://github.com/Wizarck/nexandro/pull/106) · **Merged**: 2026-05-07 · **Squash SHA**: `17b37c1`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: **Wave 1.13 [3c] — third and final slice of the m2-mcp-extras split**. Closes the security and visibility gaps from 3a + 3b: per-agent Ed25519 signing replaces the trusted-internal-network shared-secret posture, SSE idempotency replay closes the chat retry path 3b deferred, and the first MCP-client benchmark harness lands as standalone tooling. **First-pass green CI** — only 3c of the three slices in this Wave didn't need a fix-commit cycle.
 
@@ -19,7 +19,7 @@
 - `AgentSignatureMiddleware` (~190 LOC) verifies via `crypto.verify('ed25519', envelope, publicKey, sig)` builtin. Zero external deps; Node 16+ ships Ed25519 in `crypto`.
 - Canonical envelope per ADR-AGENT-SIG-2: `method+'\n'+path+'\n'+ts+'\n'+nonce+'\n'+JSON.stringify(body)`. Body in the signature → tampered body fails verification.
 - 5-min skew window (matches AWS SigV4). In-memory FIFO nonce LRU bounded at 10k entries; replay protection. Nonces stored only after a fully-valid request so an attacker can't fill the LRU with bogus entries.
-- Default-OFF posture (per ADR-AGENT-SIG-3): `OPENTRATTOS_AGENT_SIGNATURE_REQUIRED` accepts three forms — `false` (default; legacy 3a unsigned path stays), `true` (global enforcement), or `<uuid>,<uuid>,...` (comma-separated org list for staged rollout).
+- Default-OFF posture (per ADR-AGENT-SIG-3): `NEXANDRO_AGENT_SIGNATURE_REQUIRED` accepts three forms — `false` (default; legacy 3a unsigned path stays), `true` (global enforcement), or `<uuid>,<uuid>,...` (comma-separated org list for staged rollout).
 - Verified context (per ADR-AGENT-SIG-4): when verification succeeds, `req.agentContext.agentName` is populated from the credential row, NOT from the `X-Agent-Name` header. Spoofing the agent identity via headers is structurally impossible after this slice.
 - `AgentAuditMiddleware` made idempotent — when `req.agentContext.signatureVerified=true` is already set, the legacy header-based stamping is skipped. Eliminates the "header overrides verified context" failure mode.
 - 11 unit + 1 INT spec.
@@ -42,7 +42,7 @@
 - 13 vitest specs.
 
 **Operator surface:**
-- `apps/api/.env.example` — appended `OPENTRATTOS_AGENT_SIGNATURE_REQUIRED` flag with three-form documentation + `# IMPORTANT` rollout block.
+- `apps/api/.env.example` — appended `NEXANDRO_AGENT_SIGNATURE_REQUIRED` flag with three-form documentation + `# IMPORTANT` rollout block.
 - `docs/operations/m2-mcp-agent-registry-bench-runbook.md` (~290 lines): keypair generation 1-liner, registration via curl, day-N rollout, rollback, agent-side request-signing pseudocode, SSE replay (auto), bench invocation, 5 troubleshooting recipes.
 - Cross-runbook forward pointers added to 3a + 3b runbooks.
 
@@ -59,7 +59,7 @@
 - **CLI for credential ops** — `m2-agent-credentials-cli` filed. `tools/agent-cli/register-agent.ts` would automate the keygen + register + secret-store flow; today the runbook documents the 1-liner.
 - **CI-scheduled bench** — `m2-mcp-bench-ci` filed. Wire `tools/mcp-bench/` into a GitHub Actions matrix with regression detection (commit a baseline report, fail if p95 regresses by >X%). Today the maintainer runs the bench manually.
 - **Keypair rotation** — `m2-agent-credential-rotation` filed. Today rotation is "revoke + re-register"; an explicit rotation API would be safer (atomic swap of public key without a window where neither is valid).
-- **Multi-tenant SaaS / IdP integration** — `m3-agent-jwt-bridge` filed. Today the agent identity model is openTrattOS-internal (we manage credentials in our DB); if openTrattOS becomes multi-tenant SaaS with external IdPs in M3, JWT/OIDC bridging lands then.
+- **Multi-tenant SaaS / IdP integration** — `m3-agent-jwt-bridge` filed. Today the agent identity model is nexandro-internal (we manage credentials in our DB); if nexandro becomes multi-tenant SaaS with external IdPs in M3, JWT/OIDC bridging lands then.
 - **Per-org `agent_signature_required` column** — escape hatch from the env-var staged rollout once the list grows.
 
 ## Process notes

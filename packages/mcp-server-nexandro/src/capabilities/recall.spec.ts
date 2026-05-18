@@ -1,5 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { OpenTrattosRestClient } from '../http-client.js';
+import { NexandroRestClient } from '../http-client.js';
 import { registerRecallCapabilities } from './recall.js';
 
 const ORG = '11111111-1111-4111-8111-111111111111';
@@ -39,7 +39,7 @@ function captureTools(): {
 describe('registerRecallCapabilities', () => {
   it('registers exactly one capability `recall.search-incident`', () => {
     const { server, tools } = captureTools();
-    const rest = new OpenTrattosRestClient({
+    const rest = new NexandroRestClient({
       baseUrl: 'http://api.test',
       agentName: 'a',
       fetchImpl: jest.fn() as unknown as typeof fetch,
@@ -50,7 +50,7 @@ describe('registerRecallCapabilities', () => {
 
   it('declares organizationId + query + types + limit in the input schema', () => {
     const { server, tools } = captureTools();
-    const rest = new OpenTrattosRestClient({
+    const rest = new NexandroRestClient({
       baseUrl: 'http://api.test',
       agentName: 'a',
       fetchImpl: jest.fn() as unknown as typeof fetch,
@@ -68,7 +68,7 @@ describe('registerRecallCapabilities', () => {
     const fetchSpy = jest
       .fn<Promise<Response>, [string | URL | Request, RequestInit | undefined]>()
       .mockResolvedValue(jsonResp({ hits: [] }));
-    const rest = new OpenTrattosRestClient({
+    const rest = new NexandroRestClient({
       baseUrl: 'http://api.test',
       agentName: 'a',
       fetchImpl: fetchSpy as unknown as typeof fetch,
@@ -95,7 +95,7 @@ describe('registerRecallCapabilities', () => {
     const fetchSpy = jest
       .fn<Promise<Response>, [string | URL | Request, RequestInit | undefined]>()
       .mockResolvedValue(jsonResp({ hits: [] }));
-    const rest = new OpenTrattosRestClient({
+    const rest = new NexandroRestClient({
       baseUrl: 'http://api.test',
       agentName: 'a',
       fetchImpl: fetchSpy as unknown as typeof fetch,

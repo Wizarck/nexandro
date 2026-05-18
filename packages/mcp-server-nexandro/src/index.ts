@@ -1,5 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { OpenTrattosRestClient } from './http-client.js';
+import { NexandroRestClient } from './http-client.js';
 import { registerRecipesCapabilities } from './capabilities/recipes.js';
 import { registerMenuItemsCapabilities } from './capabilities/menu-items.js';
 import { registerIngredientsCapabilities } from './capabilities/ingredients.js';
@@ -19,7 +19,7 @@ import {
  *
  * `buildServer` is the test-friendly factory — it returns an `McpServer`
  * with every capability descriptor wired against a single
- * `OpenTrattosRestClient`. The stdio bootstrap lives in `server.ts` so this
+ * `NexandroRestClient`. The stdio bootstrap lives in `server.ts` so this
  * module can be `import`-ed by tests without triggering side effects.
  *
  * Configuration is environment-only — see the README for the env-var matrix.
@@ -32,9 +32,9 @@ export interface ServerOptions {
 
 export function buildServer(options: ServerOptions): {
   server: McpServer;
-  rest: OpenTrattosRestClient;
+  rest: NexandroRestClient;
 } {
-  const rest = new OpenTrattosRestClient({
+  const rest = new NexandroRestClient({
     baseUrl: options.apiBaseUrl,
     agentName: options.agentName,
     authToken: options.authToken,

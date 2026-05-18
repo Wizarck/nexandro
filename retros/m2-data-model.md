@@ -1,6 +1,6 @@
 # retros/m2-data-model.md
 
-> **Slice**: `m2-data-model` · **PR**: [#68](https://github.com/Wizarck/openTrattOS/pull/68) · **Merged**: 2026-05-01 · **Squash SHA**: `532d451`
+> **Slice**: `m2-data-model` · **PR**: [#68](https://github.com/Wizarck/nexandro/pull/68) · **Merged**: 2026-05-01 · **Squash SHA**: `532d451`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 
 ## What we shipped

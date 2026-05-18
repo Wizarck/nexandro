@@ -1,4 +1,4 @@
-// Minimal ESLint v9 flat config for @opentrattos/web.
+// Minimal ESLint v9 flat config for @nexandro/web.
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
 import reactHooks from 'eslint-plugin-react-hooks';

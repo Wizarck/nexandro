@@ -1,6 +1,6 @@
 # retros/m2-allergens-article-21.md
 
-> **Slice**: `m2-allergens-article-21` · **PR**: [#80](https://github.com/Wizarck/openTrattOS/pull/80) · **Merged**: 2026-05-05 · **Squash SHA**: `58967c6`
+> **Slice**: `m2-allergens-article-21` · **PR**: [#80](https://github.com/Wizarck/nexandro/pull/80) · **Merged**: 2026-05-05 · **Squash SHA**: `58967c6`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: Wave 1.3 subagent slice, paired with main thread's `m2-menus-margins` (PR #79). Second Wave-N parallel test of the runbook §6.4 pattern; first to need a follow-up commit on the slice branch from the parent thread.
 

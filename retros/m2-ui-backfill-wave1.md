@@ -1,6 +1,6 @@
 # retros/m2-ui-backfill-wave1.md
 
-> **Slice**: `m2-ui-backfill-wave1` · **PR**: [#82](https://github.com/Wizarck/openTrattOS/pull/82) · **Merged**: 2026-05-05 · **Squash SHA**: `fd5946b`
+> **Slice**: `m2-ui-backfill-wave1` · **PR**: [#82](https://github.com/Wizarck/nexandro/pull/82) · **Merged**: 2026-05-05 · **Squash SHA**: `fd5946b`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: Closes the 4-slice UI-deferred debt left by `#2`, `#3`, `#7`, `#8`. Sibling to `#12 m2-ui-foundation`. Second slice that ships UI components, second use of the proposal-only-first pattern from `#12`'s retro.
 

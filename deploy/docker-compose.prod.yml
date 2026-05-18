@@ -66,7 +66,7 @@ services:
       NEXANDRO_BRAND_ASSET_S3_SECRET_ACCESS_KEY: "${NEXANDRO_BRAND_ASSET_S3_SECRET_ACCESS_KEY:-}"
       NEXANDRO_BRAND_ASSET_S3_PUBLIC_URL_BASE: "${NEXANDRO_BRAND_ASSET_S3_PUBLIC_URL_BASE:-}"
     # Loopback-only bind matches the modern VPS pattern on cx43
-    # (actual-server, palafito-staging-wp, opentrattos-postgres-test).
+    # (actual-server, palafito-staging-wp, nexandro-postgres-test).
     # Cloudflared on the host reaches us via 127.0.0.1:3201.
     ports:
       - "127.0.0.1:3201:3001"

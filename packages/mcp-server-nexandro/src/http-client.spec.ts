@@ -1,5 +1,5 @@
 import {
-  OpenTrattosRestClient,
+  NexandroRestClient,
   RestApiError,
 } from './http-client.js';
 
@@ -10,12 +10,12 @@ function jsonResponse(status: number, body: unknown): Response {
   });
 }
 
-describe('OpenTrattosRestClient', () => {
+describe('NexandroRestClient', () => {
   it('forwards X-Via-Agent + X-Agent-Name + X-Agent-Capability + Authorization headers', async () => {
     const fetchSpy = jest
       .fn<Promise<Response>, [string | URL | Request, RequestInit | undefined]>()
       .mockResolvedValue(jsonResponse(200, { ok: true }));
-    const client = new OpenTrattosRestClient({
+    const client = new NexandroRestClient({
       baseUrl: 'http://api.test',
       agentName: 'claude-desktop',
       authToken: 'tok-123',
@@ -43,7 +43,7 @@ describe('OpenTrattosRestClient', () => {
     const fetchSpy = jest
       .fn<Promise<Response>, [string | URL | Request, RequestInit | undefined]>()
       .mockResolvedValue(jsonResponse(200, []));
-    const client = new OpenTrattosRestClient({
+    const client = new NexandroRestClient({
       baseUrl: 'http://api.test/',
       agentName: 'a',
       fetchImpl: fetchSpy as unknown as typeof fetch,
@@ -63,7 +63,7 @@ describe('OpenTrattosRestClient', () => {
     const fetchSpy = jest
       .fn<Promise<Response>, [string | URL | Request, RequestInit | undefined]>()
       .mockResolvedValue(jsonResponse(200, { id: 'r1', name: 'Tomato Sauce' }));
-    const client = new OpenTrattosRestClient({
+    const client = new NexandroRestClient({
       baseUrl: 'http://api.test',
       agentName: 'a',
       fetchImpl: fetchSpy as unknown as typeof fetch,
@@ -79,7 +79,7 @@ describe('OpenTrattosRestClient', () => {
     const fetchSpy = jest
       .fn<Promise<Response>, [string | URL | Request, RequestInit | undefined]>()
       .mockResolvedValue(jsonResponse(404, { code: 'NOT_FOUND' }));
-    const client = new OpenTrattosRestClient({
+    const client = new NexandroRestClient({
       baseUrl: 'http://api.test',
       agentName: 'a',
       fetchImpl: fetchSpy as unknown as typeof fetch,
@@ -106,7 +106,7 @@ describe('OpenTrattosRestClient', () => {
           headers: { 'content-type': 'text/plain' },
         }),
       );
-    const client = new OpenTrattosRestClient({
+    const client = new NexandroRestClient({
       baseUrl: 'http://api.test',
       agentName: 'a',
       fetchImpl: fetchSpy as unknown as typeof fetch,
@@ -129,14 +129,14 @@ describe('OpenTrattosRestClient', () => {
   it('throws on construction when required config is missing', () => {
     expect(
       () =>
-        new OpenTrattosRestClient({
+        new NexandroRestClient({
           baseUrl: '',
           agentName: 'a',
         }),
     ).toThrow(/baseUrl is required/);
     expect(
       () =>
-        new OpenTrattosRestClient({
+        new NexandroRestClient({
           baseUrl: 'http://api',
           agentName: '',
         }),
@@ -147,7 +147,7 @@ describe('OpenTrattosRestClient', () => {
     const fetchSpy = jest
       .fn<Promise<Response>, [string | URL | Request, RequestInit | undefined]>()
       .mockResolvedValue(jsonResponse(201, { id: 'r-new' }));
-    const client = new OpenTrattosRestClient({
+    const client = new NexandroRestClient({
       baseUrl: 'http://api.test',
       agentName: 'a',
       fetchImpl: fetchSpy as unknown as typeof fetch,
@@ -181,7 +181,7 @@ describe('OpenTrattosRestClient', () => {
     const fetchSpy = jest
       .fn<Promise<Response>, [string | URL | Request, RequestInit | undefined]>()
       .mockResolvedValue(jsonResponse(200, { ok: true }));
-    const client = new OpenTrattosRestClient({
+    const client = new NexandroRestClient({
       baseUrl: 'http://api.test',
       agentName: 'a',
       fetchImpl: fetchSpy as unknown as typeof fetch,
@@ -205,7 +205,7 @@ describe('OpenTrattosRestClient', () => {
     const fetchSpy = jest
       .fn<Promise<Response>, [string | URL | Request, RequestInit | undefined]>()
       .mockResolvedValue(jsonResponse(200, { ok: true }));
-    const client = new OpenTrattosRestClient({
+    const client = new NexandroRestClient({
       baseUrl: 'http://api.test',
       agentName: 'a',
       fetchImpl: fetchSpy as unknown as typeof fetch,
@@ -227,7 +227,7 @@ describe('OpenTrattosRestClient', () => {
     const fetchSpy = jest
       .fn<Promise<Response>, [string | URL | Request, RequestInit | undefined]>()
       .mockResolvedValue(jsonResponse(200, { id: 'i1' }));
-    const client = new OpenTrattosRestClient({
+    const client = new NexandroRestClient({
       baseUrl: 'http://api.test',
       agentName: 'a',
       fetchImpl: fetchSpy as unknown as typeof fetch,
@@ -250,7 +250,7 @@ describe('OpenTrattosRestClient', () => {
     const fetchSpy = jest
       .fn<Promise<Response>, [string | URL | Request, RequestInit | undefined]>()
       .mockResolvedValue(jsonResponse(200, { ok: true }));
-    const client = new OpenTrattosRestClient({
+    const client = new NexandroRestClient({
       baseUrl: 'http://api.test',
       agentName: 'a',
       fetchImpl: fetchSpy as unknown as typeof fetch,
@@ -273,7 +273,7 @@ describe('OpenTrattosRestClient', () => {
     const fetchSpy = jest
       .fn<Promise<Response>, [string | URL | Request, RequestInit | undefined]>()
       .mockResolvedValue(jsonResponse(200, []));
-    const client = new OpenTrattosRestClient({
+    const client = new NexandroRestClient({
       baseUrl: 'http://api.test',
       agentName: 'a',
       fetchImpl: fetchSpy as unknown as typeof fetch,

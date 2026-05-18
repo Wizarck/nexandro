@@ -67,7 +67,7 @@ export interface BenchRunMeta {
   /** seconds */
   durationSec: number;
   /** SHA — captured by the harness; may be empty when run outside a git checkout. */
-  openTrattOSGitSha: string;
+  nexandroGitSha: string;
   /** Free-form environment notes — ${user}@${host}, OS, Node version. */
   env: string;
   capabilities: CapabilityName[];

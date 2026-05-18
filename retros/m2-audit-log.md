@@ -1,6 +1,6 @@
 # retros/m2-audit-log.md
 
-> **Slice**: `m2-audit-log` · **PR**: [#90](https://github.com/Wizarck/openTrattOS/pull/90) · **Merged**: 2026-05-06 · **Squash SHA**: `1e420a6`
+> **Slice**: `m2-audit-log` · **PR**: [#90](https://github.com/Wizarck/nexandro/pull/90) · **Merged**: 2026-05-06 · **Squash SHA**: `1e420a6`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: **Wave 1.9 — first post-M2 slice**. Canonical `audit_log` table extracts the cache+audit pattern that 5 prior M2 BCs re-implemented in their own per-BC tables/columns. `@OnEvent` subscriber decouples audit from business logic — services don't import `AuditLogService`; they emit events; the subscriber persists. Adding a new event type in M3+ is one constant + one `@OnEvent` handler.
 

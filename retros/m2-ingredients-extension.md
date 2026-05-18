@@ -1,6 +1,6 @@
 # retros/m2-ingredients-extension.md
 
-> **Slice**: `m2-ingredients-extension` · **PR**: [#84](https://github.com/Wizarck/openTrattOS/pull/84) · **Merged**: 2026-05-05 · **Squash SHA**: `cce620b`
+> **Slice**: `m2-ingredients-extension` · **PR**: [#84](https://github.com/Wizarck/nexandro/pull/84) · **Merged**: 2026-05-05 · **Squash SHA**: `cce620b`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: Wave 1.5 main-thread slice (paired with subagent's m2-mcp-server, PR #85). Closes IngredientPicker's OFF dependency from #13. First slice that introduces the `recipe-tree-walker.ts` shared helper. Override storage chose jsonb (matching #7 + #13 patterns). Fourth use of the proposal-only-first pattern.
 
@@ -38,7 +38,7 @@ Tests: **21 new backend** (11 recipe-tree-walker + 10 IngredientsService) + **13
 - **Per-component file layout muscle memory.** 4th component slice in a row with the same `<Name>/{tsx, stories, test, types, index}` layout. Reviewer cognitive load is now near zero.
 - **No circular dep.** `RecipesMacrosController` lives in `IngredientsModule` (because the rollup is owned by `IngredientsService`) but routes under `/recipes`. NestJS doesn't care which module hosts a controller; URL space is a routing concern. Avoiding the circular `RecipesModule ↔ IngredientsModule` import was a 2-minute call.
 - **Existing `ExternalCatalogService.searchByBarcode` from #4 worked verbatim.** No API changes needed; the slice just consumes the existing graceful-degrade behaviour. `searchByBarcode` already returns null on outage; my service forwards that.
-- **Barrel re-export discipline.** Added `MacroPanel` + `PRIMARY_MACRO_KEYS` + `MACRO_LABELS` to the kit's barrel; consumer-side `import { MacroPanel } from '@opentrattos/ui-kit'` works without diving into folders.
+- **Barrel re-export discipline.** Added `MacroPanel` + `PRIMARY_MACRO_KEYS` + `MACRO_LABELS` to the kit's barrel; consumer-side `import { MacroPanel } from '@nexandro/ui-kit'` works without diving into folders.
 
 ## What didn't (and the fixes)
 

@@ -62,7 +62,7 @@ The system SHALL register an MCP capability `recall.search-incident` in `package
 
 #### Scenario: Capability invocation forwards to REST
 - **WHEN** an agent invokes `recall.search-incident` with `{ query: 'tomate', limit: 8 }`
-- **THEN** the underlying `OpenTrattosRestClient` issues `GET /m3/recall/search?q=tomate&limit=8` with header `X-Agent-Capability: recall.search-incident`
+- **THEN** the underlying `NexandroRestClient` issues `GET /m3/recall/search?q=tomate&limit=8` with header `X-Agent-Capability: recall.search-incident`
 
 #### Scenario: Capability is registered as read-only (no idempotency key, no kill-switch env)
 - **WHEN** the MCP server `buildServer` is invoked

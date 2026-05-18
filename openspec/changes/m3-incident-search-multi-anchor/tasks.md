@@ -107,7 +107,7 @@
   - Controlled `value` prop syncs
 - [ ] 10.4 `packages/mcp-server-nexandro/src/capabilities/recall.spec.ts`:
   - `registerRecallCapabilities` registers `recall.search-incident` (assert via `server.listTools()`-style spy)
-  - Capability invocation forwards `query` + `types` + `limit` to `OpenTrattosRestClient` with capability header
+  - Capability invocation forwards `query` + `types` + `limit` to `NexandroRestClient` with capability header
 
 ## 11. Module + DI wiring smoke
 

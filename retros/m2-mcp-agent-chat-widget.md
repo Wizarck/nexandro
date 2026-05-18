@@ -1,24 +1,24 @@
 # retros/m2-mcp-agent-chat-widget.md
 
-> **Slice**: `m2-mcp-agent-chat-widget` · **PR**: [#105](https://github.com/Wizarck/openTrattOS/pull/105) · **Merged**: 2026-05-07 · **Squash SHA**: `17d7b28`
+> **Slice**: `m2-mcp-agent-chat-widget` · **PR**: [#105](https://github.com/Wizarck/nexandro/pull/105) · **Merged**: 2026-05-07 · **Squash SHA**: `17d7b28`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
-> **Notable**: **Wave 1.13 [3b] — second slice of the m2-mcp-extras split**. Adds the first first-party UI surface for talking to an agent inside openTrattOS: a NestJS SSE relay (`POST /agent-chat/stream`), a presentational `AgentChatWidget` in `packages/ui-kit`, and a layout-level mount in `apps/web`. Builds on a NEW upstream Hermes platform (`web_via_http_sse`) shipped via [NousResearch/hermes-agent#20911](https://github.com/NousResearch/hermes-agent/pull/20911).
+> **Notable**: **Wave 1.13 [3b] — second slice of the m2-mcp-extras split**. Adds the first first-party UI surface for talking to an agent inside nexandro: a NestJS SSE relay (`POST /agent-chat/stream`), a presentational `AgentChatWidget` in `packages/ui-kit`, and a layout-level mount in `apps/web`. Builds on a NEW upstream Hermes platform (`web_via_http_sse`) shipped via [NousResearch/hermes-agent#20911](https://github.com/NousResearch/hermes-agent/pull/20911).
 
 ## What we shipped
 
 **Hermes upstream platform (`web_via_http_sse`):**
-- Forked `Wizarck/hermes-agent feat/web-via-http-sse-platform`, opened upstream PR #20911 (NousResearch/hermes-agent). Generic platform (no openTrattOS-specific anything) so other vendors can use it.
+- Forked `Wizarck/hermes-agent feat/web-via-http-sse-platform`, opened upstream PR #20911 (NousResearch/hermes-agent). Generic platform (no nexandro-specific anything) so other vendors can use it.
 - Cross-repo rebase: WABA PR #11873 (`eligia-vps`) updated onto upstream/main with a clean single commit; the `eligia/hermes-agent:wamba` overlay rebuilt on the VPS.
-- SOPS secret `WEB_VIA_HTTP_SSE_AUTH_SECRET` provisioned in `eligia-core/secrets/secrets.env` plus mirror keys (`OPENTRATTOS_HERMES_BASE_URL`, `OPENTRATTOS_HERMES_AUTH_SECRET`) for apps/api.
+- SOPS secret `WEB_VIA_HTTP_SSE_AUTH_SECRET` provisioned in `eligia-core/secrets/secrets.env` plus mirror keys (`NEXANDRO_HERMES_BASE_URL`, `NEXANDRO_HERMES_AUTH_SECRET`) for apps/api.
 - VPS smoke verde end-to-end: GET `/health` → 200, POST without secret → 401, POST with secret → 200 SSE.
 
 **apps/api `agent-chat` BC (~330 LOC + 26 unit tests + 1 INT spec with two suites):**
 - `AgentChatService.stream()` returns `Observable<ChatSseEvent>`. Lazy-subscribed; opens fetch to Hermes when the @Sse() handler subscribes; emits SSE events 1:1 to the browser.
-- `AgentChatEnabledGuard` enforces `OPENTRATTOS_AGENT_ENABLED` BEFORE `@Sse()` opens the stream — throwing from the handler returns 200 with an error frame, not a clean 404.
-- `bank_id` derives `opentrattos-{slugify(org.name)}` (≤32 chars, ASCII, diacritic-stripping); falls back to `opentrattos-{shortHash(orgId)}` when slug is empty / org lookup fails. Forwarded to Hermes which uses it as the Hindsight bank id.
+- `AgentChatEnabledGuard` enforces `NEXANDRO_AGENT_ENABLED` BEFORE `@Sse()` opens the stream — throwing from the handler returns 200 with an error frame, not a clean 404.
+- `bank_id` derives `nexandro-{slugify(org.name)}` (≤32 chars, ASCII, diacritic-stripping); falls back to `nexandro-{shortHash(orgId)}` when slug is empty / org lookup fails. Forwarded to Hermes which uses it as the Hindsight bank id.
 - Audit emission lives in the service's Observable terminal path (success / 5xx / transport error / unsubscribe), guarded by an `auditEmitted` flag so re-entrant termination paths can't double-emit. `aggregate_id = randomUUID()` per turn (the audit_log column is UUID-typed; chat sessionIds are free-form); the chat sessionId is preserved as `payload_after.sessionId`.
 - DTO + types layer: `ChatRequestDto` with text/image/multipart message kinds; `ChatSseEvent` discriminated union mirroring the Hermes wire format.
-- 4-var env flag contract: `OPENTRATTOS_AGENT_ENABLED` (master gate), `OPENTRATTOS_HERMES_BASE_URL`, `OPENTRATTOS_HERMES_AUTH_SECRET` (apps/api); `VITE_OPENTRATTOS_AGENT_ENABLED` (apps/web, Vite-baked).
+- 4-var env flag contract: `NEXANDRO_AGENT_ENABLED` (master gate), `NEXANDRO_HERMES_BASE_URL`, `NEXANDRO_HERMES_AUTH_SECRET` (apps/api); `VITE_NEXANDRO_AGENT_ENABLED` (apps/web, Vite-baked).
 
 **packages/ui-kit `AgentChatWidget` (~290 LOC + 7 stories + 10 Vitest tests):**
 - Five-file layout matching the existing `YieldEditor`/`MarginPanel` pattern. Presentational; consumer owns the SSE connection via `onSend(req): AsyncIterable<ChatSseEvent>`.
@@ -28,7 +28,7 @@
 
 **apps/web wiring:**
 - `useAgentChat` hook (~120 LOC): SSE consumer with manual frame parser + `AbortController` cleanup. Plain fetch + ReadableStream — TanStack Query mutations don't model unidirectional streaming.
-- `App.tsx` mounts the widget at the layout level behind `VITE_OPENTRATTOS_AGENT_ENABLED`. When unset / `false`, the widget renders nothing.
+- `App.tsx` mounts the widget at the layout level behind `VITE_NEXANDRO_AGENT_ENABLED`. When unset / `false`, the widget renders nothing.
 
 **Operator surface:**
 - `apps/web/.env.example` + `apps/api/.env.example` extended with the 4-var contract and rotation notes.
@@ -63,5 +63,5 @@
 
 - **Cadence A worked again** for this slice: Stage 1 (Hermes upstream + WABA + VPS smoke) → Stage 2 (apps/api SSE relay + 22 unit) → Stage 3 (ui-kit widget + stories + 10 Vitest) → Stage 4 (apps/web wiring + INT specs + env flags + runbook). Three stage commits before push, then five fix commits responding to CI. Total: 8 commits before merge.
 - **CI was the authoritative correctness loop again.** Three of the five fixes (Nest @Sse wire format, INT chunk-aware assertions, UUID schema constraint) were CI-only-visible — the local turbo build + jest --runInBand passed cleanly each time. The 3a retro called this out; this slice confirmed it.
-- **The Hermes upstream PR + cross-repo WABA rebase added coordinated complexity.** Three repos with state to keep in sync (`hermes-agent` upstream PR, `eligia-vps` overlay PR, `openTrattOS` consumer slice) for one user-facing feature. Worth the architectural cleanliness — the platform is generic and other consumers can use it — but a one-team-three-repo effort takes proportionally more wall-clock time than a single-repo slice. Worth flagging on Gate D for slices that touch upstream forks.
+- **The Hermes upstream PR + cross-repo WABA rebase added coordinated complexity.** Three repos with state to keep in sync (`hermes-agent` upstream PR, `eligia-vps` overlay PR, `nexandro` consumer slice) for one user-facing feature. Worth the architectural cleanliness — the platform is generic and other consumers can use it — but a one-team-three-repo effort takes proportionally more wall-clock time than a single-repo slice. Worth flagging on Gate D for slices that touch upstream forks.
 - **Disk-full mid-slice was new.** Future Cadence-A waves should include a "disk free ≥ 5 GB" pre-flight check at the start of each stage; cheaper than discovering it via `npm install` failure.

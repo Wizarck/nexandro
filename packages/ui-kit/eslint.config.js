@@ -1,4 +1,4 @@
-// Minimal ESLint v9 flat config for @opentrattos/ui-kit.
+// Minimal ESLint v9 flat config for @nexandro/ui-kit.
 // Strict TypeScript + React Hooks rules; warnings escalate to errors via
 // the package's `lint` script (`--max-warnings=0`).
 import tseslint from '@typescript-eslint/eslint-plugin';

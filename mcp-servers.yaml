@@ -1,19 +1,19 @@
-# mcp-servers.yaml — PROJECT layer for openTrattOS.
+# mcp-servers.yaml — PROJECT layer for nexandro.
 # Merged with ai-playbook/mcp-servers-base.yaml (universal) and personal layer
-# via `python .ai-playbook/scripts/mcp/render.py --project openTrattOS`.
+# via `python .ai-playbook/scripts/mcp/render.py --project nexandro`.
 #
-# Per specs/memory-hierarchy.md, openTrattOS is a public/community repo so it
-# uses bank `opentrattos` and has NO personal-add-on bank.
+# Per specs/memory-hierarchy.md, nexandro is a public/community repo so it
+# uses bank `nexandro-palafito` and has NO personal-add-on bank.
 
 schema: mcp-servers/v1
 version: 0.1.0
 layer: project
-project: openTrattOS
+project: nexandro
 
 servers:
   hindsight:
     id: hindsight
-    description: Hindsight memory for the openTrattOS bank — recall + retain via REST.
+    description: Hindsight memory for the nexandro bank — recall + retain via REST.
     transport: http
     endpoint: https://eligia-hindsight.palafitofood.com
     env:

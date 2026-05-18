@@ -22,7 +22,7 @@ inputDocuments:
   - docs/project-structure.md
   - docs/runbook.md
 workflowType: 'prd'
-projectName: openTrattOS
+projectName: nexandro
 moduleScope: 'Module 2 — Recipes / Escandallo + Nutritional Intelligence + Auto-Labels'
 documentCounts:
   briefs: 0
@@ -51,7 +51,7 @@ scopeExpansions:
     change: 'Added Architectural Pillar — Agent-Ready, Agent-Optional. App must function 100% standalone (zero agent dependency); MCP server is a separable add-on; any MCP-compatible agent can connect (Hermes, OpenCode, Claude Desktop, custom).'
 ---
 
-# Product Requirements Document — openTrattOS
+# Product Requirements Document — nexandro
 
 **Module:** 2 — Recipes / Escandallo (Recipe Engineering, Live Food Cost, Nutritional Intelligence, Auto-Labels)
 **Author:** Master (facilitated by John, BMAD PM)
@@ -62,7 +62,7 @@ scopeExpansions:
 
 ## Executive Summary
 
-openTrattOS Module 2 turns the kitchen's recipe book into a live cost engine **and** a nutritional intelligence layer. A Head Chef builds an *escandallo* (recipe + sub-recipes + yields + waste factors); the system continuously computes food cost from current `SupplierItem` prices — with a clear path to FIFO batch costing once Module 3 (Inventory + Lots) lands. Each ingredient pulls macros, allergens, brand and diet flags from a local mirror of Open Food Facts (~3M branded products), so recipes auto-roll up kcal/macros per portion, aggregate allergens (with chef-overridable cross-contamination flag), and infer diet flags conservatively (vegan/gluten-free/halal/kosher/keto). The Owner reads margin through Menu Items that join recipe cost to selling price per location and channel, answering *"which dishes lost money this week?"* in seconds. M2 also ships **EU 1169/2011-compliant printable labels** rendering the rolled-up data in regulatory format.
+nexandro Module 2 turns the kitchen's recipe book into a live cost engine **and** a nutritional intelligence layer. A Head Chef builds an *escandallo* (recipe + sub-recipes + yields + waste factors); the system continuously computes food cost from current `SupplierItem` prices — with a clear path to FIFO batch costing once Module 3 (Inventory + Lots) lands. Each ingredient pulls macros, allergens, brand and diet flags from a local mirror of Open Food Facts (~3M branded products), so recipes auto-roll up kcal/macros per portion, aggregate allergens (with chef-overridable cross-contamination flag), and infer diet flags conservatively (vegan/gluten-free/halal/kosher/keto). The Owner reads margin through Menu Items that join recipe cost to selling price per location and channel, answering *"which dishes lost money this week?"* in seconds. M2 also ships **EU 1169/2011-compliant printable labels** rendering the rolled-up data in regulatory format.
 
 The Module replaces tspoonlab as the kitchen's primary recipe + cost tool. It inherits Module 1's foundation (Organization → Location, RBAC, currency, i18n, audit, soft-delete, CSV import/export) and adds new entities — `Recipe`, `RecipeIngredient`, `MenuItem` plus nutrition/allergen/diet metadata on `Ingredient` — with a single architectural seam (`InventoryCostResolver`) that future modules plug into without rewrite.
 
@@ -74,7 +74,7 @@ The product's bet is **decomposed food cost + open nutritional intelligence + ag
 2. **Composable recipes.** A recipe can contain ingredients *and* other recipes. Define "tomato sauce" once, use it in twelve dishes; cost rolls up automatically.
 3. **`InventoryCostResolver` interface, not an integer.** Live cost in M2 reads from `SupplierItem.unitPrice`. In M3, the same interface returns FIFO-batch cost (oldest-batch-first, matching HACCP physical flow used by McDonald's, Sodexo, Aramark). Zero rewrite when batches arrive.
 4. **`MenuItem` separates ficha técnica from selling price.** One Recipe → many MenuItems (per location × channel). Owner-side margin reporting joins cost to price without conflating the two concerns.
-5. **AGPL multi-venue out of the box.** Closed-source competitors (tspoonlab et al.) gate multi-venue and integrations behind paid tiers; openTrattOS ships them as core.
+5. **AGPL multi-venue out of the box.** Closed-source competitors (tspoonlab et al.) gate multi-venue and integrations behind paid tiers; nexandro ships them as core.
 6. **⭐ Nutritional intelligence + auto-labels via Open Food Facts.** Hybrid local mirror + API fallback of OFF's ~3M branded products. Each `Ingredient` carries `nutrition` + `allergens` + `dietFlags` + `brandName`. Recipes auto-roll-up macros and EU 1169/2011-compliant printable labels with allergens emphasised per Article 21. No commercial competitor combines AGPL + branded nutrition catalog + auto-label generation today.
 7. **⭐ Agent-ready, agent-optional.** API is the contract. UI consumes it. Any MCP-compatible agent (Hermes, OpenCode, Claude Desktop, custom) consumes the same contract via a separable MCP server. Customers who refuse agents get full functionality via UI only; switching on agents = config change in <30 minutes.
 
@@ -98,18 +98,18 @@ The core insights:
 
 ## Architectural Pillar: Agent-Ready, Agent-Optional
 
-This pillar is **transversal** to all of openTrattOS, not a Module 2 feature. M2 is the first module to formalise it; M1 retrofits to comply; future modules inherit.
+This pillar is **transversal** to all of nexandro, not a Module 2 feature. M2 is the first module to formalise it; M1 retrofits to comply; future modules inherit.
 
 ### Principles
 
 1. **The API is the contract.** UI consumes it, agents consume it, regulators consume it (via export endpoints). Every JTBD is end-to-end achievable via the API alone.
 2. **API parity (NFR core).** Every action a UI user can take via clicks must be available via the REST API with equivalent semantics, RBAC, and audit. No UI-only flows.
-3. **MCP server `opentrattos` is separable.** Independent package + Docker image. The backend has zero dependency on it. Customer can run openTrattOS without ever installing the MCP layer.
-4. **Web chat widget is feature-flagged.** `OPENTRATTOS_AGENT_ENABLED=false` (env) → widget hidden, no Hindsight bank initialisation, no `opentrattos-agent` service-account creation. UI is fully usable without it.
+3. **MCP server `nexandro` is separable.** Independent package + Docker image. The backend has zero dependency on it. Customer can run nexandro without ever installing the MCP layer.
+4. **Web chat widget is feature-flagged.** `NEXANDRO_AGENT_ENABLED=false` (env) → widget hidden, no Hindsight bank initialisation, no `nexandro-agent` service-account creation. UI is fully usable without it.
 5. **Endpoints tolerate partial state.** Recipes can be saved as `draft` with only a name; ingredients added later turn-by-turn. Responses include `nextRequired` / `missingFields` so an agent knows what to ask.
-6. **Identity model = hybrid (when agent enabled).** Agent acts via service-account `opentrattos-agent`; audit fields record `executedBy=human, viaAgent=true, agentName=<hermes|opencode|...>`.
-7. **Hindsight bank naming = capability-based, not module-versioned.** Banks: `opentrattos-recipes`, `opentrattos-suppliers`, `opentrattos-menus`, `opentrattos-inventory` (M3+). No `m2`/`m3` prefix (capabilities outlive module numbers). No `orgId` suffix (single-tenant deployments are the norm; TrattOS Enterprise SaaS adds the suffix later).
-8. **Recall in cascade**: capability bank (most relevant) → other openTrattOS banks → cross-cut `eligia-{org}` only for ELIGIA-transversal questions. Cap at 3 banks per turn to fit WhatsApp <5s SLA.
+6. **Identity model = hybrid (when agent enabled).** Agent acts via service-account `nexandro-agent`; audit fields record `executedBy=human, viaAgent=true, agentName=<hermes|opencode|...>`.
+7. **Hindsight bank naming = capability-based, not module-versioned.** Banks: `nexandro-recipes`, `nexandro-suppliers`, `nexandro-menus`, `nexandro-inventory` (M3+). No `m2`/`m3` prefix (capabilities outlive module numbers). No `orgId` suffix (single-tenant deployments are the norm; TrattOS Enterprise SaaS adds the suffix later).
+8. **Recall in cascade**: capability bank (most relevant) → other nexandro banks → cross-cut `eligia-{org}` only for ELIGIA-transversal questions. Cap at 3 banks per turn to fit WhatsApp <5s SLA.
 9. **Hindsight ≠ database.** Banks store *learnings* (patterns, past observations, conversational context). Live data (current stock, current price, current recipe definition) lives in PostgreSQL and is queried via the consolidated API.
 10. **MCP standard, agent-agnostic.** The MCP server passes the official MCP protocol test suite. Hermes, OpenCode, Claude Desktop, ChatGPT-MCP-bridge, and any custom MCP client all work the same way.
 11. **Internal DDD with bounded contexts.** `Recipes`, `Ingredients`, `Inventory`, `Suppliers`, `Menus` — separable later into microservices without touching the MCP client. Premature microservices are out of scope; one well-bounded monolith is the M2 deployment.
@@ -121,7 +121,7 @@ This pillar is **transversal** to all of openTrattOS, not a Module 2 feature. M2
 | Mode | Components | Use case |
 |---|---|---|
 | **Standalone** | API + UI + DB + (LiteLLM only if AI yield-suggestions enabled, which is itself a feature flag) | Customer rejects agents OR uses agent we haven't integrated |
-| **Agent-integrated** | Standalone + MCP server `opentrattos` (separate container) + WebChat widget enabled in UI + Hindsight banks initialised + (Hermes/OpenCode/etc. on customer side) | Customer wants conversational JTBD execution |
+| **Agent-integrated** | Standalone + MCP server `nexandro` (separate container) + WebChat widget enabled in UI + Hindsight banks initialised + (Hermes/OpenCode/etc. on customer side) | Customer wants conversational JTBD execution |
 
 Migration between modes = config change, no schema migration. Documented in operations runbook.
 
@@ -162,7 +162,7 @@ M2 MVP enables the agent on **web chat in-platform only**. WhatsApp goes through
 - **100% of Palafito's existing tspoonlab recipes migrated** before that renewal date. Recipe count baseline measured at migration kickoff.
 - **≥ 85% of Palafito's existing tspoonlab ingredients find a confident OFF match** at migration (the rest fall back to manual entry).
 - **Zero data re-entry**: every M1 ingredient already in the system is selectable inside recipes without re-typing.
-- **First external GitHub install** of openTrattOS within 6 months post-M2 (M2 is the first really differentiated module — the "stars" trigger).
+- **First external GitHub install** of nexandro within 6 months post-M2 (M2 is the first really differentiated module — the "stars" trigger).
 - **M2 label template passes external legal review** for EU 1169/2011 compliance before launch.
 
 ### Technical Success
@@ -179,7 +179,7 @@ M2 MVP enables the agent on **web chat in-platform only**. WhatsApp goes through
 - **Dual-mode CI**: full E2E suite runs both standalone and agent-integrated; both must pass on every PR.
 - **Switch-on time**: documented and measured. Standalone → agent-integrated must complete in **≤ 30 minutes** of operator time.
 - **Zero-coupling lint**: `apps/api/` source code may not `import` anything from `hermes-*`, `claude-*`, `opencode-*` or any other agent vendor. Enforced at build time.
-- **MCP protocol compliance**: the `opentrattos` MCP server passes the official MCP test suite (not just "works with Hermes").
+- **MCP protocol compliance**: the `nexandro` MCP server passes the official MCP test suite (not just "works with Hermes").
 
 ### Measurable Outcomes (Operational KPIs, post-launch)
 
@@ -233,11 +233,11 @@ M2 MVP enables the agent on **web chat in-platform only**. WhatsApp goes through
 
 **Agent-ready foundation (NEW pillar):**
 - API REST with `missingFields` / `nextRequired` in responses
-- MCP server `opentrattos` packaged separately (Docker image + npm package; independent of backend)
-- Web chat widget in UI with `OPENTRATTOS_AGENT_ENABLED` feature flag
+- MCP server `nexandro` packaged separately (Docker image + npm package; independent of backend)
+- Web chat widget in UI with `NEXANDRO_AGENT_ENABLED` feature flag
 - Health check `/api/health/agent-integration` reports MCP availability
-- `opentrattos-agent` service-account (created only when agent enabled)
-- Hindsight bank reservations: `opentrattos-recipes`, `opentrattos-suppliers`, `opentrattos-menus`
+- `nexandro-agent` service-account (created only when agent enabled)
+- Hindsight bank reservations: `nexandro-recipes`, `nexandro-suppliers`, `nexandro-menus`
 - Two-mode deployment documented (standalone vs agent-integrated)
 
 **M1 retrofit:**
@@ -294,10 +294,10 @@ Personas inherited from PRD-1 ([personas-jtbd.md](../../docs/personas-jtbd.md)) 
 
 **Lourdes**, sous-chef at *Palafito Madrid Centro*, has used tspoonlab for two years. Today the head chef hands her a new dish: **tagliatelle with house bolognese ragù**. Before it goes on the menu, she needs the escandallo.
 
-- She opens openTrattOS on her kitchen tablet, searches "ragù" — doesn't exist. Hits **+ New Recipe**.
+- She opens nexandro on her kitchen tablet, searches "ragù" — doesn't exist. Hits **+ New Recipe**.
 - Adds **"Salsa de tomate"** as a sub-recipe — already exists in the system, created three months ago. Cost rolls up automatically into the parent.
 - Adds ingredients via the M1 picker: crushed tomato (Heinz brand pulled from OFF mirror — macros + allergens auto-filled), onion, carrot, celery, ground beef, red wine.
-- For each, openTrattOS pre-fills `yieldPercent` and `wasteFactor` with a citation: *"Onion 90% — source: USDA FoodData Central"*.
+- For each, nexandro pre-fills `yieldPercent` and `wasteFactor` with a citation: *"Onion 90% — source: USDA FoodData Central"*.
 - For onion, Lourdes overrides 90% → **85%** (her kitchen peels aggressively). The system records the override + her user as the editor.
 - For the recipe-level `wasteFactor` (cooking loss / evaporation), the system suggests **18%** based on stew-class recipes. She accepts.
 - Live food cost appears: **€3.45 / kg of finished ragù**. Macro panel: **180 kcal / 8g protein / 14g carbs / 9g fat per 100g**. Allergens detected: *gluten* (from crushed tomato — Heinz product contains modified wheat starch). Diet flags: not vegan (beef), not gluten-free (gluten present), not halal (red wine).
@@ -312,7 +312,7 @@ Personas inherited from PRD-1 ([personas-jtbd.md](../../docs/personas-jtbd.md)) 
 Two weeks later. The owner calls: *"the bolognese is bleeding margin this week — why?"*
 
 - Lourdes opens the *Tagliatelle Bolognesa* MenuItem. Cost has moved from €3.45 to **€4.12**. Margin: 80.8% → **77.0%**.
-- Hits **"What changed?"** — openTrattOS shows the per-component delta over the last 14 days:
+- Hits **"What changed?"** — nexandro shows the per-component delta over the last 14 days:
   - **Ground beef**: €0.85 → €1.08 (price change on the preferred supplier, "Carnicería X")
   - Crushed tomato: €0.30 → €0.32 (within noise)
   - All other components: stable
@@ -324,7 +324,7 @@ Two weeks later. The owner calls: *"the bolognese is bleeding margin this week �
 
 **Roberto**, owner of Grupo Palafito. Sunday 22:00. Phone in hand on the sofa.
 
-- Opens openTrattOS — dashboard shows the last 7d MenuItem ranking: top 5 earners + bottom 5 bleeders, all venues combined.
+- Opens nexandro — dashboard shows the last 7d MenuItem ranking: top 5 earners + bottom 5 bleeders, all venues combined.
 - **Bottom 5** highlights *Tartar de atún*: cost **€8.50**, price **€16**, margin **47%** vs target 65% ❌.
 - Tap → sees the drill-down. Tuna jumped 15% on the current supplier batch.
 - Decides: pull from menu until the price comes back down. Sends a WhatsApp to the chef. Closes the app.
@@ -336,7 +336,7 @@ Two weeks later. The owner calls: *"the bolognese is bleeding margin this week �
 
 Lourdes is editing *Salsa de tomate* — wants to add a "secret kick" sub-recipe. By mistake she selects *Ragù* itself (which already uses *Salsa de tomate*). Cycle.
 
-- On **Save**, openTrattOS blocks the change with: *"Cycle detected: Ragù already uses Salsa de tomate. Cannot add it as a sub-recipe."*
+- On **Save**, nexandro blocks the change with: *"Cycle detected: Ragù already uses Salsa de tomate. Cannot add it as a sub-recipe."*
 - The error names both recipes and the dependency direction, so she understands instantly. Cancels, picks the correct sub-recipe, saves.
 
 **Capabilities revealed:** Cycle detection on save (graph-walk pre-commit), clear error message naming both nodes and direction.
@@ -347,7 +347,7 @@ Lourdes is editing *Salsa de tomate* — wants to add a "secret kick" sub-recipe
 
 Lourdes, on the metro on her way home, remembers: she forgot to enter the *gambas al ajillo* she invented for tomorrow's lunch service.
 
-- Opens WhatsApp (Palafito's openTrattOS number, which routes to Hermes via WA-MCP `allowedlist`).
+- Opens WhatsApp (Palafito's nexandro number, which routes to Hermes via WA-MCP `allowedlist`).
 - *"Quiero crear receta gambas al ajillo, 4 porciones"*.
 - Agent: *"Vale. ¿Qué ingredientes y cantidades? Puedes dictarlos."*
 - Lourdes (voice note): *"medio kilo de gambas, 4 dientes de ajo, 100ml aceite oliva virgen, perejil, guindilla"*.
@@ -356,7 +356,7 @@ Lourdes, on the metro on her way home, remembers: she forgot to enter the *gamba
 - *"Sí"*. Done. 90 seconds total.
 - Tomorrow morning Lourdes opens the tablet, sees the draft, polishes the yields, generates the label, publishes the MenuItem.
 
-**Capabilities revealed:** API endpoints accepting partial state (Recipe `draft`), multimodal voice → structured ingredient list (Gemma vision/audio via OpenRouter), allergen rollup from OFF data over WhatsApp turn, agent picking up exactly where the human left off via Hindsight `opentrattos-recipes` bank.
+**Capabilities revealed:** API endpoints accepting partial state (Recipe `draft`), multimodal voice → structured ingredient list (Gemma vision/audio via OpenRouter), allergen rollup from OFF data over WhatsApp turn, agent picking up exactly where the human left off via Hindsight `nexandro-recipes` bank.
 
 ### Journey Requirements Summary
 
@@ -431,7 +431,7 @@ The override is stored on the `RecipeIngredient` line as a nullable `sourceOverr
   - REST API fallback (`world.openfoodfacts.org/api/v3`) for cache misses and freshly-released products
   - Background sync job (cron, weekly) refreshes from delta dump; active-passive swap for zero downtime
   - License: ODbL — usage compliant (we use the data, we don't redistribute the DB); `LICENSES.md` documents compliance
-- **MCP server `opentrattos` (NEW) — agent-facing contract.** Wraps the consolidated REST API as an MCP-standard server. Separable Docker image; backend has zero compile-time dependency on it. Compatible with any MCP client (Hermes, OpenCode, Claude Desktop, custom).
+- **MCP server `nexandro` (NEW) — agent-facing contract.** Wraps the consolidated REST API as an MCP-standard server. Separable Docker image; backend has zero compile-time dependency on it. Compatible with any MCP client (Hermes, OpenCode, Claude Desktop, custom).
 - **Paperclip — informational, not integrated.** Paperclip already produces a weekly supplier-analysis file with cheapest-source signals per ingredient. **M2 does NOT consume this file.** Documented here so a future M2.x can plug it into a `SupplierItemSelector` strategy slot (Growth-tier).
 - **Future POS / delivery channels.** `MenuItem.channel` is an extensible enum (dine-in / delivery / catering / take-away — final list TBD in functional reqs). External integrations (Glovo/UberEats) are out of scope for M2.
 
@@ -467,7 +467,7 @@ The override is stored on the `RecipeIngredient` line as a nullable `sourceOverr
 ### Detected Innovation Areas
 
 **1. AI-suggested yield/waste factors with cited sources.**
-Existing escandallo tools ask the chef to invent the yield factor for every ingredient. openTrattOS pre-fills it from real data + surfaces the URL where the value came from (USDA FoodData Central, CIA Professional Chef, ICN cooking guides). Novel combination: **LLM-as-research-agent + structured kitchen factor + click-through citation**, executed inline at recipe-edit time.
+Existing escandallo tools ask the chef to invent the yield factor for every ingredient. nexandro pre-fills it from real data + surfaces the URL where the value came from (USDA FoodData Central, CIA Professional Chef, ICN cooking guides). Novel combination: **LLM-as-research-agent + structured kitchen factor + click-through citation**, executed inline at recipe-edit time.
 
 **2. Decomposed food cost (4-factor model).**
 Industry tooling collapses food cost into a single number per recipe. We split it into four explicit factors — `ingredient_price × yield × waste × batch_actual` — each auditable, configurable, source-cited. The chef answers *"why is the bolognese €0.20 more this week?"* in 30 seconds.
@@ -483,7 +483,7 @@ The API is the contract; UI consumes it; any MCP-compatible agent (Hermes, OpenC
 
 ### Market Context & Competitive Landscape
 
-| Aspect | tspoonlab / MarketMan / MarginEdge / Galley | openTrattOS M2 |
+| Aspect | tspoonlab / MarketMan / MarginEdge / Galley | nexandro M2 |
 |---|---|---|
 | Yield/waste suggestions | Manual entry; some have generic defaults, none cite sources | AI-suggested + URL provenance + chef override with attribution |
 | Food cost transparency | Single rolled-up number per recipe | 4-factor decomposition with per-component drill-down |
@@ -527,7 +527,7 @@ Key innovation-specific risks:
 
 ### Project-Type Overview
 
-openTrattOS is a **multi-tenant capable, RBAC-driven, integration-rich SaaS B2B** kitchen operations platform. Module 2 extends a brownfield monolith (Turborepo + NestJS + TypeORM + PostgreSQL) with composable recipe engineering, live food costing, nutritional intelligence, EU 1169/2011-compliant labels, and an agent-ready API/MCP layer. Multi-tenancy is *capable* (every entity scoped to `organizationId`) but typical deployments are single-org self-hosted; TrattOS Enterprise SaaS edition activates true multi-tenancy.
+nexandro is a **multi-tenant capable, RBAC-driven, integration-rich SaaS B2B** kitchen operations platform. Module 2 extends a brownfield monolith (Turborepo + NestJS + TypeORM + PostgreSQL) with composable recipe engineering, live food costing, nutritional intelligence, EU 1169/2011-compliant labels, and an agent-ready API/MCP layer. Multi-tenancy is *capable* (every entity scoped to `organizationId`) but typical deployments are single-org self-hosted; TrattOS Enterprise SaaS edition activates true multi-tenancy.
 
 ### Technical Architecture Considerations
 
@@ -543,7 +543,7 @@ openTrattOS is a **multi-tenant capable, RBAC-driven, integration-rich SaaS B2B*
 
 M2 specifics: every M2 entity (`Recipe`, `RecipeIngredient`, `MenuItem`, plus retrofit `Ingredient.nutrition/allergens/dietFlags`) is scoped to `organizationId`. Repository-level org-filter mandatory. Integration tests assert no cross-org leak across all M2 endpoints.
 
-Hindsight bank naming follows capability-based convention (`opentrattos-recipes`, `opentrattos-suppliers`, `opentrattos-menus`) — single-tenant deployments share a bank per capability. TrattOS Enterprise SaaS will append `-{orgId}` suffix as a clean migration when needed.
+Hindsight bank naming follows capability-based convention (`nexandro-recipes`, `nexandro-suppliers`, `nexandro-menus`) — single-tenant deployments share a bank per capability. TrattOS Enterprise SaaS will append `-{orgId}` suffix as a clean migration when needed.
 
 ### RBAC Matrix
 
@@ -577,7 +577,7 @@ Out of scope for M2. Documented in this PRD §Architectural Pillar end-note (Tra
 | M1 (Ingredients) | Read-only consumer | Active (with retrofit: `User.phoneNumber` + `Ingredient.nutrition/allergens/dietFlags/brandName/externalSourceRef`) |
 | `InventoryCostResolver` interface | Internal contract (M3 plug-in point) | Defined + M2 implementation |
 | Open Food Facts | Hybrid (local mirror + REST API fallback) | Active |
-| MCP server `opentrattos` | Agent-facing (any MCP client) | Active when agent enabled |
+| MCP server `nexandro` | Agent-facing (any MCP client) | Active when agent enabled |
 | Paperclip weekly supplier file | Informational only | Documented; not consumed |
 | POS / delivery channels (Glovo, UberEats) | Out of scope | M2.x or later |
 
@@ -595,7 +595,7 @@ Out of scope for M2. Documented in this PRD §Architectural Pillar end-note (Tra
 - **Skip**: `cli_interface` (no CLI shipped with M2), `mobile_first` (responsive UI, not mobile-first — Owner mobile journey is read-only at launch)
 - **Test pyramid**: unit → integration → E2E **dual mode** (standalone + agent-integrated, both required green on every PR)
 - **Migrations**: TypeORM migrations versioned per release; M1-retrofit migrations (User, Ingredient extensions) ship as part of M2's initial migration set
-- **Feature flags**: `OPENTRATTOS_AGENT_ENABLED`, `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED`, `OPENTRATTOS_OFF_API_FALLBACK_ENABLED` — env vars, hot-swap on restart
+- **Feature flags**: `NEXANDRO_AGENT_ENABLED`, `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED`, `NEXANDRO_OFF_API_FALLBACK_ENABLED` — env vars, hot-swap on restart
 - **DDD module boundaries enforced via lint** (no cross-module imports beyond declared interfaces)
 
 ---
@@ -668,7 +668,7 @@ Out of scope for M2. Documented in this PRD §Architectural Pillar end-note (Tra
 - **FR41**: System exposes every Recipe / MenuItem / Ingredient capability via a public API with parity to the UI — no UI-only actions exist.
 - **FR42**: API responses include `missingFields` and `nextRequired` so a conversational caller can determine what's needed to complete a partial state.
 - **FR43**: System can be deployed in standalone mode (no agent capability exposed) or agent-integrated mode (MCP server + web chat available); switching modes requires only configuration, not code changes.
-- **FR44**: When agent-integrated, system exposes an MCP-standard server `opentrattos` that any MCP-compatible client (Hermes, OpenCode, Claude Desktop, custom) can connect to.
+- **FR44**: When agent-integrated, system exposes an MCP-standard server `nexandro` that any MCP-compatible client (Hermes, OpenCode, Claude Desktop, custom) can connect to.
 - **FR45**: Agent actions are auditable — every action records `executedBy=<human user>, viaAgent=true, agentName=<…>` when invoked through the MCP layer; the human user retains responsibility per the hybrid identity model.
 
 ### Cross-Cutting (inherited from PRD-1, restated)
@@ -782,7 +782,7 @@ See **Product Scope → Module Roadmap** above for the canonical phase table (M2
 - **Dual-mode E2E**: full E2E suite runs in standalone AND agent-integrated configurations on every PR
 - MCP protocol compliance: official MCP test suite + integration tests against ≥ 3 distinct MCP clients
 - Multi-tenant isolation: integration tests assert no cross-org data leak across all M2 endpoints
-- Bank-id isolation (when agent enabled): tests assert recall on `opentrattos-recipes` never returns records from `opentrattos-suppliers` or other org banks
+- Bank-id isolation (when agent enabled): tests assert recall on `nexandro-recipes` never returns records from `nexandro-suppliers` or other org banks
 
 ### Operability
 
@@ -796,7 +796,7 @@ See **Product Scope → Module Roadmap** above for the canonical phase table (M2
 - API parity does not bypass RBAC: every endpoint enforces the PRD-1 RBAC matrix (Owner/Manager/Staff)
 - Allergen overrides require Manager role minimum (regulatory implications)
 - `User.phoneNumber` PII handled per PRD-1 audit pattern; never logged in plaintext
-- MCP server, when enabled, requires authentication (token-based; tied to `opentrattos-agent` service-account)
+- MCP server, when enabled, requires authentication (token-based; tied to `nexandro-agent` service-account)
 - Zero-coupling lint: `apps/api/` source code prohibited from importing `hermes-*`, `claude-*`, `opencode-*` packages
 
 ### Scalability
@@ -826,6 +826,6 @@ See **Product Scope → Module Roadmap** above for the canonical phase table (M2
 - `InventoryCostResolver` interface contract documented in `apps/api/src/recipes/cost/README.md` with stability guarantees
 - ADR for every supersede of PRD-1 (e.g., the M2 supersede of §4.11 allergens lands as a new ADR)
 - API contract version pinned (semver); breaking changes require deprecation cycle
-- **UI component library curation.** Components developed first in **Storybook with stories** before integration into screens; **design review** required for any non-trivial component (criterion: ≥ 1 alternative explored per component). Promoted to `packages/ui-kit/` only after design review approval. Base = **shadcn/ui + Tailwind CSS**. openTrattOS-specific components (`RecipePicker`, `MacroPanel`, `AllergenBadge`, `LabelPreview`, `AgentChatWidget`) live in this package. **Storybook published in CI** for static review on every PR.
+- **UI component library curation.** Components developed first in **Storybook with stories** before integration into screens; **design review** required for any non-trivial component (criterion: ≥ 1 alternative explored per component). Promoted to `packages/ui-kit/` only after design review approval. Base = **shadcn/ui + Tailwind CSS**. nexandro-specific components (`RecipePicker`, `MacroPanel`, `AllergenBadge`, `LabelPreview`, `AgentChatWidget`) live in this package. **Storybook published in CI** for static review on every PR.
 
 ---

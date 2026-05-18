@@ -1,6 +1,6 @@
 # retros/module-1-ingredients-implementation.md
 
-> **Slice**: `module-1-ingredients-implementation` · **PR**: [#64](https://github.com/Wizarck/openTrattOS/pull/64) · **Merged**: 2026-05-01 · **Squash SHA**: `71e238e`
+> **Slice**: `module-1-ingredients-implementation` · **PR**: [#64](https://github.com/Wizarck/nexandro/pull/64) · **Merged**: 2026-05-01 · **Squash SHA**: `71e238e`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 
 ## What we shipped
@@ -11,7 +11,7 @@ The M1 Ingredients foundation in one slice — 76/95 tasks complete across §§2
 
 - **Sequential implementation through one OpenSpec change.** Per ai-playbook §6.6 cost-benefit, the recombination overhead of intra-slice parallelism (~15 min) wasn't worth it for §2 IAM (≈45 min sequential). The same calculus held through §§3-11. The slice stayed coherent and the PR is reviewable end-to-end.
 - **TDD per entity** (RED spec → GREEN domain → migration). Caught 2 real bugs: (a) bcrypt fixture hash was 56 chars instead of 53 — domain regex correctly rejected it; (b) cross-tenant guard in `AssignUserToLocations` needed a typed error class for the controller to translate to 400 (not 500). Both surfaced in the first GREEN run.
-- **Bare worktree layout** (introduced same day in ai-playbook v0.9.0-rc3). The slice lived at `C:/Projects/openTrattOS/m1-ingredients/` peer to `master/`, sharing one `.bare/` git database. Zero context-switching pain, atomic cleanup post-merge.
+- **Bare worktree layout** (introduced same day in ai-playbook v0.9.0-rc3). The slice lived at `C:/Projects/nexandro/m1-ingredients/` peer to `master/`, sharing one `.bare/` git database. Zero context-switching pain, atomic cleanup post-merge.
 - **InventoryCostResolver seam at `cost/`** (not at `catalog/domain/` as the tasks.md draft said). Dropping a DI symbol token and binding `M1InventoryCostResolver` via `useExisting` means M3 batch swap is 1 line of config — exactly what ADR-011 promised.
 - **Anti-tampering audit interceptor** caught DTO-supplied `createdBy`/`updatedBy` as a real concern (and also strips snake-case variants — easy to miss).
 

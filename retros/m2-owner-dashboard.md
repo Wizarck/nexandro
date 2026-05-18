@@ -1,6 +1,6 @@
 # retros/m2-owner-dashboard.md
 
-> **Slice**: `m2-owner-dashboard` · **PR**: [#83](https://github.com/Wizarck/openTrattOS/pull/83) · **Merged**: 2026-05-05 · **Squash SHA**: `75d2eb5`
+> **Slice**: `m2-owner-dashboard` · **PR**: [#83](https://github.com/Wizarck/nexandro/pull/83) · **Merged**: 2026-05-05 · **Squash SHA**: `75d2eb5`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: First M2 slice that ships ONLY canonical-route UI (no PoC stub). Replaces `/poc/owner-dashboard` from `#12`. Third use of the proposal-only-first pattern (Gate D verdict in <5 min after 3 question round-trip).
 

@@ -10,7 +10,7 @@ const sampleReport: BenchReport = {
     startedAt: '2026-05-07T00:00:00.000Z',
     endedAt: '2026-05-07T00:01:00.000Z',
     durationSec: 60,
-    openTrattOSGitSha: 'abc1234',
+    nexandroGitSha: 'abc1234',
     env: 'arturo@host (win32 node v22.0.0)',
     capabilities: ['recipes.read', 'recipes.list'],
     status: 'OK',

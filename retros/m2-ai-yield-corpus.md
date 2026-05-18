@@ -1,6 +1,6 @@
 # retros/m2-ai-yield-corpus.md
 
-> **Slice**: `m2-ai-yield-corpus` · **PR**: [#88](https://github.com/Wizarck/openTrattOS/pull/88) · **Merged**: 2026-05-06 · **Squash SHA**: `6d63e6c`
+> **Slice**: `m2-ai-yield-corpus` · **PR**: [#88](https://github.com/Wizarck/nexandro/pull/88) · **Merged**: 2026-05-06 · **Squash SHA**: `6d63e6c`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: **Wave 1.8 — first cross-language slice**. Closes the operational loop on Wave 1.7 (`m2-ai-yield-suggestions`) so the production AI feature flag becomes flippable. Zero TypeScript LOC modified — the proxy speaks the canonical contract `apps/api`'s `GptOssRagProvider` already expects. First slice that introduces a Python toolchain alongside the Turborepo TS workspaces (`tools/rag-proxy/` + `tools/rag-corpus/`).
 
@@ -36,7 +36,7 @@
 - Two jobs (`rag-proxy (lint + test)`, `rag-corpus (lint + test)`) running on `ubuntu-latest` with Python 3.12. Each: pip install dev deps → ruff check → mypy strict → pytest. Triggered on changes under `tools/rag-{proxy,corpus}/**` or workflow itself.
 
 **`apps/api/.env.example`:**
-- New file documenting that `OPENTRATTOS_AI_RAG_BASE_URL` should target the rag-proxy URL (not LightRAG directly) per ADR-022. Documents all five Wave 1.7 + this-slice env vars (the master flag + base URL + bearer + timeout + model labels).
+- New file documenting that `NEXANDRO_AI_RAG_BASE_URL` should target the rag-proxy URL (not LightRAG directly) per ADR-022. Documents all five Wave 1.7 + this-slice env vars (the master flag + base URL + bearer + timeout + model labels).
 
 ## What surprised us
 
@@ -47,7 +47,7 @@
 
 ## Patterns reinforced or discovered
 
-- **Provider abstraction via DI token in apps/api was the right pre-investment.** Wave 1.7 introduced `AI_SUGGESTION_PROVIDER` symbol + factory pattern. This slice consumes it without code changes — `OPENTRATTOS_AI_RAG_BASE_URL` is the only env knob; the proxy speaks the same contract `GptOssRagProvider` already expects. Net TS LOC change for this slice: 0.
+- **Provider abstraction via DI token in apps/api was the right pre-investment.** Wave 1.7 introduced `AI_SUGGESTION_PROVIDER` symbol + factory pattern. This slice consumes it without code changes — `NEXANDRO_AI_RAG_BASE_URL` is the only env knob; the proxy speaks the same contract `GptOssRagProvider` already expects. Net TS LOC change for this slice: 0.
 - **Stateless proxy, stateful caller.** apps/api's `ai_suggestions` table holds every audit row (Wave 1.7 pattern); the proxy is restart-safe and rollback-safe (kill the container → null path → "manual entry"). Avoided double-caching: every cache concept lives in apps/api's existing table.
 - **Failure-collapse-to-null is a great contract.** The proxy never raises to apps/api. Network errors, 4xx, 5xx, parse failures, timeouts, aborts → all surface as `null`. The chef sees the same "manual entry only" UX regardless of root cause. apps/api never has to discriminate failure modes; the iron rule is the only condition that matters.
 - **Domain whitelist > post-LLM critique for source authority.** Brave is a generic web search; without a whitelist it'll happily return Reddit threads as "citations". Rather than running an extra LLM call to vet every result (doubles cost), pre-vet at the hostname level. ADR-023 made this explicit.
@@ -59,7 +59,7 @@
 
 - **`m2-ai-yield-cookbooks-modern`** — ingest Larousse Gastronomique, *The Professional Chef* (CIA), *On Food and Cooking* (McGee). Blocked on publisher licensing agreements (~3-6 weeks legal). Once cleared, scripts likely look just like `ingest_escoffier.py` with publisher-specific URL formats.
 - **`m2-ai-yield-structured-outputs`** — patch LightRAG's LLM call layer to pass `response_format` / `tools` parameter through to the underlying model API (OpenAI / Anthropic / Ollama recent versions). Forces 100% valid JSON output. Worth doing only if measured user_prompt failure rate exceeds ~10% in production. Until then, the retry + Brave-fallback + null path is acceptable per FR19.
-- **`m2-wrap-up`** — flip `OPENTRATTOS_LABELS_PROD_ENABLED=true` post legal review (Wave 1.6 follow-up) + flip `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED=true` post corpus ingestion (this slice). The actual flag flips are operational config changes, not a code slice; document the runbook in `docs/operations/`.
+- **`m2-wrap-up`** — flip `NEXANDRO_LABELS_PROD_ENABLED=true` post legal review (Wave 1.6 follow-up) + flip `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED=true` post corpus ingestion (this slice). The actual flag flips are operational config changes, not a code slice; document the runbook in `docs/operations/`.
 - **rag-proxy multi-replica budget counter.** Current implementation uses an in-memory UTC-day counter; multi-replica deployments would double-count Brave queries. Move to Redis-backed counter when usage volume justifies. Until then "soft budget" semantics are documented in ADR-023.
 - **Codegen pipeline for proxy ↔ apps/api contract.** Currently the `{value, citationUrl, snippet}` shape is duplicated as TypeScript types in `apps/api/src/ai-suggestions/application/types.ts` and Python pydantic in `tools/rag-proxy/src/rag_proxy/schemas.py`. Drift risk is low (3 fields, stable for ~9 months) but real. Consider a shared JSON schema if the contract grows.
 - **Operational runbook for VPS deployment.** This slice ships the code; the actual deployment (TLS, secret rotation, observability, log aggregation, monitoring of LightRAG-miss / Brave-fallback / null ratio) is operational. Create `docs/operations/rag-proxy-deployment.md` capturing the setup once it's actually deployed.

@@ -1,6 +1,6 @@
 # retros/m2-audit-log-export.md
 
-> **Slice**: `m2-audit-log-export` · **PR**: [#97](https://github.com/Wizarck/openTrattOS/pull/97) · **Merged**: 2026-05-06 · **Squash SHA**: `87d5c91`
+> **Slice**: `m2-audit-log-export` · **PR**: [#97](https://github.com/Wizarck/nexandro/pull/97) · **Merged**: 2026-05-06 · **Squash SHA**: `87d5c91`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: **Wave 1.12 — closes the audit-log sub-saga (Waves 1.9–1.12)**. Adds `GET /audit-log/export.csv` streaming RFC 4180 CSV with cursor pagination, hard cap 100K, dual-config FTS reuse, and a pre-flight count for the truncation header. The audit-log capability is now feature-complete for compliance use cases (regulator audits, GDPR Article 15 portability).
 

@@ -1,6 +1,6 @@
 # retros/m2-off-mirror.md
 
-> **Slice**: `m2-off-mirror` · **PR**: [#70](https://github.com/Wizarck/openTrattOS/pull/70) · **Merged**: 2026-05-01 · **Squash SHA**: `58f513e`
+> **Slice**: `m2-off-mirror` · **PR**: [#70](https://github.com/Wizarck/nexandro/pull/70) · **Merged**: 2026-05-01 · **Squash SHA**: `58f513e`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: First slice **fully implemented by a background subagent** under `Agent` tool with `general-purpose` role. Main thread did `m2-recipes-core` (PR #69) in parallel.
 

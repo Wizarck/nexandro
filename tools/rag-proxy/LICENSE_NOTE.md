@@ -12,4 +12,4 @@ This package builds on the following upstream projects:
 
 Brave Search results are surfaced under Brave's Terms of Use. The proxy filters results against a hostname whitelist of authoritative public-domain or freely-redistributable sources to avoid republishing third-party content.
 
-This package itself is licensed under the same terms as the parent `openTrattOS` repository.
+This package itself is licensed under the same terms as the parent `nexandro` repository.

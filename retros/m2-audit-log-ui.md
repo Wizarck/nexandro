@@ -1,6 +1,6 @@
 # retros/m2-audit-log-ui.md
 
-> **Slice**: `m2-audit-log-ui` · **PR**: [#112](https://github.com/Wizarck/openTrattOS/pull/112) · **Merged**: 2026-05-08 · **Squash SHA**: `a3b1cb6`
+> **Slice**: `m2-audit-log-ui` · **PR**: [#112](https://github.com/Wizarck/nexandro/pull/112) · **Merged**: 2026-05-08 · **Squash SHA**: `a3b1cb6`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: **Wave 1.19 — final slice (#4/4) of the user's backend tech-debt batch**. Closes the 4-slice arc that started with `m2-mcp-bench-ci`. Owner+Manager browse UI for the canonical audit_log; 3 new ui-kit components + apps/web screen + route + nav. **Frontend-only slice** — backend endpoints (Wave 1.9 query / 1.11 FTS / 1.12 export) all already shipped. **Single CI iteration** (ui-kit lint warning).
 

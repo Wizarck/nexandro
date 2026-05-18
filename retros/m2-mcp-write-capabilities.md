@@ -1,6 +1,6 @@
 # retros/m2-mcp-write-capabilities.md
 
-> **Slice**: `m2-mcp-write-capabilities` · **PR**: [#100](https://github.com/Wizarck/openTrattOS/pull/100) · **Merged**: 2026-05-06 · **Squash SHA**: `9020550`
+> **Slice**: `m2-mcp-write-capabilities` · **PR**: [#100](https://github.com/Wizarck/nexandro/pull/100) · **Merged**: 2026-05-06 · **Squash SHA**: `9020550`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: **Wave 1.13 [3a] — first slice of the m2-mcp-extras split**. Promotes the MCP server from read-only (Wave 1.4) to a 43-capability write surface across 12 namespaces, with cross-cutting Idempotency-Key, per-capability kill-switches, and forensic before/after audit trail.
 
@@ -12,7 +12,7 @@
 - `IdempotencyMiddleware` — activates on POST/PUT/PATCH/DELETE + `Idempotency-Key` header + `req.user.organizationId`. Replays cached body on hit, 409 on body mismatch.
 - `WriteResponseDto<T> = { data, missingFields, nextRequired }` envelope as the canonical wire shape for every write.
 - `@AuditAggregate(aggregateType, idExtractor?)` decorator + `BeforeAfterAuditInterceptor` + `AuditResolverRegistry`. The interceptor resolves payload_before via the BC-registered resolver, runs the handler, captures payload_after from the unwrapped envelope, emits `AGENT_ACTION_EXECUTED` with the rich envelope.
-- `AgentCapabilityGuard` — per-capability env flag (`OPENTRATTOS_AGENT_<NS>_<OP>_ENABLED`) checked via `process.env`. 503 with `code: AGENT_CAPABILITY_DISABLED` when the flag is missing/falsy.
+- `AgentCapabilityGuard` — per-capability env flag (`NEXANDRO_AGENT_<NS>_<OP>_ENABLED`) checked via `process.env`. 503 with `code: AGENT_CAPABILITY_DISABLED` when the flag is missing/falsy.
 - `SharedModule` `@Global()` — exports `AuditResolverRegistry`, `AgentIdempotencyService`, `TypeOrmModule.forFeature([AgentIdempotencyKey])`. BC modules import it directly so DI scoping is uniform across the AppModule and any TestingModule.
 
 **REST layer (43 endpoints across 11 controllers):**
@@ -21,7 +21,7 @@
 - Six BC modules implement `OnApplicationBootstrap` and register `findById`-shaped resolvers for: `recipe`, `menu_item`, `ingredient`, `category`, `supplier`, `supplier_item`, `ai_suggestion`, `user`, `location`, `organization`.
 - Three UI hooks adapted to `response.data`: `useAiSuggestions`, `useDietFlags`, `useLabelPrint`. Three controller specs adapted accordingly.
 
-**MCP capability registry (`packages/mcp-server-opentrattos/src/capabilities/write/`):**
+**MCP capability registry (`packages/mcp-server-nexandro/src/capabilities/write/`):**
 - `WriteCapability` interface (zod schema, REST method/path template, body extractor, query extractor, idempotency forwarding flag).
 - `render-path.ts` — pure `:param` substitution with `encodeURIComponent` and throw-on-missing.
 - 12 namespace files defining 43 capabilities total: recipes (7), menu-items (3), ingredients (6), categories (3), suppliers (3), supplier-items (4), labels (2), ai-suggestions (4), external-catalog (1), iam-users (5), iam-locations (3), iam-organizations (2). Plus an `UNSUPPORTED_VIA_MCP` set documenting routes intentionally not exposed.
@@ -44,7 +44,7 @@
 
 ## What's next
 
-- **Slice 3b (`m2-mcp-agent-chat-widget`)**: AgentChatWidget UI behind `OPENTRATTOS_AGENT_ENABLED` flag, dual-mode CI matrix (with/without agent enabled), per-capability advice surface in the chat that respects `WriteResponseDto.missingFields` and `nextRequired`.
+- **Slice 3b (`m2-mcp-agent-chat-widget`)**: AgentChatWidget UI behind `NEXANDRO_AGENT_ENABLED` flag, dual-mode CI matrix (with/without agent enabled), per-capability advice surface in the chat that respects `WriteResponseDto.missingFields` and `nextRequired`.
 - **Slice 3c (`m2-mcp-agent-registry-bench`)**: agent identity signing (HMAC or async key pair), capability registry benchmark, M3 hand-off readiness.
 - **Forensic event split (M3+ tech-debt)**: separate `AGENT_ACTION_EXECUTED` (lean, request-anchored) from a new `AGENT_MUTATION_RECORDED` (rich, aggregate-anchored) so the subscriber's runtime shape discrimination becomes type-system enforcement.
 - **Deferred E2E** (per Gate D pick `F7=c`): no Playwright/Cypress agent flow yet. M3 to revisit once the chat widget lands.

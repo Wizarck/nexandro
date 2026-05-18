@@ -1,6 +1,6 @@
 # retros/m2-audit-log-forensic-split.md
 
-> **Slice**: `m2-audit-log-forensic-split` · **PR**: [#107](https://github.com/Wizarck/openTrattOS/pull/107) · **Merged**: 2026-05-07 · **Squash SHA**: `339b039`
+> **Slice**: `m2-audit-log-forensic-split` · **PR**: [#107](https://github.com/Wizarck/nexandro/pull/107) · **Merged**: 2026-05-07 · **Squash SHA**: `339b039`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: **Wave 1.14 — first post-m2-mcp-extras slice**. Closes the longest-running tech-debt thread filed across 7 prior slices (Waves 1.9–1.13): the `AGENT_ACTION_EXECUTED` channel carried two payload shapes (lean from `AgentAuditMiddleware`; rich from `BeforeAfterAuditInterceptor` and `AgentChatService`) discriminated at runtime by `isRichAuditEnvelope()`. This slice splits the channel into type-system-distinct event types AND consolidates the audit-log architecture into 3 canonical ADRs + a single operator runbook. **Single-fix CI cycle**: only the INT-helper aggregation bug surfaced; all 5 stage commits passed everything else first try.
 

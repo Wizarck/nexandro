@@ -14,7 +14,7 @@ export type WriteHttpMethod = 'POST' | 'PUT' | 'PATCH' | 'DELETE';
  * registry and registers each tool with the MCP SDK; the handler renders
  * `restPathTemplate` with `restPathParams(input)`, extracts `restBodyExtractor(input)`
  * for the JSON body, optionally lifts query params via `restQueryExtractor`, and
- * forwards the resulting request through `OpenTrattosRestClient.request()`.
+ * forwards the resulting request through `NexandroRestClient.request()`.
  */
 export interface WriteCapability<TInput = unknown> {
   /**

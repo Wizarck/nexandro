@@ -1,6 +1,6 @@
 # retros/m2-ui-foundation.md
 
-> **Slice**: `m2-ui-foundation` · **PR**: [#81](https://github.com/Wizarck/openTrattOS/pull/81) · **Merged**: 2026-05-05 · **Squash SHA**: `51b4e56`
+> **Slice**: `m2-ui-foundation` · **PR**: [#81](https://github.com/Wizarck/nexandro/pull/81) · **Merged**: 2026-05-05 · **Squash SHA**: `51b4e56`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: First slice that ships UI code in the repo. Corrective slice for the prior 4-slice deviation from ai-playbook §13 — also added row #13 `m2-ui-backfill-wave1` to the slicing file as the sibling that picks up the rest of the deferred component debt.
 
@@ -8,7 +8,7 @@
 
 The frontend foundation. `apps/web/` (Vite + React 18 + TanStack Query 5 + React Router 6) + `packages/ui-kit/` (Tailwind 4 with `@theme`, OKLCH-canonical `tokens.css` from DESIGN.md, Storybook 8 with `@storybook/react-vite`). Two components shipped as proof-of-contract: `AllergenBadge` (Article 21 emphasis variant + cross-contamination "may contain" variant) and `MarginPanel` (consumes the `MarginReportDto` shape from #8, NO_SOURCE-tolerant rendering). One J3 proof-of-concept screen at `/poc/owner-dashboard` wires the chain end-to-end via 3 nested TanStack Query calls.
 
-CI pipeline now runs Storybook builds on every PR + deploys to GitHub Pages on push to master (the canonical URL is reserved at `https://wizarck.github.io/openTrattOS/storybook/`; goes live on the first non-revertible push to master after Pages is provisioned in repo settings).
+CI pipeline now runs Storybook builds on every PR + deploys to GitHub Pages on push to master (the canonical URL is reserved at `https://wizarck.github.io/nexandro/storybook/`; goes live on the first non-revertible push to master after Pages is provisioned in repo settings).
 
 21 new ui-kit tests (Vitest + Testing Library + jsdom) all green. Vite production build is 90 KB gzipped — well under the 500 KB target. Backend regression: 447 unit tests still green.
 
@@ -17,7 +17,7 @@ CI pipeline now runs Storybook builds on every PR + deploys to GitHub Pages on p
 - **Squash + force-push to remove a leaked artefact from PR history.** First push accidentally committed `storybook-static/` (gitleaks correctly flagged it as a generic-api-key false-positive in the bundled JS). Rather than .gitleaksignore-ing a fingerprint, the cleaner path was `git reset --soft <proposal-commit>` + recommit + force-with-lease push. The branch's history is now: 1 proposal commit + 1 implementation commit. Cleaner story; gitleaks passed on the next run.
 - **Tailwind 4 + `@theme` block** consumed the OKLCH variables from `tokens.css` directly, with zero `tailwind.config.js` to keep in sync with `DESIGN.md`. Class strings like `bg-(--color-accent)` resolved at runtime to the OKLCH form. The `@theme` block was a single 30-line addition; the rest of the design tokens live as plain CSS variables that any component can read.
 - **Vitest separation from Vite config.** Started with `test` block embedded in `vite.config.ts`; that triggered a TS error because Vitest 2.x ships its own Vite copy and the two `defineConfig` types collide. Split into `vite.config.ts` + `vitest.config.ts` — clean compile, both packages happy.
-- **`@opentrattos/ui-kit/*` path alias via `vite-tsconfig-paths`.** No library build needed at v0; in-monorepo consumers import from `src/index.ts` directly. When the kit ships externally, add `build.lib` then.
+- **`@nexandro/ui-kit/*` path alias via `vite-tsconfig-paths`.** No library build needed at v0; in-monorepo consumers import from `src/index.ts` directly. When the kit ships externally, add `build.lib` then.
 - **Static `MenuItemsService.classify` from #8 mirrored as `STATUS_STYLES` lookup in `MarginPanel`.** Pure data → presentation mapping kept the component testable (no DI, no fetch). The 11 unit tests cover every status enum + loading + currency formatting + Discontinued cascade.
 - **AllergenBadge's icon + text + `aria-hidden` SVG** prove the deuteranopia robustness in 2 LOC. The accessibility test (`expect(svg).toHaveAttribute('aria-hidden', 'true')`) catches any regression where someone accidentally drops the icon from the screen-reader name.
 - **CI feedback loop.** First CI run failed on 3 dimensions (Lint, Test, Secrets); each had a one-line fix. By the time the squash + force-push landed, all 7 checks were green. Total CI iteration cost: ~8 minutes of wall-clock + 2 commits-and-pushes.

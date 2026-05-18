@@ -43,4 +43,4 @@ Ingestion of any of these requires a publisher licensing agreement.
 
 ## This package's own license
 
-Same as parent `openTrattOS` repository.
+Same as parent `nexandro` repository.

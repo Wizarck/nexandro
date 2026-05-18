@@ -1,6 +1,6 @@
 # retros/m2-labels-print-config-ui.md
 
-> **Slice**: `m2-labels-print-config-ui` · **PR**: [#108](https://github.com/Wizarck/openTrattOS/pull/108) · **Merged**: 2026-05-07 · **Squash SHA**: `aa77f7f`
+> **Slice**: `m2-labels-print-config-ui` · **PR**: [#108](https://github.com/Wizarck/nexandro/pull/108) · **Merged**: 2026-05-07 · **Squash SHA**: `aa77f7f`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: **Wave 1.15 — Owner-facing UI for `organizations.label_fields` config**. Closes the Wave 1.6 (`m2-labels-rendering`) retro follow-up: the `GET/PUT /organizations/:id/label-fields` endpoints had been reachable only via curl/Postman. Frontend-only slice — backend untouched. **First-pass green CI**: zero fix-commits between push and merge.
 

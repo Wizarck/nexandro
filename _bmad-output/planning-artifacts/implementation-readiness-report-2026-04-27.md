@@ -23,7 +23,7 @@ documentInventory:
     files: []
     status: not-yet-created (planned for between Gate A and Gate C, per option 2 of UX track design)
 date: 2026-04-27
-project: openTrattOS
+project: nexandro
 moduleScope: Module 2 — Recipes / Escandallo + Nutritional Intelligence + Auto-Labels
 contextFromCaller: |
   Brownfield project; M1 in flight; M2 PRD just completed.
@@ -34,7 +34,7 @@ contextFromCaller: |
 # Implementation Readiness Assessment Report
 
 **Date:** 2026-04-27
-**Project:** openTrattOS
+**Project:** nexandro
 **Scope:** Module 2 — Recipes / Escandallo + Nutritional Intelligence + Auto-Labels
 
 ## Step 1 — Document Discovery

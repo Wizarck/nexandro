@@ -1,6 +1,6 @@
 # retros/m2-mcp-server.md
 
-> **Slice**: `m2-mcp-server` · **PR**: [#85](https://github.com/Wizarck/openTrattOS/pull/85) · **Merged**: 2026-05-05 · **Squash SHA**: `d43bbc1`
+> **Slice**: `m2-mcp-server` · **PR**: [#85](https://github.com/Wizarck/nexandro/pull/85) · **Merged**: 2026-05-05 · **Squash SHA**: `d43bbc1`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: Wave 1.5 subagent slice (paired with main-thread `m2-ingredients-extension`, PR #84). First slice that ships a separable npm/Docker package outside `apps/` + `packages/ui-kit/`. Third subagent run (after `m2-allergens-article-21` + `m2-off-mirror`); first slice with `audit_log` channel reserved but table still pending.
 
@@ -8,7 +8,7 @@
 
 The Agent-Ready surface — **read-only first** per Gate D 2a (writes deferred to `m2-mcp-extras`):
 
-`packages/mcp-server-opentrattos/` (new package; separable Docker image / npm module per ADR-013):
+`packages/mcp-server-nexandro/` (new package; separable Docker image / npm module per ADR-013):
 - TypeScript scaffold + `@modelcontextprotocol/sdk` 1.29.0 (pinned)
 - Capability descriptors: `recipes.{read,list}`, `menu-items.{read,list}`, `ingredients.{read,search}`
 - HTTP client wrapping `apps/api/` REST endpoints (Node 20+ fetch + keep-alive). Forwards `X-Via-Agent`, `X-Agent-Name`, optional `X-Agent-Capability` headers
@@ -73,9 +73,9 @@ Tests: 9 new middleware + 17 mcp-server = **26 new** across the slice. Backend t
 4. **`AGENT_ACTION_EXECUTED` event currently has no listener.** Filed: when audit_log table lands (`m2-audit-log` slice), wire the listener that persists the row. Until then, events are emitted into the void — that's intentional but worth flagging in the runbook.
 5. **`m2-mcp-extras` follow-up scope** — file as a new row in `docs/openspec-slice-module-2.md`:
    - Write capabilities (`recipes.create`, `menu-items.update`, `ingredients.applyOverride` via MCP)
-   - `AgentChatWidget` UI feature-flagged via `OPENTRATTOS_AGENT_ENABLED`
+   - `AgentChatWidget` UI feature-flagged via `NEXANDRO_AGENT_ENABLED`
    - `missingFields` + `nextRequired` propagation across all write endpoints
-   - Dual-mode CI matrix (`OPENTRATTOS_AGENT_ENABLED=true|false`)
+   - Dual-mode CI matrix (`NEXANDRO_AGENT_ENABLED=true|false`)
    - Agent registry with shared-secret signing (M3 trigger)
 6. **First MCP-client benchmark.** README mentions "no benchmarks yet"; an `m2-mcp-extras` task should spin up a real client (Claude Desktop / Hermes / OpenCode) and measure end-to-end latency for `recipes.read`. Validates the SLA contract before write paths land.
 

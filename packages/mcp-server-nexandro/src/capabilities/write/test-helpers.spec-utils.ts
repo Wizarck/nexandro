@@ -1,5 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { OpenTrattosRestClient } from '../../http-client.js';
+import { NexandroRestClient } from '../../http-client.js';
 import {
   WRITE_CAPABILITIES,
   UNSUPPORTED_VIA_MCP,
@@ -25,7 +25,7 @@ export function jsonResp(body: unknown, status = 200): Response {
 
 export interface WriteHarness {
   tools: Map<string, CapturedTool>;
-  rest: OpenTrattosRestClient;
+  rest: NexandroRestClient;
   fetchSpy: jest.Mock<
     Promise<Response>,
     [string | URL | Request, RequestInit | undefined]
@@ -37,7 +37,7 @@ export interface WriteHarness {
  * Standalone harness for write-capability specs. Mirrors the read-side
  * `captureTools` pattern (`recipes.spec.ts`) — creates a fake McpServer that
  * captures `registerTool(name, config, cb)` invocations into a Map; spins
- * up a real `OpenTrattosRestClient` with an injected `fetchImpl` spy; and
+ * up a real `NexandroRestClient` with an injected `fetchImpl` spy; and
  * registers every entry in `WRITE_CAPABILITIES` with the same handler shape
  * `buildServer()` uses. Tests then `harness.invoke('recipes.create', input)`
  * and inspect the resulting fetch call.
@@ -47,7 +47,7 @@ export function makeWriteHarness(): WriteHarness {
   const fetchSpy = jest
     .fn<Promise<Response>, [string | URL | Request, RequestInit | undefined]>()
     .mockResolvedValue(jsonResp({ ok: true }));
-  const rest = new OpenTrattosRestClient({
+  const rest = new NexandroRestClient({
     baseUrl: 'http://api.test',
     agentName: 'test-agent',
     authToken: 'tok',

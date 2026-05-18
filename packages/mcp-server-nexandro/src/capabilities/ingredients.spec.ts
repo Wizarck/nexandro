@@ -1,5 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { OpenTrattosRestClient } from '../http-client.js';
+import { NexandroRestClient } from '../http-client.js';
 import { registerIngredientsCapabilities } from './ingredients.js';
 
 function jsonResp(body: unknown, status = 200): Response {
@@ -33,7 +33,7 @@ function captureTools(): {
 describe('registerIngredientsCapabilities', () => {
   it('registers ingredients.read + ingredients.search', () => {
     const { server, tools } = captureTools();
-    const rest = new OpenTrattosRestClient({
+    const rest = new NexandroRestClient({
       baseUrl: 'http://api.test',
       agentName: 'a',
       fetchImpl: jest.fn() as unknown as typeof fetch,
@@ -56,7 +56,7 @@ describe('registerIngredientsCapabilities', () => {
     const fetchSpy = jest
       .fn<Promise<Response>, [string | URL | Request, RequestInit | undefined]>()
       .mockResolvedValue(jsonResp({ id: 'i1', name: 'Tomato' }));
-    const rest = new OpenTrattosRestClient({
+    const rest = new NexandroRestClient({
       baseUrl: 'http://api.test',
       agentName: 'a',
       fetchImpl: fetchSpy as unknown as typeof fetch,
@@ -72,7 +72,7 @@ describe('registerIngredientsCapabilities', () => {
     const fetchSpy = jest
       .fn<Promise<Response>, [string | URL | Request, RequestInit | undefined]>()
       .mockResolvedValue(jsonResp([]));
-    const rest = new OpenTrattosRestClient({
+    const rest = new NexandroRestClient({
       baseUrl: 'http://api.test',
       agentName: 'a',
       fetchImpl: fetchSpy as unknown as typeof fetch,
@@ -92,7 +92,7 @@ describe('registerIngredientsCapabilities', () => {
     const fetchSpy = jest
       .fn<Promise<Response>, [string | URL | Request, RequestInit | undefined]>()
       .mockResolvedValue(jsonResp([]));
-    const rest = new OpenTrattosRestClient({
+    const rest = new NexandroRestClient({
       baseUrl: 'http://api.test',
       agentName: 'a',
       fetchImpl: fetchSpy as unknown as typeof fetch,

@@ -1,9 +1,9 @@
 ---
-description: openTrattOS project dispatcher — always read AGENTS.md first.
+description: nexandro project dispatcher — always read AGENTS.md first.
 alwaysApply: true
 ---
 
-# openTrattOS — Cursor dispatcher
+# nexandro — Cursor dispatcher
 
 Cursor: read [AGENTS.md](../../AGENTS.md) first. That is the project dispatcher.
 

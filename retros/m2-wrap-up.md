@@ -1,6 +1,6 @@
 # retros/m2-wrap-up.md
 
-> **Slice**: `m2-wrap-up` · **PR**: [#89](https://github.com/Wizarck/openTrattOS/pull/89) · **Merged**: 2026-05-06 · **Squash SHA**: `634acf6`
+> **Slice**: `m2-wrap-up` · **PR**: [#89](https://github.com/Wizarck/nexandro/pull/89) · **Merged**: 2026-05-06 · **Squash SHA**: `634acf6`
 > **Cadence**: post-archive (per `runbook-bmad-openspec.md` §4)
 > **Notable**: **M2 closes in production**. Both gated feature flags cleared (LABELS via legal review for Spain/EU; AI yield via rag-proxy deploy + corpus ingestion). Doc-only slice — zero TypeScript / Python LOC modified. Sets the closing milestone for M2 (development complete since Wave 1.8 `m2-ai-yield-corpus`; production complete now). Next slice is Wave 1.9 `m2-audit-log` for the cross-BC audit pattern extraction.
 
@@ -8,8 +8,8 @@
 
 **`apps/api/.env.example`:**
 - Both gated flags now documented as `=true` for production:
-  - `OPENTRATTOS_LABELS_PROD_ENABLED=true` (legal review filed, Spain/EU jurisdiction)
-  - `OPENTRATTOS_AI_YIELD_SUGGESTIONS_ENABLED=true` (rag-proxy + corpus operational)
+  - `NEXANDRO_LABELS_PROD_ENABLED=true` (legal review filed, Spain/EU jurisdiction)
+  - `NEXANDRO_AI_YIELD_SUGGESTIONS_ENABLED=true` (rag-proxy + corpus operational)
 - Comment block explaining gate clearance + ADR cross-refs
 - Runtime fallback in apps/api code stays `false` for safety in unconfigured deployments — operators must explicitly opt in via their production `.env` per the runbook
 - Documents the rag-proxy URL pattern + bearer token wiring
@@ -49,7 +49,7 @@
 
 - **`m2-audit-log` (Wave 1.9, in flight in this session)** — extract canonical audit_log table out of the 5 per-BC tables. Already has its proposal in flight.
 - **Operator monitoring dashboards.** The runbook §4 lists 4 suggested metrics; building actual Grafana / Prometheus boards is post-deploy ops work, not a code slice.
-- **Per-jurisdiction legal reviews** for non-EU deployments — operator-driven; trigger as openTrattOS expands to UK / US / LATAM / APAC.
+- **Per-jurisdiction legal reviews** for non-EU deployments — operator-driven; trigger as nexandro expands to UK / US / LATAM / APAC.
 - **`docs/operations/` index** — when the operations folder grows beyond `m2-prod-runbook.md`, add an INDEX.md.
 - **Gitleaks-aware doc style guide.** Add a one-liner to `AGENTS.md` or similar: "in markdown, never write `KEY=<placeholder>` shell-syntax for secrets — use bullet lists or inline comments".
 

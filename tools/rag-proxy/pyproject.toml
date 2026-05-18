@@ -1,7 +1,7 @@
 [project]
 name = "rag-proxy"
 version = "0.1.0"
-description = "Stateless FastAPI proxy translating LightRAG to openTrattOS canonical AI suggestion contract"
+description = "Stateless FastAPI proxy translating LightRAG to nexandro canonical AI suggestion contract"
 requires-python = ">=3.12"
 dependencies = [
   "fastapi>=0.115.0",
