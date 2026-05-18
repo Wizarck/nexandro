@@ -320,12 +320,22 @@ function deriveNameFromEmail(email: string): string {
 }
 
 /**
- * The frontend accept page lives at `/invitations/accept?token=...`.
+ * The frontend accept page lives at `/onboarding/invitation/:token`
+ * (path-param, NOT a query string — see `apps/web/src/main.tsx` route
+ * registration). Earlier drafts emitted `/invitations/accept?token=...`
+ * which produced a broken link in production; fixed in the Sprint 4
+ * W2-2 followup.
+ *
  * The base URL is configurable via `NEXANDRO_APP_BASE_URL`; default is
- * the Vite dev server origin so a local Owner can copy the link from
- * the log output without extra config.
+ * the production hostname so a misconfigured deploy still yields a
+ * valid link. Local dev should set `NEXANDRO_APP_BASE_URL=http://localhost:5173`
+ * in `.env`.
+ *
+ * Followup: externalise base URL resolution into a shared config module
+ * so other transactional emails (recall dossier, APPCC export) can reuse
+ * it without re-implementing the env lookup. See sprint4-backlog.md.
  */
 function buildAcceptUrl(token: string): string {
-  const base = (process.env.NEXANDRO_APP_BASE_URL ?? 'http://localhost:5173').replace(/\/$/, '');
-  return `${base}/invitations/accept?token=${encodeURIComponent(token)}`;
+  const base = (process.env.NEXANDRO_APP_BASE_URL ?? 'https://nexandro.palafitofood.com').replace(/\/$/, '');
+  return `${base}/onboarding/invitation/${encodeURIComponent(token)}`;
 }

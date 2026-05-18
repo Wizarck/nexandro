@@ -195,6 +195,86 @@ describe('InvitationService — create()', () => {
     expect(invitedByName).toBe('Owner Olga');
   });
 
+  it('emits the accept URL with the token as a PATH PARAMETER on /onboarding/invitation/:token (not a query string)', async () => {
+    // Regression guard for the Sprint 4 W2-2 followup. The first
+    // implementation produced `/invitations/accept?token=...` which
+    // produced a 404 on the SPA whose route is registered as
+    // `/onboarding/invitation/:token`. See PR #231 review.
+    const repo = makeRepo();
+    repo.findLiveByOrgAndEmail.mockResolvedValue(null);
+    repo.save.mockImplementation(async (inv) => inv as UserInvitation);
+    const email = makeEmail();
+    const { ds } = makeDataSource({}, { orgName: 'Acme', inviterName: 'Owner' });
+    const svc = new InvitationService(ds, repo, email);
+
+    const created = await svc.create({
+      organizationId: ORG_A,
+      invitedByUserId: INVITER_ID,
+      email: 'staff@example.com',
+      role: 'STAFF',
+    });
+
+    const acceptUrl = email.sendInvitation.mock.calls[0][1];
+    expect(acceptUrl).toMatch(/\/onboarding\/invitation\/[0-9a-f]{64}$/);
+    expect(acceptUrl.endsWith(`/onboarding/invitation/${created.token}`)).toBe(true);
+    expect(acceptUrl).not.toContain('?token=');
+    expect(acceptUrl).not.toContain('/invitations/accept');
+  });
+
+  it('uses NEXANDRO_APP_BASE_URL when set + strips trailing slash', async () => {
+    const repo = makeRepo();
+    repo.findLiveByOrgAndEmail.mockResolvedValue(null);
+    repo.save.mockImplementation(async (inv) => inv as UserInvitation);
+    const email = makeEmail();
+    const { ds } = makeDataSource({}, { orgName: 'Acme', inviterName: 'Owner' });
+
+    const prev = process.env.NEXANDRO_APP_BASE_URL;
+    process.env.NEXANDRO_APP_BASE_URL = 'https://app.example.com/';
+    try {
+      const svc = new InvitationService(ds, repo, email);
+      await svc.create({
+        organizationId: ORG_A,
+        invitedByUserId: INVITER_ID,
+        email: 'staff@example.com',
+        role: 'STAFF',
+      });
+      const acceptUrl = email.sendInvitation.mock.calls[0][1];
+      expect(acceptUrl).toMatch(/^https:\/\/app\.example\.com\/onboarding\/invitation\/[0-9a-f]{64}$/);
+    } finally {
+      if (prev === undefined) {
+        delete process.env.NEXANDRO_APP_BASE_URL;
+      } else {
+        process.env.NEXANDRO_APP_BASE_URL = prev;
+      }
+    }
+  });
+
+  it('falls back to the production hostname when NEXANDRO_APP_BASE_URL is unset', async () => {
+    const repo = makeRepo();
+    repo.findLiveByOrgAndEmail.mockResolvedValue(null);
+    repo.save.mockImplementation(async (inv) => inv as UserInvitation);
+    const email = makeEmail();
+    const { ds } = makeDataSource({}, { orgName: 'Acme', inviterName: 'Owner' });
+
+    const prev = process.env.NEXANDRO_APP_BASE_URL;
+    delete process.env.NEXANDRO_APP_BASE_URL;
+    try {
+      const svc = new InvitationService(ds, repo, email);
+      await svc.create({
+        organizationId: ORG_A,
+        invitedByUserId: INVITER_ID,
+        email: 'staff@example.com',
+        role: 'STAFF',
+      });
+      const acceptUrl = email.sendInvitation.mock.calls[0][1];
+      expect(acceptUrl.startsWith('https://nexandro.palafitofood.com/onboarding/invitation/')).toBe(true);
+    } finally {
+      if (prev !== undefined) {
+        process.env.NEXANDRO_APP_BASE_URL = prev;
+      }
+    }
+  });
+
   it('rejects with ConflictException INVITATION_ALREADY_PENDING when a live invite exists for (org, email)', async () => {
     const repo = makeRepo();
     repo.findLiveByOrgAndEmail.mockResolvedValue(makeInvitation());
