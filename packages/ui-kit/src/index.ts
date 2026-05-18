@@ -298,3 +298,7 @@ export type {
   CorrectionsHistoryDiffModalProps,
   CorrectionsHistoryFieldDiff,
 } from './components/CorrectionsHistoryDiffModal';
+
+// ---- Retroactive reconciliation primitives (Sprint 2 P3, j13.md §5) ----
+export { RetroactiveBadge } from './components/RetroactiveBadge';
+export type { RetroactiveBadgeProps } from './components/RetroactiveBadge';
