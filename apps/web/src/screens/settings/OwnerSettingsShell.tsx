@@ -62,6 +62,10 @@ const SECTIONS: ReadonlyArray<SectionLink> = [
   { to: '/owner-settings/usuarios', label: 'Usuarios y permisos', enabled: false },
   { to: '/owner-settings/facturacion', label: 'Facturación', enabled: false },
   { to: '/owner-settings/integraciones', label: 'Integraciones', enabled: false },
+  // Audit v2 E-1: "IA: gasto" relocated from top-nav into Configuración.
+  // Today still lives at /ai-obs/dashboard for direct access; future slice
+  // collapses the inspector view here behind a "ver detalles" link.
+  { to: '/owner-settings/avanzado-ia', label: 'Avanzado: IA', enabled: false },
 ];
 
 function SectionNav() {

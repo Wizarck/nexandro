@@ -58,8 +58,11 @@ const NAV_GROUPS: ReadonlyArray<NavGroup> = [
   {
     label: 'Configuración',
     items: [
+      // Audit v2 E-1: "IA: gasto" demoted out of top-nav per roundtable
+      // ("Roberto-persona doesn't read tokens/models"). Surface stays
+      // accessible at /ai-obs/dashboard for power users + admins; moved
+      // into Configuración → Avanzado: IA (próximamente) so it has a home.
       { to: '/owner-settings', label: 'Configuración', roles: ['OWNER'] },
-      { to: '/ai-obs/dashboard', label: 'IA: gasto', roles: ['OWNER', 'MANAGER'] },
     ],
   },
 ];

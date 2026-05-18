@@ -114,16 +114,24 @@ function Stepper() {
         {ONBOARDING_STEPS.map((s) => {
           const to = `/onboarding/${s.slug}`;
           const active = location.pathname === to;
+          // Audit v2 E-4 (Master pick): keep 5-step layout but mark
+          // placeholder steps with a "próximamente" badge so the Owner
+          // sees the roadmap without being misled into clicking a stub
+          // expecting a real flow.
+          const isPlaceholder = s.status === 'placeholder';
           return (
             <li key={s.num} className="flex items-center">
               <NavLink
                 to={to}
+                aria-disabled={isPlaceholder ? 'true' : undefined}
                 className={[
                   'flex items-center gap-2 rounded-md border px-3 py-2 text-sm transition',
                   'focus:outline-none focus:ring-2 focus:ring-(--color-focus)',
                   active
                     ? 'border-(--color-primary) bg-(--color-accent-soft) font-semibold text-ink'
-                    : 'border-border-subtle bg-surface text-mute hover:text-ink',
+                    : isPlaceholder
+                      ? 'border-border-subtle bg-surface text-mute opacity-70 hover:text-ink'
+                      : 'border-border-subtle bg-surface text-mute hover:text-ink',
                 ].join(' ')}
               >
                 <span
@@ -139,6 +147,14 @@ function Stepper() {
                   {s.num}
                 </span>
                 <span className="hidden sm:inline">{s.label}</span>
+                {isPlaceholder && (
+                  <span
+                    className="hidden rounded-pill bg-(--color-warn-bg) px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide sm:inline"
+                    style={{ color: 'var(--color-status-below-target-fg)' }}
+                  >
+                    pronto
+                  </span>
+                )}
               </NavLink>
               {s.num < 5 && (
                 <span
