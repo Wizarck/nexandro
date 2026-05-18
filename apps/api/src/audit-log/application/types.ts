@@ -82,6 +82,23 @@ export const AuditEventType = {
   REVIEW_QUEUE_STALE_AGGREGATES: 'm3.review-queue.stale-aggregates',
   // ---- m3.x-audit-log-archival (daily cold-storage batch) ----
   AUDIT_LOG_ARCHIVAL_BATCH: 'm3.audit-log.archival-batch',
+  // ---- Sprint 2 P4 GDPR legal core (Phase D, feat/sprint2-p4-gdpr-legal-core) ----
+  //
+  // Five envelopes anchored on `aggregate_type='organization'` covering the
+  // controller's right to evidence the data subject's exercised rights:
+  //   - PRIVACY_EXPORT_REQUESTED   — Art. 15 acceso + Art. 20 portabilidad
+  //   - PRIVACY_DELETE_SCHEDULED   — Art. 17 erasure scheduled (30d grace)
+  //   - PRIVACY_DELETE_CANCELLED   — Owner cancelled within grace window
+  //   - PRIVACY_RETENTION_POLICY_CHANGED — per-org retention overrides
+  //   - PRIVACY_DPO_CONTACT_UPDATED — Art. 37 DPO contact captured/changed
+  // All `retention_class='regulatory'` per the GDPR chain-of-custody rule
+  // (see RETENTION_BY_EVENT_NAME below) — the regulator MUST be able to
+  // see the audit trail of a deletion request 7 years later.
+  PRIVACY_EXPORT_REQUESTED: 'privacy.export-requested',
+  PRIVACY_DELETE_SCHEDULED: 'privacy.delete-scheduled',
+  PRIVACY_DELETE_CANCELLED: 'privacy.delete-cancelled',
+  PRIVACY_RETENTION_POLICY_CHANGED: 'privacy.retention-policy-changed',
+  PRIVACY_DPO_CONTACT_UPDATED: 'privacy.dpo-contact-updated',
 } as const;
 
 /**
@@ -159,6 +176,12 @@ export const AuditEventTypeName: Record<AuditEventType, string> = {
   'm3.review-queue.stale-aggregates': 'REVIEW_QUEUE_STALE_AGGREGATES',
   // ---- m3.x-audit-log-archival (daily cold-storage batch) ----
   'm3.audit-log.archival-batch': 'AUDIT_LOG_ARCHIVAL_BATCH',
+  // ---- Sprint 2 P4 GDPR legal core ----
+  'privacy.export-requested': 'PRIVACY_EXPORT_REQUESTED',
+  'privacy.delete-scheduled': 'PRIVACY_DELETE_SCHEDULED',
+  'privacy.delete-cancelled': 'PRIVACY_DELETE_CANCELLED',
+  'privacy.retention-policy-changed': 'PRIVACY_RETENTION_POLICY_CHANGED',
+  'privacy.dpo-contact-updated': 'PRIVACY_DPO_CONTACT_UPDATED',
 };
 
 /**
@@ -277,6 +300,15 @@ const RETENTION_BY_EVENT_NAME: Record<string, RetentionClass> = {
   // = 'operational' so the archival run is observable via the same
   // query surface as every other operational event.
   AUDIT_LOG_ARCHIVAL_BATCH: 'operational',
+  // Sprint 2 P4 GDPR — regulatory chain-of-custody. AEPD inspection 7y
+  // after a delete request must surface the original envelope; same
+  // logic for the deletion-cancel + retention-policy-changed envelopes
+  // (the change of policy itself is regulator-relevant).
+  PRIVACY_EXPORT_REQUESTED: 'regulatory',
+  PRIVACY_DELETE_SCHEDULED: 'regulatory',
+  PRIVACY_DELETE_CANCELLED: 'regulatory',
+  PRIVACY_RETENTION_POLICY_CHANGED: 'regulatory',
+  PRIVACY_DPO_CONTACT_UPDATED: 'regulatory',
 };
 
 /**

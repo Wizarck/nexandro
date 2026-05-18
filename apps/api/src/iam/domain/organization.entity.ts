@@ -20,6 +20,33 @@ const numericNullableTransformer = {
 
 export type OrganizationLabelPageSize = 'a4' | 'thermal-4x6' | 'thermal-50x80';
 
+/**
+ * Sprint 2 P4 GDPR — per-org retention overrides. Defaults locked in
+ * migration 0043 as `'{"audit_log_days":2555,"photos_days":90,"m3_review_queue_days":365}'`.
+ * Bounds are enforced at the DTO layer (`UpdateRetentionPolicyDto`).
+ */
+export interface OrganizationRetentionPolicy {
+  /** Audit log hot retention, days. Default 2555 (7y). Hard cap 3650 (10y). */
+  audit_log_days: number;
+  /** Photo storage warm retention, days. Default 90. Range 30..730 (2y). */
+  photos_days: number;
+  /** M3 review-queue stale aging, days. Default 365. Range 30..3650. */
+  m3_review_queue_days: number;
+}
+
+export const DEFAULT_RETENTION_POLICY: OrganizationRetentionPolicy = Object.freeze({
+  audit_log_days: 2555,
+  photos_days: 90,
+  m3_review_queue_days: 365,
+});
+
+/** Sprint 2 P4 — DPO contact, GDPR art. 37. Free-form; client-side validated. */
+export interface OrganizationDpoContact {
+  name: string;
+  email: string;
+  phone?: string;
+}
+
 export interface OrganizationLabelPostalAddress {
   street: string;
   city: string;
@@ -104,6 +131,40 @@ export class Organization {
     transformer: numericNullableTransformer,
   })
   aiMonthlyBudgetEur: number | null = null;
+
+  /**
+   * Sprint 2 P4 GDPR Art.17 (right to erasure) — soft-delete with grace.
+   * NULL = active. Non-NULL = scheduled for physical deletion at the
+   * timestamp. The nightly real-deletion cron (out of scope this PR) scans
+   * for rows where `deletion_scheduled_at <= NOW()` and performs the hard
+   * delete. The Owner can cancel within the grace window by clearing this
+   * column via `DELETE /privacy/delete-organization`.
+   */
+  @Column({ name: 'deletion_scheduled_at', type: 'timestamptz', nullable: true })
+  deletionScheduledAt: Date | null = null;
+
+  /**
+   * Sprint 2 P4 GDPR — per-org retention overrides. NOT NULL with DB
+   * default `{"audit_log_days":2555,"photos_days":90,"m3_review_queue_days":365}`
+   * locked in migration 0043; the entity reflects the same default so newly
+   * `Organization.create()`-d rows in tests carry it without touching the
+   * DB.
+   */
+  @Column({
+    name: 'retention_policy',
+    type: 'jsonb',
+    default: () =>
+      `'{"audit_log_days":2555,"photos_days":90,"m3_review_queue_days":365}'::jsonb`,
+  })
+  retentionPolicy: OrganizationRetentionPolicy = { ...DEFAULT_RETENTION_POLICY };
+
+  /**
+   * Sprint 2 P4 GDPR Art.37 — Data Protection Officer contact. Captured by
+   * Owner via `PATCH /privacy/dpo-contact`. Shape: `{ name, email, phone }`.
+   * NULL when no DPO is appointed (most SMBs < 250 employees in scope).
+   */
+  @Column({ name: 'dpo_contact', type: 'jsonb', nullable: true })
+  dpoContact: OrganizationDpoContact | null = null;
 
   @Column({ name: 'created_by', type: 'uuid', nullable: true })
   createdBy: string | null = null;

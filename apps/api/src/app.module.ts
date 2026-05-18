@@ -25,6 +25,7 @@ import { CostSnapshotModule } from './inventory/cost/snapshot/cost-snapshot.modu
 import { LabelsModule } from './labels/labels.module';
 import { MenusModule } from './menus/menus.module';
 import { PhotoStorageModule } from './photo-storage/photo-storage.module';
+import { PrivacyModule } from './privacy/privacy.module';
 import { PhotoIngestionModule } from './photo-ingestion/photo-ingestion.module';
 import { PhotoIngestionRoutingModule } from './photo-ingestion-routing/photo-ingestion-routing.module';
 import { PhotoIngestionRevocationModule } from './photo-ingestion-revocation/photo-ingestion-revocation.module';
@@ -295,6 +296,16 @@ import { SharedModule } from './shared/shared.module';
     // MCP capability `compliance.generate-export`. Email dispatch via slice
     // #22 EmailDispatchService per ADR-039.
     ComplianceExportModule,
+
+    // Sprint 2 P4 — GDPR legal core (feat/sprint2-p4-gdpr-legal-core):
+    // Owner-only Privacidad backend backing OwnerPrivacySection.tsx.
+    // Five regulatory audit envelopes (PRIVACY_EXPORT_REQUESTED,
+    // PRIVACY_DELETE_SCHEDULED, PRIVACY_DELETE_CANCELLED,
+    // PRIVACY_RETENTION_POLICY_CHANGED, PRIVACY_DPO_CONTACT_UPDATED) all
+    // wired on the AuditLogSubscriber. Adds 3 columns to organizations
+    // via migration 0043 (deletion_scheduled_at + retention_policy +
+    // dpo_contact). Real physical-deletion cron is a follow-up slice.
+    PrivacyModule,
 
     // M3 APPCC export i18n infrastructure (m3-appcc-i18n-ui, Wave 2.7,
     // slice #15): four-locale ICU MessageFormat template seed (es-ES

@@ -554,6 +554,42 @@ export class AuditLogSubscriber {
     );
   }
 
+  // ---- Sprint 2 P4 GDPR legal core (feat/sprint2-p4-gdpr-legal-core) ----
+  //
+  // Five regulatory envelopes wired by the Privacidad surface. All carry
+  // `aggregate_type='organization'` + `aggregate_id=<organizationId>`. The
+  // controller emits via `safeAuditEmit` per ADR-AUDIT-WRITER; the
+  // subscriber persists as-is and rethrows on persist failure (regulatory
+  // retention class — see types.ts).
+
+  @OnEvent(AuditEventType.PRIVACY_EXPORT_REQUESTED)
+  onPrivacyExportRequested(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.PRIVACY_EXPORT_REQUESTED, payload);
+  }
+
+  @OnEvent(AuditEventType.PRIVACY_DELETE_SCHEDULED)
+  onPrivacyDeleteScheduled(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.PRIVACY_DELETE_SCHEDULED, payload);
+  }
+
+  @OnEvent(AuditEventType.PRIVACY_DELETE_CANCELLED)
+  onPrivacyDeleteCancelled(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.PRIVACY_DELETE_CANCELLED, payload);
+  }
+
+  @OnEvent(AuditEventType.PRIVACY_RETENTION_POLICY_CHANGED)
+  onPrivacyRetentionPolicyChanged(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(
+      AuditEventType.PRIVACY_RETENTION_POLICY_CHANGED,
+      payload,
+    );
+  }
+
+  @OnEvent(AuditEventType.PRIVACY_DPO_CONTACT_UPDATED)
+  onPrivacyDpoContactUpdated(payload: AuditEventEnvelope): Promise<void> {
+    return this.persistEnvelope(AuditEventType.PRIVACY_DPO_CONTACT_UPDATED, payload);
+  }
+
   // ------------- Internals -------------
 
   /**
