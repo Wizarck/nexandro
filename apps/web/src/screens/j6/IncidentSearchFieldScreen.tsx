@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { OctagonAlert } from 'lucide-react';
 import {
   IncidentSearchField,
   RoleGuard,
@@ -23,6 +24,7 @@ import { useCurrentOrgId, useCurrentRole } from '../../lib/currentUser';
 export function IncidentSearchFieldScreen() {
   const role = useCurrentRole();
   const orgId = useCurrentOrgId();
+  const allowed = role === 'OWNER' || role === 'MANAGER';
 
   return (
     <CrisisLayout>
@@ -35,7 +37,81 @@ export function IncidentSearchFieldScreen() {
           {orgId ? <Inner orgId={orgId} /> : <SignedOut />}
         </RoleGuard>
       </div>
+      {/* j6.md §38 sticky single-CTA bar — the defining affordance of the
+          crisis surface. ALWAYS visible (not dirty-gated like StickySaveBar)
+          per Sprint 2 P1-1 (v2 BLOCKER). Bottom-of-viewport rail with the
+          primary "Detener servicio + Generar dossier" + secondary ghost
+          "Reportar sin lote conocido". Wiring of the real dispatch flow
+          is M4 scope — for now both buttons surface an alert(). */}
+      {allowed && orgId && <RecallStickyActionBar />}
     </CrisisLayout>
+  );
+}
+
+function RecallStickyActionBar() {
+  return (
+    <div
+      role="region"
+      aria-label="Acciones críticas de retirada"
+      data-testid="recall-sticky-action-bar"
+      className="fixed inset-x-0 bottom-0 z-30 border-t px-4 py-3 sm:px-6"
+      style={{
+        backgroundColor: 'var(--color-surface)',
+        borderTopColor: 'var(--color-border-strong)',
+        paddingBottom:
+          'calc(0.75rem + env(safe-area-inset-bottom, 0px))',
+        boxShadow: '0 -2px 8px -2px rgba(0,0,0,0.08)',
+      }}
+    >
+      <div className="mx-auto flex max-w-2xl flex-col gap-2">
+        <button
+          type="button"
+          name="dispatch-dossier"
+          aria-describedby="recall-dispatch-impact"
+          onClick={() =>
+            window.alert(
+              'Implementación pendiente — abriría el flujo de dispatch del dossier',
+            )
+          }
+          className="inline-flex w-full items-center justify-center gap-2 rounded-md px-5 text-base font-bold"
+          style={{
+            minHeight: '56px',
+            backgroundColor: 'var(--color-destructive)',
+            color: 'var(--color-accent-fg)',
+            border: 'none',
+            cursor: 'pointer',
+          }}
+        >
+          <OctagonAlert aria-hidden="true" size={20} />
+          Detener servicio + Generar dossier
+        </button>
+        <button
+          type="button"
+          name="report-unknown-lot"
+          onClick={() =>
+            window.alert(
+              'Implementación pendiente — abriría el flujo de reporte sin lote conocido',
+            )
+          }
+          className="inline-flex w-full items-center justify-center rounded-md border border-dashed bg-transparent px-4 text-sm font-medium"
+          style={{
+            minHeight: '48px',
+            color: 'var(--color-accent-press)',
+            borderColor: 'var(--color-accent)',
+            cursor: 'pointer',
+          }}
+        >
+          Reportar sin lote conocido
+        </button>
+        <span
+          id="recall-dispatch-impact"
+          className="block text-center text-[11px]"
+          style={{ color: 'var(--color-mute)' }}
+        >
+          El flag queda en audit_log. Puedes cortar servicio después sin perder la cadena.
+        </span>
+      </div>
+    </div>
   );
 }
 

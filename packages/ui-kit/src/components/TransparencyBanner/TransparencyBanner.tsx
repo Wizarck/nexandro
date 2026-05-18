@@ -9,19 +9,23 @@ import type { TransparencyBannerProps } from './TransparencyBanner.types';
  * the future. The text is a const inside this file; consumers cannot
  * override it via props (ADR-J9-TRANSPARENCY-BANNER-IS-VERBATIM).
  *
- * The locked text:
- *   "El expediente contiene el audit_log sin editar como capítulo 0;
- *    el resto son vistas estructuradas sobre ese mismo registro.
- *    No producimos resumen ejecutivo."
+ * The locked text (Sprint 2 P1-6 — v3 BLOCKER #2): the operator-facing
+ * `audit_log` database token is now `registro de auditoría inmutable` per
+ * audit 2026-05-18-v3-detail-06. `capítulo 0` is retained verbatim because
+ * the inspector reads the cover page in that vocabulary.
+ *   "El expediente contiene el registro de auditoría inmutable sin editar
+ *    como capítulo 0; el resto son vistas estructuradas sobre ese mismo
+ *    registro. No producimos resumen ejecutivo."
  *
  * Marta (APPCC inspector) reads the cover page first; this text must
  * appear on the cover AND on this surface so Iker (operator) and Marta
- * see the contract: the bundle is raw audit_log + derivative views, NOT
- * a curated executive summary. A polished marketing rewrite would be
- * wrong — the inspector wants to be told what they will not get.
+ * see the contract: the bundle is the raw immutable audit register +
+ * derivative views, NOT a curated executive summary. A polished marketing
+ * rewrite would be wrong — the inspector wants to be told what they will
+ * not get.
  */
 export const TRANSPARENCY_BANNER_TEXT =
-  'El expediente contiene el audit_log sin editar como capítulo 0; el resto son vistas estructuradas sobre ese mismo registro. No producimos resumen ejecutivo.';
+  'El expediente contiene el registro de auditoría inmutable sin editar como capítulo 0; el resto son vistas estructuradas sobre ese mismo registro. No producimos resumen ejecutivo.';
 
 export function TransparencyBanner({
   className,

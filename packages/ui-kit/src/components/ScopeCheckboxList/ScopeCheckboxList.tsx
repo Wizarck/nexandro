@@ -17,32 +17,36 @@ import type {
  * Controlled component: parent owns the `value` Scope object. Each
  * toggle fires `onChange` with the mutated scope.
  */
+// Sprint 2 P1-6 (audit 2026-05-18-v3-detail-06 Flag #2 BLOCKER): scope labels
+// translated to full Spanish so Inspector Marta + Owner Roberto read the same
+// language the regulator expects. v3 audit flagged bilingual EN/ES tokens as
+// a credibility risk (inspector trust + lawyer defensibility).
 export const DEFAULT_SCOPE_ROWS: ReadonlyArray<ScopeRowDefinition> = [
   {
     key: 'haccp',
-    label: 'HACCP records (CCP readings + correctivas)',
+    label: 'Registros HACCP (lecturas + correctivas)',
     description:
       'Capítulo HACCP completo con vinculación CCP → acción correctiva → reentrenamiento.',
   },
   {
     key: 'lot',
-    label: 'Lot lifecycle (recepción → consumo)',
+    label: 'Ciclo de vida de lotes',
     description:
       'Trazabilidad completa de cada lote desde recepción hasta consumo final.',
   },
   {
     key: 'procurement',
-    label: 'Procurement (PO + GR + reconciliación)',
+    label: 'Compras (pedidos + recepciones)',
     description: 'Órdenes de compra, recepciones, discrepancias resueltas.',
   },
   {
     key: 'photo',
-    label: 'Photo-ingestion provenance',
+    label: 'Trazabilidad de fotos',
     description: 'Origen de cada lote/producto creado por ingestión vía foto.',
   },
   {
     key: 'ai_obs',
-    label: 'AI observability footprint',
+    label: 'Métricas de IA',
     description:
       'Huella de uso AI durante el rango (capacidades, modelos, coste).',
   },

@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Camera } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Camera, Upload } from 'lucide-react';
 import {
   AiProvenanceChip,
   CorrectionsHistoryDiffModal,
@@ -179,12 +179,20 @@ function Inner({
       >
         Revisión humana · ingestión por foto (HITL)
       </div>
-      <h1
-        className="mt-2 text-3xl font-semibold leading-tight"
-        style={{ color: 'var(--color-ink)' }}
-      >
-        Cola de revisión · {queueRows.length} elementos
-      </h1>
+      <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
+        <h1
+          className="text-3xl font-semibold leading-tight"
+          style={{ color: 'var(--color-ink)' }}
+        >
+          Cola de revisión · {queueRows.length} elementos
+        </h1>
+        {/* Sprint 2 P1-2 (j12.md §Trigger ii): "+ Subir foto" affordance must
+            be visible at the top of the page regardless of populated/empty
+            state. Wiring to the real upload queue is M4 scope — for now the
+            onChange surfaces an alert so the operator gets immediate feedback
+            that the file was picked up. */}
+        <PhotoUploadHeaderButton />
+      </div>
 
       {/* Per j12.md §1 + audit 2026-05-18: this surface is Carmen's (Head
           Chef), not Marta's (APPCC inspector). The j9 TransparencyBanner
@@ -1003,6 +1011,56 @@ function SuccessStrip({
         </button>
       </div>
     </section>
+  );
+}
+
+function PhotoUploadHeaderButton() {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  return (
+    <div className="shrink-0">
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*,application/pdf"
+        data-testid="photo-upload-input"
+        aria-label="Seleccionar foto o PDF para ingestión"
+        style={{
+          position: 'absolute',
+          width: '1px',
+          height: '1px',
+          padding: 0,
+          margin: '-1px',
+          overflow: 'hidden',
+          clip: 'rect(0, 0, 0, 0)',
+          whiteSpace: 'nowrap',
+          border: 0,
+        }}
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            window.alert('Subida pendiente — entrará a la cola HITL');
+            // Reset so the same file can be picked again.
+            e.target.value = '';
+          }
+        }}
+      />
+      <button
+        type="button"
+        name="subir-foto"
+        onClick={() => inputRef.current?.click()}
+        data-testid="photo-upload-button"
+        className="inline-flex items-center gap-2 rounded-md border px-4 text-sm font-semibold"
+        style={{
+          minHeight: '40px',
+          backgroundColor: 'var(--color-surface)',
+          borderColor: 'var(--color-border-strong)',
+          color: 'var(--color-ink)',
+          cursor: 'pointer',
+        }}
+      >
+        <Upload aria-hidden="true" size={16} />
+        Subir foto
+      </button>
+    </div>
   );
 }
 
