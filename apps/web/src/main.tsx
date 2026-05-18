@@ -10,6 +10,10 @@ import { OwnerOrgSettingsScreen } from './screens/OwnerOrgSettingsScreen';
 import { OwnerSettingsShell } from './screens/settings/OwnerSettingsShell';
 import { OwnerBusinessSection } from './screens/settings/OwnerBusinessSection';
 import { OwnerPrivacySection } from './screens/settings/OwnerPrivacySection';
+import { OnboardingWizard } from './screens/onboarding/OnboardingWizard';
+import { OnboardingBusinessStep } from './screens/onboarding/steps/OnboardingBusinessStep';
+import { OnboardingPlaceholderStep } from './screens/onboarding/steps/OnboardingPlaceholderStep';
+import { OnboardingComplete } from './screens/onboarding/OnboardingComplete';
 import { Navigate } from 'react-router-dom';
 import { RecipeBuilderJ1Screen } from './screens/RecipeBuilderJ1Screen';
 import { CostInvestigationJ2Screen } from './screens/CostInvestigationJ2Screen';
@@ -101,6 +105,58 @@ const router = createBrowserRouter([
   {
     path: '/recall/investigate/:incidentId',
     element: <RecallInvestigateJ6Route />,
+  },
+  // Onboarding wizard — outside App so the persona's eye lands on the
+  // 5-step flow without competing with normal top-nav (audit L2-3 +
+  // personas-jtbd.md §3).
+  {
+    path: '/onboarding',
+    element: <OnboardingWizard />,
+    children: [
+      { index: true, element: <Navigate to="/onboarding/negocio" replace /> },
+      { path: 'negocio', element: <OnboardingBusinessStep /> },
+      {
+        path: 'sede',
+        element: (
+          <OnboardingPlaceholderStep
+            step={2}
+            promise="Crear tu sede principal (nombre, dirección, tipo: restaurante / dark kitchen / bar / catering)."
+            pending="Multi-sede aterriza con la próxima slice (Configuración → Sedes)."
+          />
+        ),
+      },
+      {
+        path: 'categorias',
+        element: (
+          <OnboardingPlaceholderStep
+            step={3}
+            promise="Elegir entre la taxonomía por defecto (35 categorías traducidas), arrancar vacío, o importar desde CSV."
+            pending="La taxonomía por defecto ya viene sembrada en demo. La elección explícita llega cuando se incorpore el flujo no-demo."
+          />
+        ),
+      },
+      {
+        path: 'administrador',
+        element: (
+          <OnboardingPlaceholderStep
+            step={4}
+            promise="Invitar a tu jefe de cocina y a tu equipo (rol OWNER / MANAGER / STAFF) por email."
+            pending="Autenticación real + invitaciones (R8 del roadmap) aterriza después. Hoy demo-mode auto-login."
+          />
+        ),
+      },
+      {
+        path: 'primer-plato',
+        element: (
+          <OnboardingPlaceholderStep
+            step={5}
+            promise="Crear tu primer ingrediente + proveedor + precio y ver el coste por gramo en vivo (el 'aha moment' de personas-jtbd.md §3.5)."
+            pending="La pantalla de ingredientes existe pero el guiado in-line del wizard llega con la siguiente iteración. Mientras tanto, salta aquí y entra por la barra superior."
+          />
+        ),
+      },
+      { path: 'listo', element: <OnboardingComplete /> },
+    ],
   },
 ]);
 
