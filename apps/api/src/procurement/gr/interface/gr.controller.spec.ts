@@ -72,18 +72,18 @@ function makeDetailParams(
   } as GrDetailParamsDto;
 }
 
-describe('GrController (Sprint 4 W3-2 — j11 dock drawer surface)', () => {
+describe('GrController (Sprint 4 W3-2 + W3-9 — j11 dock surface)', () => {
   let controller: GrController;
-  let findRecentMock: jest.Mock;
+  let findRecentFilteredMock: jest.Mock;
   let findByIdMock: jest.Mock;
   let findByGrMock: jest.Mock;
 
   beforeEach(() => {
-    findRecentMock = jest.fn();
+    findRecentFilteredMock = jest.fn();
     findByIdMock = jest.fn();
     findByGrMock = jest.fn();
     const headerRepo = {
-      findRecent: findRecentMock,
+      findRecentFiltered: findRecentFilteredMock,
       findById: findByIdMock,
     };
     const lineRepo = { findByGr: findByGrMock };
@@ -92,14 +92,17 @@ describe('GrController (Sprint 4 W3-2 — j11 dock drawer surface)', () => {
 
   describe('list', () => {
     it('returns empty list when repository has no recent GRs', async () => {
-      findRecentMock.mockResolvedValue([]);
+      findRecentFilteredMock.mockResolvedValue([]);
       const result = await controller.list(makeQuery());
       expect(result).toEqual({ items: [], total: 0 });
-      expect(findRecentMock).toHaveBeenCalledWith(ORG, 50, 0);
+      expect(findRecentFilteredMock).toHaveBeenCalledWith(ORG, 50, 0, {
+        locationIds: undefined,
+        state: undefined,
+      });
     });
 
     it('maps GR rows to DTO with ISO timestamps + Hermes provenance', async () => {
-      findRecentMock.mockResolvedValue([
+      findRecentFilteredMock.mockResolvedValue([
         makeGr({ sourcePhotoIngestionId: '00000000-0000-4000-8000-00000000c001' }),
       ]);
       const result = await controller.list(makeQuery());
@@ -116,20 +119,71 @@ describe('GrController (Sprint 4 W3-2 — j11 dock drawer surface)', () => {
     });
 
     it('passes through organizationId from query DTO (multi-tenant gate)', async () => {
-      findRecentMock.mockResolvedValue([]);
+      findRecentFilteredMock.mockResolvedValue([]);
       const otherOrg = '22222222-2222-4222-8222-222222222222';
       await controller.list(makeQuery({ organizationId: otherOrg }));
-      expect(findRecentMock).toHaveBeenCalledWith(otherOrg, 50, 0);
+      expect(findRecentFilteredMock).toHaveBeenCalledWith(otherOrg, 50, 0, {
+        locationIds: undefined,
+        state: undefined,
+      });
     });
 
     it('exposes nullable poId / supplierInvoiceRef / sourcePhotoIngestionId as nulls', async () => {
-      findRecentMock.mockResolvedValue([
+      findRecentFilteredMock.mockResolvedValue([
         makeGr({ poId: null, supplierInvoiceRef: null, sourcePhotoIngestionId: null }),
       ]);
       const result = await controller.list(makeQuery());
       expect(result.items[0].poId).toBeNull();
       expect(result.items[0].supplierInvoiceRef).toBeNull();
       expect(result.items[0].sourcePhotoIngestionId).toBeNull();
+    });
+
+    it('W3-9: pendingOnly=true wins over an explicit state and maps to draft', async () => {
+      findRecentFilteredMock.mockResolvedValue([]);
+      await controller.list(
+        makeQuery({ pendingOnly: true, state: 'confirmada' }),
+      );
+      expect(findRecentFilteredMock).toHaveBeenCalledWith(ORG, 50, 0, {
+        locationIds: undefined,
+        state: 'draft',
+      });
+    });
+
+    it('W3-9: state=confirmada maps to confirmed when pendingOnly absent', async () => {
+      findRecentFilteredMock.mockResolvedValue([]);
+      await controller.list(makeQuery({ state: 'confirmada' }));
+      expect(findRecentFilteredMock).toHaveBeenCalledWith(ORG, 50, 0, {
+        locationIds: undefined,
+        state: 'confirmed',
+      });
+    });
+
+    it('W3-9: state=rechazada maps to cancelled', async () => {
+      findRecentFilteredMock.mockResolvedValue([]);
+      await controller.list(makeQuery({ state: 'rechazada' }));
+      expect(findRecentFilteredMock).toHaveBeenCalledWith(ORG, 50, 0, {
+        locationIds: undefined,
+        state: 'cancelled',
+      });
+    });
+
+    it('W3-9: state=parcial short-circuits to empty list (no domain mapping yet)', async () => {
+      const result = await controller.list(makeQuery({ state: 'parcial' }));
+      expect(result).toEqual({ items: [], total: 0 });
+      // Repo is NOT called — the controller bails before the round-trip
+      // so the planner is not pestered for an empty-result query.
+      expect(findRecentFilteredMock).not.toHaveBeenCalled();
+    });
+
+    it('W3-9: locationIds passes through to the repository unchanged', async () => {
+      findRecentFilteredMock.mockResolvedValue([]);
+      const locA = '33333333-3333-4333-8333-333333333333';
+      const locB = '44444444-4444-4444-8444-444444444444';
+      await controller.list(makeQuery({ locationIds: [locA, locB] }));
+      expect(findRecentFilteredMock).toHaveBeenCalledWith(ORG, 50, 0, {
+        locationIds: [locA, locB],
+        state: undefined,
+      });
     });
   });
 

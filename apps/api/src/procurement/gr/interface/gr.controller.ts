@@ -1,6 +1,7 @@
 import { Controller, Get, NotFoundException, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { IsUUID } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsArray, IsBoolean, IsIn, IsOptional, IsUUID } from 'class-validator';
 import { Roles } from '../../../shared/decorators/roles.decorator';
 import { GoodsReceiptLineRepository } from '../application/gr-line.repository';
 import { GoodsReceiptRepository } from '../application/gr.repository';
@@ -20,14 +21,24 @@ import { GoodsReceiptLine } from '../domain/goods-receipt-line.entity';
  *     can decide whether to render the `Pre-cargado por Hermes …` eyebrow
  *     without an extra round-trip.
  *
+ * Sprint 4 Wave 3 W3-9 layers `GET /m3/procurement/gr` query params for
+ * the dock filter chips: `locationIds` (CSV UUIDs · multi),
+ * `state` (UI vocabulary mapped to the canonical `GoodsReceiptState`),
+ * `pendingOnly=true` (fast-path equivalent of `state=pendiente`). The
+ * dock workflow defaults the UI to `pendingOnly=true` on first paint
+ * so this is also the most-hit query shape.
+ *
  * STILL DEFERRED (j11 §4-5 followups):
  *   - `POST /m3/procurement/gr/:id/lines/:lineId/confirm` per-line
  *     confirmation. The existing `GrConfirmationService` operates on a
  *     full `CreateGrInput` (new draft → confirmed in one shot). Per-line
  *     confirmation on an existing draft needs new service methods + a
  *     draft-line state model; tracked as Sprint 4 W3-2 backend followup.
- *   - Bulk-confirm CTA `Confirmar todo lo que coincida (N)`.
- *   - Pagination, location filter, pendientes-only default.
+ *   - `POST /m3/procurement/gr/bulk-confirm` for the j11 CTA
+ *     `Confirmar todo lo que coincida (N)`. Needs the per-line
+ *     confirmation seam to operate inside its single transaction;
+ *     tracked alongside W3-2.
+ *   - Pagination — list is still capped at 50 most-recent rows.
  *   - `metadata.source = 'hermes-invoice-photo'` /
  *     `metadata.confidence_band` JSONB column — the entity carries only
  *     `sourcePhotoIngestionId` today; the richer Hermes metadata lands
@@ -35,9 +46,74 @@ import { GoodsReceiptLine } from '../domain/goods-receipt-line.entity';
  *
  * Spec: docs/ux/j11.md §4-5.
  */
+/**
+ * UI-facing GR estado chips per j11 §5. Mapped to the canonical
+ * `GoodsReceiptState` enum (`draft | confirmed | cancelled`):
+ *   - `pendiente`  → draft
+ *   - `confirmada` → confirmed
+ *   - `parcial`    → NO domain mapping today (reserved); returns
+ *                    the empty list rather than 400'ing so the dock UI
+ *                    can paint the empty state without a special-case.
+ *   - `rechazada`  → cancelled
+ *
+ * The UI-state vocabulary is owned by docs/ux/j11.md and intentionally
+ * decoupled from the domain enum so the operator-facing copy can
+ * evolve without a column rename.
+ */
+export const GR_UI_STATES = [
+  'pendiente',
+  'confirmada',
+  'parcial',
+  'rechazada',
+] as const;
+export type GrUiState = (typeof GR_UI_STATES)[number];
+
 export class GrListQueryDto {
   @IsUUID()
   organizationId!: string;
+
+  /**
+   * Sprint 4 W3-9 — multi-select location filter. Wire format is
+   * comma-separated UUIDs (`locationIds=uuid1,uuid2`); the transformer
+   * normalises to a trimmed `string[]`. The repository validates each
+   * value as a UUID via the class-validator below to keep injection-
+   * safe even on raw `IN (…)` plumbing.
+   */
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (Array.isArray(value)) return value as string[];
+    if (typeof value === 'string') {
+      return value
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+    }
+    return value as unknown;
+  })
+  @IsArray()
+  @IsUUID('all', { each: true })
+  locationIds?: string[];
+
+  /**
+   * Sprint 4 W3-9 — UI-state filter. `parcial` is a no-op today (no
+   * domain mapping exists yet) but is accepted so the UI chip stays
+   * wired without a 400 cycle when the operator clicks it.
+   */
+  @IsOptional()
+  @IsIn(GR_UI_STATES)
+  state?: GrUiState;
+
+  /**
+   * Sprint 4 W3-9 — fast-path equivalent of `state=pendiente`. The dock
+   * tab defaults to this on first paint so the operator lands on the
+   * working set without a second round-trip. When BOTH `state` and
+   * `pendingOnly` are set, `pendingOnly` wins (matches the UI
+   * supersede rule documented in GrTab.tsx).
+   */
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  pendingOnly?: boolean;
 }
 
 export class GrDetailQueryDto {
@@ -112,7 +188,32 @@ export class GrController {
       'List recent goods receipts for the j11 Procurement Recepciones tab.',
   })
   async list(@Query() query: GrListQueryDto): Promise<GrListResponseDto> {
-    const rows = await this.grRepo.findRecent(query.organizationId, 50, 0);
+    // Sprint 4 W3-9 — resolve the UI-vocabulary filter into the domain
+    // state. `pendingOnly` is the dock fast-path so it wins over an
+    // explicit `state` query when both arrive (matches the UI's
+    // supersede rule documented in GrTab.tsx).
+    const domainState = query.pendingOnly
+      ? 'draft'
+      : query.state
+        ? mapUiStateToDomain(query.state)
+        : undefined;
+
+    // Unmapped UI state (today only `parcial`) returns the empty list
+    // without a 400 — the UI chip stays wired while the partial-receipt
+    // domain state lands.
+    if (query.state && domainState === null) {
+      return { items: [], total: 0 };
+    }
+
+    const rows = await this.grRepo.findRecentFiltered(
+      query.organizationId,
+      50,
+      0,
+      {
+        locationIds: query.locationIds,
+        state: domainState ?? undefined,
+      },
+    );
     return {
       items: rows.map(toItemDto),
       total: rows.length,
@@ -175,6 +276,27 @@ function toDetailDto(
     updatedAt: gr.updatedAt.toISOString(),
     lines: lines.map(toLineDto),
   };
+}
+
+/**
+ * UI-vocabulary → domain state mapper. Returns `null` for known UI
+ * states with no domain mapping (today: `parcial`); the caller short-
+ * circuits to an empty list so the dock chip stays clickable while
+ * the partial-receipt domain state is added.
+ */
+export function mapUiStateToDomain(
+  ui: GrUiState,
+): 'draft' | 'confirmed' | 'cancelled' | null {
+  switch (ui) {
+    case 'pendiente':
+      return 'draft';
+    case 'confirmada':
+      return 'confirmed';
+    case 'rechazada':
+      return 'cancelled';
+    case 'parcial':
+      return null;
+  }
 }
 
 function toLineDto(line: GoodsReceiptLine): GrLineDetailResponseDto {
