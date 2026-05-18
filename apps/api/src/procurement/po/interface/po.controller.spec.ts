@@ -1,5 +1,10 @@
 import { PurchaseOrder } from '../domain/purchase-order.entity';
-import { PoController, type PoListQueryDto } from './po.controller';
+import {
+  PoController,
+  composeNotesWithLocation,
+  type PoListQueryDto,
+  type CreatePoDto,
+} from './po.controller';
 
 const ORG = '11111111-1111-4111-8111-111111111111';
 
@@ -35,19 +40,29 @@ function makeQuery(overrides: Partial<PoListQueryDto> = {}): PoListQueryDto {
 describe('PoController (Sprint 3 Block C — j11 shell)', () => {
   let controller: PoController;
   let findActiveOpsMock: jest.Mock;
+  let findByFilterMock: jest.Mock;
   let findByIdMock: jest.Mock;
   let findByPoMock: jest.Mock;
+  let factoryCreateMock: jest.Mock;
 
   beforeEach(() => {
     findActiveOpsMock = jest.fn();
+    findByFilterMock = jest.fn();
     findByIdMock = jest.fn();
     findByPoMock = jest.fn();
+    factoryCreateMock = jest.fn();
     const poRepo = {
       findActiveOps: findActiveOpsMock,
+      findByFilter: findByFilterMock,
       findById: findByIdMock,
     };
     const lineRepo = { findByPo: findByPoMock };
-    controller = new PoController(poRepo as never, lineRepo as never);
+    const factory = { create: factoryCreateMock };
+    controller = new PoController(
+      poRepo as never,
+      lineRepo as never,
+      factory as never,
+    );
   });
 
   it('returns empty list when repository has no active POs', async () => {
@@ -55,6 +70,31 @@ describe('PoController (Sprint 3 Block C — j11 shell)', () => {
     const result = await controller.list(makeQuery());
     expect(result).toEqual({ items: [], total: 0 });
     expect(findActiveOpsMock).toHaveBeenCalledWith(ORG, 50, 0);
+  });
+
+  it('uses findByFilter when supplierIds chip is active (Sprint 4 W3-9)', async () => {
+    findByFilterMock.mockResolvedValue([]);
+    await controller.list(
+      makeQuery({ supplierIds: ['00000000-0000-4000-8000-00000000aaaa'] }),
+    );
+    expect(findByFilterMock).toHaveBeenCalledWith(ORG, {
+      supplierIds: ['00000000-0000-4000-8000-00000000aaaa'],
+      states: undefined,
+      limit: 50,
+      offset: 0,
+    });
+    expect(findActiveOpsMock).not.toHaveBeenCalled();
+  });
+
+  it('uses findByFilter when state chip is active (Sprint 4 W3-9)', async () => {
+    findByFilterMock.mockResolvedValue([]);
+    await controller.list(makeQuery({ state: ['draft', 'closed'] }));
+    expect(findByFilterMock).toHaveBeenCalledWith(ORG, {
+      supplierIds: undefined,
+      states: ['draft', 'closed'],
+      limit: 50,
+      offset: 0,
+    });
   });
 
   it('maps PO rows to DTO with ISO date strings', async () => {
@@ -129,5 +169,116 @@ describe('PoController (Sprint 3 Block C — j11 shell)', () => {
       const result = await controller.detail(PO_ID, { organizationId: ORG });
       expect(result.lines).toEqual([]);
     });
+  });
+
+  describe('create (Sprint 4 W3-11 — j11 Nueva OC modal)', () => {
+    const USER = '00000000-0000-4000-8000-00000000cccc';
+
+    function makeReq(): { user: { userId: string; organizationId: string; role: 'OWNER' } } {
+      return { user: { userId: USER, organizationId: ORG, role: 'OWNER' } };
+    }
+
+    function makeBody(overrides: Partial<CreatePoDto> = {}): CreatePoDto {
+      return {
+        organizationId: ORG,
+        supplierId: '00000000-0000-4000-8000-00000000aaaa',
+        currency: 'EUR',
+        expectedDeliveryDate: '2026-06-01',
+        notes: 'urgente',
+        lines: [
+          {
+            ingredientId: '00000000-0000-4000-8000-0000000000a1',
+            quantityOrdered: 2,
+            unit: 'kg',
+            unitPrice: 50,
+            vatRate: 0.1,
+            vatInclusive: false,
+          },
+        ],
+        ...overrides,
+      } as CreatePoDto;
+    }
+
+    it('persists the factory result and returns the detail DTO', async () => {
+      factoryCreateMock.mockResolvedValue({
+        po: makePo({ poNumber: 'PO-2026-0042' }),
+        lines: [],
+      });
+      const result = await controller.create(makeBody(), makeReq() as never);
+      expect(factoryCreateMock).toHaveBeenCalledTimes(1);
+      const arg = factoryCreateMock.mock.calls[0][0];
+      expect(arg.organizationId).toBe(ORG);
+      expect(arg.createdByUserId).toBe(USER);
+      expect(arg.currency).toBe('EUR');
+      expect(arg.lines).toHaveLength(1);
+      expect(arg.expectedDeliveryDate).toBeInstanceOf(Date);
+      expect(result.poNumber).toBe('PO-2026-0042');
+    });
+
+    it('throws 401 when request has no authenticated user', async () => {
+      await expect(
+        controller.create(makeBody(), {} as never),
+      ).rejects.toThrow(/UNAUTHENTICATED|Unauthorized/);
+      expect(factoryCreateMock).not.toHaveBeenCalled();
+    });
+
+    it('maps SupplierNotFoundError to 404', async () => {
+      const { SupplierNotFoundError } = await import('../domain/errors');
+      factoryCreateMock.mockRejectedValue(
+        new SupplierNotFoundError('sup-x', ORG),
+      );
+      await expect(
+        controller.create(makeBody(), makeReq() as never),
+      ).rejects.toMatchObject({ status: 404 });
+    });
+
+    it('maps PoMustHaveAtLeastOneLineError to 400', async () => {
+      const { PoMustHaveAtLeastOneLineError } = await import('../domain/errors');
+      factoryCreateMock.mockRejectedValue(new PoMustHaveAtLeastOneLineError());
+      await expect(
+        controller.create(makeBody({ lines: [] as never }), makeReq() as never),
+      ).rejects.toMatchObject({ status: 400 });
+    });
+
+    it('serialises locationId into notes prefix when provided', async () => {
+      factoryCreateMock.mockResolvedValue({ po: makePo(), lines: [] });
+      await controller.create(
+        makeBody({
+          locationId: '00000000-0000-4000-8000-00000000bbb1',
+          notes: 'antes de las 10',
+        }),
+        makeReq() as never,
+      );
+      const arg = factoryCreateMock.mock.calls[0][0];
+      expect(arg.notes).toBe(
+        'Entrega en: 00000000-0000-4000-8000-00000000bbb1\nantes de las 10',
+      );
+    });
+  });
+});
+
+describe('composeNotesWithLocation', () => {
+  it('returns null when neither location nor notes set', () => {
+    expect(composeNotesWithLocation(null, null)).toBeNull();
+  });
+
+  it('returns trimmed notes when only notes set', () => {
+    expect(composeNotesWithLocation(null, '  hola  ')).toBe('hola');
+  });
+
+  it('returns just the prefix when only location set', () => {
+    expect(composeNotesWithLocation('loc-1', null)).toBe('Entrega en: loc-1');
+  });
+
+  it('joins prefix + notes with newline', () => {
+    expect(composeNotesWithLocation('loc-1', 'urgente')).toBe(
+      'Entrega en: loc-1\nurgente',
+    );
+  });
+
+  it('drops empty notes string (treats as null)', () => {
+    expect(composeNotesWithLocation('loc-1', '   ')).toBe(
+      'Entrega en: loc-1',
+    );
   });
 });

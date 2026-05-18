@@ -2,6 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { PurchaseOrder } from '../domain/purchase-order.entity';
+import type { PoState } from '../domain/types';
+
+export interface PoFilterOptions {
+  supplierIds?: string[];
+  states?: PoState[];
+  limit?: number;
+  offset?: number;
+}
 
 /**
  * Multi-tenant repository for {@link PurchaseOrder}.
@@ -96,6 +104,41 @@ export class PurchaseOrderRepository {
       .orderBy('po.expected_delivery_date', 'ASC', 'NULLS LAST')
       .take(limit)
       .skip(offset)
+      .getMany();
+  }
+
+  /**
+   * Sprint 4 W3-9 — filter-chip surface for the j11 PO tab.
+   *
+   * Unlike {@link findActiveOps}, this returns POs across ALL states by
+   * default (so chips like `estado=draft` or `estado=cancelled` resolve)
+   * and accepts optional supplier + state narrowing. Ordered newest-first
+   * for the chip-filtered view (delivery-date ordering only makes sense
+   * for the active-ops widget).
+   *
+   * When called with empty filters this is equivalent to "every PO in the
+   * org, newest first" — guard the call at the controller layer so the
+   * default landing view keeps the active-ops scope.
+   */
+  async findByFilter(
+    organizationId: string,
+    options: PoFilterOptions = {},
+  ): Promise<PurchaseOrder[]> {
+    const qb = this.typeormRepo
+      .createQueryBuilder('po')
+      .where('po.organization_id = :organizationId', { organizationId });
+    if (options.supplierIds && options.supplierIds.length > 0) {
+      qb.andWhere('po.supplier_id IN (:...supplierIds)', {
+        supplierIds: options.supplierIds,
+      });
+    }
+    if (options.states && options.states.length > 0) {
+      qb.andWhere('po.state IN (:...states)', { states: options.states });
+    }
+    return qb
+      .orderBy('po.created_at', 'DESC')
+      .take(options.limit ?? 50)
+      .skip(options.offset ?? 0)
       .getMany();
   }
 
