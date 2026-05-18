@@ -12,11 +12,46 @@ vi.mock('../../../lib/currentUser', () => ({
 import { useCurrentOrgId, useCurrentRole } from '../../../lib/currentUser';
 
 const fetchMock = vi.fn();
+// Sprint 4 W3-10 — ProcurementScreen now mounts `useProcurementCounts` so
+// every render fires an extra GET on `/m3/procurement/reconciliation/counts`.
+// We route it BEFORE the queue is consumed so the existing
+// `mockResolvedValueOnce`-style choreography (which assumes only tab-level
+// fetches) keeps lining up call-by-call. Test bodies use `queueFetch()` /
+// `grCalls()` instead of the raw mock queue / `.mock.calls` array.
+const COUNTS_URL_FRAGMENT = '/m3/procurement/reconciliation/counts';
+const fetchQueue: Array<Response> = [];
+function queueFetch(response: Response): void {
+  fetchQueue.push(response);
+}
+function grCalls() {
+  return fetchMock.mock.calls.filter(
+    ([url]) => !String(url).includes(COUNTS_URL_FRAGMENT),
+  );
+}
 
 beforeEach(() => {
   fetchMock.mockReset();
+  fetchQueue.length = 0;
   vi.mocked(useCurrentRole).mockReturnValue('MANAGER');
   vi.mocked(useCurrentOrgId).mockReturnValue('org-1');
+  fetchMock.mockImplementation((input: RequestInfo | URL) => {
+    if (String(input).includes(COUNTS_URL_FRAGMENT)) {
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({ poActive: 0, grPending: 0, reconOpen: 0 }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        ),
+      );
+    }
+    const next = fetchQueue.shift();
+    if (next) return Promise.resolve(next);
+    return Promise.resolve(
+      new Response(JSON.stringify({ items: [], total: 0 }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+  });
   global.fetch = fetchMock as unknown as typeof fetch;
 });
 
@@ -90,11 +125,10 @@ function makeDetail(overrides: Record<string, unknown> = {}) {
 
 describe('GrDetailDrawer (Sprint 4 W3-2 — j11 dock UX)', () => {
   it('clicking a GR row opens the drawer + fetches the detail payload', async () => {
-    fetchMock
-      // GET /m3/procurement/gr
-      .mockResolvedValueOnce(jsonResponse({ items: [makeListItem()], total: 1 }))
-      // GET /m3/procurement/gr/gr-1
-      .mockResolvedValueOnce(jsonResponse(makeDetail()));
+    // GET /m3/procurement/gr
+    queueFetch(jsonResponse({ items: [makeListItem()], total: 1 }));
+    // GET /m3/procurement/gr/gr-1
+    queueFetch(jsonResponse(makeDetail()));
 
     renderScreen();
 
@@ -112,9 +146,8 @@ describe('GrDetailDrawer (Sprint 4 W3-2 — j11 dock UX)', () => {
   });
 
   it('renders per-line edit fields (cantidad recibida · lote · caducidad) with tablet-friendly min-h 48 px', async () => {
-    fetchMock
-      .mockResolvedValueOnce(jsonResponse({ items: [makeListItem()], total: 1 }))
-      .mockResolvedValueOnce(jsonResponse(makeDetail()));
+    queueFetch(jsonResponse({ items: [makeListItem()], total: 1 }));
+    queueFetch(jsonResponse(makeDetail()));
 
     renderScreen();
 
@@ -139,9 +172,8 @@ describe('GrDetailDrawer (Sprint 4 W3-2 — j11 dock UX)', () => {
   });
 
   it('editing the lot code surfaces the overwrite confirm modal before submit', async () => {
-    fetchMock
-      .mockResolvedValueOnce(jsonResponse({ items: [makeListItem()], total: 1 }))
-      .mockResolvedValueOnce(jsonResponse(makeDetail()));
+    queueFetch(jsonResponse({ items: [makeListItem()], total: 1 }));
+    queueFetch(jsonResponse(makeDetail()));
 
     renderScreen();
 
@@ -167,9 +199,8 @@ describe('GrDetailDrawer (Sprint 4 W3-2 — j11 dock UX)', () => {
   });
 
   it('confirming with the lot-overwrite modal triggers the confirm mutation + surfaces backend-gap error', async () => {
-    fetchMock
-      .mockResolvedValueOnce(jsonResponse({ items: [makeListItem()], total: 1 }))
-      .mockResolvedValueOnce(jsonResponse(makeDetail()));
+    queueFetch(jsonResponse({ items: [makeListItem()], total: 1 }));
+    queueFetch(jsonResponse(makeDetail()));
 
     renderScreen();
 
@@ -191,18 +222,15 @@ describe('GrDetailDrawer (Sprint 4 W3-2 — j11 dock UX)', () => {
   });
 
   it('renders the Hermes pre-fill mute eyebrow when the GR is photo-seeded', async () => {
-    fetchMock
-      .mockResolvedValueOnce(
-        jsonResponse({
-          items: [
-            makeListItem({ sourcePhotoIngestionId: 'photo-1' }),
-          ],
-          total: 1,
-        }),
-      )
-      .mockResolvedValueOnce(
-        jsonResponse(makeDetail({ sourcePhotoIngestionId: 'photo-1' })),
-      );
+    queueFetch(
+      jsonResponse({
+        items: [makeListItem({ sourcePhotoIngestionId: 'photo-1' })],
+        total: 1,
+      }),
+    );
+    queueFetch(
+      jsonResponse(makeDetail({ sourcePhotoIngestionId: 'photo-1' })),
+    );
 
     renderScreen();
 
@@ -220,40 +248,39 @@ describe('GrDetailDrawer (Sprint 4 W3-2 — j11 dock UX)', () => {
   });
 
   it('renders the destructive low-confidence eyebrow when requiresReview is true', async () => {
-    fetchMock
-      .mockResolvedValueOnce(
-        jsonResponse({
-          items: [
-            makeListItem({
-              sourcePhotoIngestionId: 'photo-1',
-              requiresReview: true,
-            }),
-          ],
-          total: 1,
-        }),
-      )
-      .mockResolvedValueOnce(
-        jsonResponse(
-          makeDetail({
+    queueFetch(
+      jsonResponse({
+        items: [
+          makeListItem({
             sourcePhotoIngestionId: 'photo-1',
             requiresReview: true,
-            supplierInvoiceRef: null,
-            lines: [
-              {
-                id: 'gr-line-1',
-                grId: 'gr-1',
-                poLineId: null,
-                productId: '11111111-1111-4111-8111-111111111111',
-                qtyReceivedActual: 0,
-                unitPriceActual: 0,
-                lotIdCreated: null,
-                expiresAtOverride: null,
-                createdAt: '2026-05-18T14:08:00.000Z',
-              },
-            ],
           }),
-        ),
-      );
+        ],
+        total: 1,
+      }),
+    );
+    queueFetch(
+      jsonResponse(
+        makeDetail({
+          sourcePhotoIngestionId: 'photo-1',
+          requiresReview: true,
+          supplierInvoiceRef: null,
+          lines: [
+            {
+              id: 'gr-line-1',
+              grId: 'gr-1',
+              poLineId: null,
+              productId: '11111111-1111-4111-8111-111111111111',
+              qtyReceivedActual: 0,
+              unitPriceActual: 0,
+              lotIdCreated: null,
+              expiresAtOverride: null,
+              createdAt: '2026-05-18T14:08:00.000Z',
+            },
+          ],
+        }),
+      ),
+    );
 
     renderScreen();
 
@@ -268,28 +295,28 @@ describe('GrDetailDrawer (Sprint 4 W3-2 — j11 dock UX)', () => {
   });
 
   it('Cerrar button closes the drawer + does not re-fetch detail on close', async () => {
-    fetchMock
-      .mockResolvedValueOnce(jsonResponse({ items: [makeListItem()], total: 1 }))
-      .mockResolvedValueOnce(jsonResponse(makeDetail()));
+    queueFetch(jsonResponse({ items: [makeListItem()], total: 1 }));
+    queueFetch(jsonResponse(makeDetail()));
 
     renderScreen();
 
     fireEvent.click(await screen.findByTestId('gr-row'));
     await screen.findByTestId('gr-detail-drawer');
-    const fetchCallsBeforeClose = fetchMock.mock.calls.length;
+    // Filter out the counts call so the close-doesn't-refetch invariant
+    // tracks only the tab-level fetches that the test cares about.
+    const grCallsBeforeClose = grCalls().length;
 
     fireEvent.click(screen.getByRole('button', { name: 'Cerrar' }));
 
     await waitFor(() => {
       expect(screen.queryByTestId('gr-detail-drawer')).not.toBeInTheDocument();
     });
-    expect(fetchMock.mock.calls.length).toBe(fetchCallsBeforeClose);
+    expect(grCalls().length).toBe(grCallsBeforeClose);
   });
 
   it('GR list rows expose ≥64 px touch target + open-by-keyboard (Enter)', async () => {
-    fetchMock
-      .mockResolvedValueOnce(jsonResponse({ items: [makeListItem()], total: 1 }))
-      .mockResolvedValueOnce(jsonResponse(makeDetail()));
+    queueFetch(jsonResponse({ items: [makeListItem()], total: 1 }));
+    queueFetch(jsonResponse(makeDetail()));
 
     renderScreen();
 
@@ -303,20 +330,19 @@ describe('GrDetailDrawer (Sprint 4 W3-2 — j11 dock UX)', () => {
   });
 
   it('W3-8: footer surfaces audit chip with AL-YYYY-NNNNNN + chain link', async () => {
-    fetchMock
-      .mockResolvedValueOnce(
-        jsonResponse({
-          items: [
-            makeListItem({ id: 'abcdef01-2345-6789-abcd-ef0123456789' }),
-          ],
-          total: 1,
-        }),
-      )
-      .mockResolvedValueOnce(
-        jsonResponse(
-          makeDetail({ id: 'abcdef01-2345-6789-abcd-ef0123456789' }),
-        ),
-      );
+    queueFetch(
+      jsonResponse({
+        items: [
+          makeListItem({ id: 'abcdef01-2345-6789-abcd-ef0123456789' }),
+        ],
+        total: 1,
+      }),
+    );
+    queueFetch(
+      jsonResponse(
+        makeDetail({ id: 'abcdef01-2345-6789-abcd-ef0123456789' }),
+      ),
+    );
 
     renderScreen();
 

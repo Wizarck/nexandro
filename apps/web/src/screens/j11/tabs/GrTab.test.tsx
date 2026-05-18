@@ -24,11 +24,42 @@ vi.mock('../../../lib/currentUser', () => ({
 import { useCurrentOrgId, useCurrentRole } from '../../../lib/currentUser';
 
 const fetchMock = vi.fn();
+// Sprint 4 W3-10 — ProcurementScreen now mounts `useProcurementCounts` so
+// every render fires an extra GET on `/m3/procurement/reconciliation/counts`.
+// We route it BEFORE the queue is consumed so the existing
+// `mockResolvedValueOnce` choreography (which assumes only tab-level
+// fetches) keeps lining up call-by-call. The queue is maintained
+// internally so test bodies keep their familiar mockResolvedValueOnce
+// API.
+const COUNTS_URL_FRAGMENT = '/m3/procurement/reconciliation/counts';
+const fetchQueue: Array<Response> = [];
+function queueFetch(response: Response): void {
+  fetchQueue.push(response);
+}
 
 beforeEach(() => {
   fetchMock.mockReset();
+  fetchQueue.length = 0;
   vi.mocked(useCurrentRole).mockReturnValue('MANAGER');
   vi.mocked(useCurrentOrgId).mockReturnValue('org-1');
+  fetchMock.mockImplementation((input: RequestInfo | URL) => {
+    if (String(input).includes(COUNTS_URL_FRAGMENT)) {
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({ poActive: 0, grPending: 0, reconOpen: 0 }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        ),
+      );
+    }
+    const next = fetchQueue.shift();
+    if (next) return Promise.resolve(next);
+    return Promise.resolve(
+      new Response(JSON.stringify({ items: [], total: 0 }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+  });
   global.fetch = fetchMock as unknown as typeof fetch;
 });
 
@@ -68,9 +99,17 @@ function makeListItem(overrides: Record<string, unknown> = {}) {
   };
 }
 
+// Filter helper — strips the counts call so assertions can keep their
+// pre-W3-10 indexing semantics.
+function grCalls() {
+  return fetchMock.mock.calls.filter(
+    ([url]) => !String(url).includes(COUNTS_URL_FRAGMENT),
+  );
+}
+
 describe('GrTab — W3-3 bulk-confirm CTA', () => {
   it('shows the matching count CTA above the table when ≥1 row qualifies', async () => {
-    fetchMock.mockResolvedValueOnce(
+    queueFetch(
       jsonResponse({
         items: [
           makeListItem({ id: 'gr-1' }),
@@ -93,7 +132,7 @@ describe('GrTab — W3-3 bulk-confirm CTA', () => {
   });
 
   it('hides the CTA when no row matches the predicate', async () => {
-    fetchMock.mockResolvedValueOnce(
+    queueFetch(
       jsonResponse({
         items: [
           makeListItem({ id: 'gr-a', state: 'confirmed' }),
@@ -112,7 +151,7 @@ describe('GrTab — W3-3 bulk-confirm CTA', () => {
   });
 
   it('clicking the CTA opens the confirmation modal with the matches list', async () => {
-    fetchMock.mockResolvedValueOnce(
+    queueFetch(
       jsonResponse({
         items: [makeListItem({ id: 'gr-1' }), makeListItem({ id: 'gr-2' })],
         total: 2,
@@ -132,13 +171,8 @@ describe('GrTab — W3-3 bulk-confirm CTA', () => {
   });
 
   it('surfaces the "pendiente de wiring" banner when the backend 404s', async () => {
-    fetchMock
-      .mockResolvedValueOnce(
-        jsonResponse({ items: [makeListItem()], total: 1 }),
-      )
-      .mockResolvedValueOnce(
-        jsonResponse({ message: 'Cannot POST' }, 404),
-      );
+    queueFetch(jsonResponse({ items: [makeListItem()], total: 1 }));
+    queueFetch(jsonResponse({ message: 'Cannot POST' }, 404));
 
     renderScreen();
 
@@ -153,14 +187,12 @@ describe('GrTab — W3-3 bulk-confirm CTA', () => {
 
 describe('GrTab — W3-9 filter chips', () => {
   it('first paint defaults to pendingOnly=true so the dock lands on its working set', async () => {
-    fetchMock.mockResolvedValueOnce(
-      jsonResponse({ items: [], total: 0 }),
-    );
+    queueFetch(jsonResponse({ items: [], total: 0 }));
 
     renderScreen();
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
-    expect(String(fetchMock.mock.calls[0][0])).toContain('pendingOnly=true');
+    await waitFor(() => expect(grCalls().length).toBeGreaterThan(0));
+    expect(String(grCalls()[0][0])).toContain('pendingOnly=true');
     expect(screen.getByTestId('gr-filter-pending-only')).toHaveAttribute(
       'aria-pressed',
       'true',
@@ -169,33 +201,33 @@ describe('GrTab — W3-9 filter chips', () => {
 
   it('clicking an estado chip swaps the filter + re-fetches the list', async () => {
     // 1st fetch: default pendingOnly.
-    fetchMock.mockResolvedValueOnce(jsonResponse({ items: [], total: 0 }));
+    queueFetch(jsonResponse({ items: [], total: 0 }));
     // 2nd fetch: estado=confirmada.
-    fetchMock.mockResolvedValueOnce(jsonResponse({ items: [], total: 0 }));
+    queueFetch(jsonResponse({ items: [], total: 0 }));
 
     renderScreen();
-    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    await waitFor(() => expect(grCalls().length).toBeGreaterThan(0));
 
     fireEvent.click(screen.getByTestId('gr-filter-state-confirmada'));
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
-    expect(String(fetchMock.mock.calls[1][0])).toContain('state=confirmada');
+    await waitFor(() => expect(grCalls().length).toBe(2));
+    expect(String(grCalls()[1][0])).toContain('state=confirmada');
     // Selecting an explicit state must clear pendingOnly to keep the
     // URL semantics coherent (one wins at a time).
-    expect(String(fetchMock.mock.calls[1][0])).not.toContain('pendingOnly');
+    expect(String(grCalls()[1][0])).not.toContain('pendingOnly');
   });
 
   it('Limpiar filtros resets every chip back to "all"', async () => {
-    fetchMock.mockResolvedValueOnce(jsonResponse({ items: [], total: 0 }));
-    fetchMock.mockResolvedValueOnce(jsonResponse({ items: [], total: 0 }));
+    queueFetch(jsonResponse({ items: [], total: 0 }));
+    queueFetch(jsonResponse({ items: [], total: 0 }));
 
     renderScreen();
-    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    await waitFor(() => expect(grCalls().length).toBeGreaterThan(0));
 
     fireEvent.click(screen.getByTestId('gr-filter-clear'));
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
-    const lastUrl = String(fetchMock.mock.calls[1][0]);
+    await waitFor(() => expect(grCalls().length).toBe(2));
+    const lastUrl = String(grCalls()[1][0]);
     expect(lastUrl).not.toContain('pendingOnly');
     expect(lastUrl).not.toContain('state=');
     expect(lastUrl).not.toContain('locationIds=');

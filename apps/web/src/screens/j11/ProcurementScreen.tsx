@@ -1,6 +1,8 @@
 import { useSearchParams } from 'react-router-dom';
 import { RoleGuard } from '@nexandro/ui-kit';
 import { useCurrentOrgId, useCurrentRole } from '../../lib/currentUser';
+import { useProcurementCounts } from '../../hooks/useProcurement';
+import type { ProcurementCounts } from '../../api/procurement';
 import { PoTab } from './tabs/PoTab';
 import { GrTab } from './tabs/GrTab';
 import { ReconciliationTab } from './tabs/ReconciliationTab';
@@ -24,6 +26,31 @@ const TAB_DEFS: ReadonlyArray<{ key: ProcurementTab; label: string }> = [
 function parseTab(raw: string | null): ProcurementTab {
   if (raw === 'gr' || raw === 'recon') return raw;
   return 'po';
+}
+
+/**
+ * Sprint 4 W3-10 — tab counter chips. Counts come from the dedicated
+ * `/m3/procurement/reconciliation/counts` endpoint so the header reflects
+ * current ops volume without mounting all three tabs. Zero counts are
+ * suppressed (no `(0)` clutter); undefined/loading state keeps the bare
+ * label so the tab strip stays stable across refetches.
+ */
+function formatTabLabel(
+  key: ProcurementTab,
+  counts: ProcurementCounts | undefined,
+): string {
+  const base = TAB_DEFS.find((t) => t.key === key)!.label;
+  if (!counts) return base;
+  if (key === 'po') {
+    const n = counts.poActive;
+    return Number.isFinite(n) && n > 0 ? `${base} (${n})` : base;
+  }
+  if (key === 'gr') {
+    const n = counts.grPending;
+    return Number.isFinite(n) && n > 0 ? `${base} (${n} pendientes)` : base;
+  }
+  const n = counts.reconOpen;
+  return Number.isFinite(n) && n > 0 ? `${base} (${n} abiertas)` : base;
 }
 
 export function ProcurementScreen() {
@@ -52,6 +79,7 @@ export function ProcurementScreen() {
 function Inner({ orgId }: { orgId: string }) {
   const [params, setParams] = useSearchParams();
   const tab = parseTab(params.get('tab'));
+  const { data: counts } = useProcurementCounts(orgId);
 
   const onSelectTab = (next: ProcurementTab) => {
     const updated = new URLSearchParams(params);
@@ -68,6 +96,7 @@ function Inner({ orgId }: { orgId: string }) {
       >
         {TAB_DEFS.map((t) => {
           const active = t.key === tab;
+          const label = formatTabLabel(t.key, counts);
           return (
             <button
               key={t.key}
@@ -76,6 +105,7 @@ function Inner({ orgId }: { orgId: string }) {
               aria-selected={active}
               aria-controls={`procurement-panel-${t.key}`}
               id={`procurement-tab-${t.key}`}
+              data-testid={`procurement-tab-${t.key}`}
               onClick={() => onSelectTab(t.key)}
               className={
                 active
@@ -83,7 +113,7 @@ function Inner({ orgId }: { orgId: string }) {
                   : 'border-b-2 border-transparent px-3 py-2 text-sm text-mute hover:text-ink focus:outline-none focus:ring-2 focus:ring-(--color-focus)'
               }
             >
-              {t.label}
+              {label}
             </button>
           );
         })}
