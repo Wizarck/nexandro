@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { Info, X } from 'lucide-react';
 import {
   BundleArchiveTable,
   BundleDownloadRow,
@@ -215,6 +216,16 @@ function Inner({
       ai_obs: prev.ai_obs || INSPECTOR_SCOPE.ai_obs,
     }));
   };
+
+  // Master feedback 2026-05-18: no way to exit inspector mode once activated.
+  // Reset to DEFAULT_SCOPE (quarterly recurring case) so the operator
+  // doesn't have to manually uncheck Procurement+Photo. If they had widened
+  // those explicitly before clicking the chip, they re-check; the chip text
+  // explains this trade-off via the title tooltip.
+  const disableInspectorMode = () => {
+    setInspectorMode(false);
+    setScope(DEFAULT_SCOPE);
+  };
   const [expanded, setExpanded] = useState(false);
   const [recipients, setRecipients] = useState<ReadonlyArray<string>>([]);
   const [bundleId, setBundleId] = useState<string | null>(null);
@@ -334,7 +345,8 @@ function Inner({
             name="enable-inspector-mode"
             onClick={enableInspectorMode}
             data-testid="enable-inspector-mode-chip"
-            className="inline-flex shrink-0 items-center gap-1 rounded-full border-2 bg-transparent px-3 py-1 text-sm font-semibold"
+            title="Pre-rellena el alcance del bundle con HACCP + Lotes + Compras + Fotos (los apartados que un inspector sanitario suele pedir in situ). Puedes salir en cualquier momento."
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 bg-transparent px-3 py-1 text-sm font-semibold"
             style={{
               minHeight: '32px',
               borderColor: 'var(--color-destructive)',
@@ -342,6 +354,7 @@ function Inner({
               cursor: 'pointer',
             }}
           >
+            <Info aria-hidden="true" size={14} />
             Modo inspección
             <span aria-hidden="true">→</span>
           </button>
@@ -351,15 +364,28 @@ function Inner({
       {inspectorMode && (
         <div
           role="alert"
-          className="mt-4 rounded-md border-l-4 px-4 py-3 text-sm"
+          className="mt-4 flex items-start gap-3 rounded-md border-l-4 px-4 py-3 text-sm"
           style={{
             backgroundColor: 'var(--color-surface)',
             borderLeftColor: 'var(--color-destructive)',
             color: 'var(--color-ink)',
           }}
         >
-          <strong className="font-semibold">Modo inspección activo.</strong>{' '}
-          Alcance pre-ampliado a HACCP + Lotes + Compras + Fotos. Cambia el rango si el inspector pide otra ventana y pulsa <em>Generar bundle</em>.
+          <div className="flex-1">
+            <strong className="font-semibold">Modo inspección activo.</strong>{' '}
+            Alcance pre-ampliado a HACCP + Lotes + Compras + Fotos. Cambia el rango si el inspector pide otra ventana y pulsa <em>Generar bundle</em>.
+          </div>
+          <button
+            type="button"
+            onClick={disableInspectorMode}
+            data-testid="disable-inspector-mode-button"
+            aria-label="Salir de modo inspección (restablece alcance al trimestre habitual)"
+            title="Salir de modo inspección"
+            className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md hover:bg-(--color-surface-2) focus:outline-none focus:ring-2 focus:ring-(--color-focus)"
+            style={{ color: 'var(--color-mute)' }}
+          >
+            <X aria-hidden="true" size={16} />
+          </button>
         </div>
       )}
 

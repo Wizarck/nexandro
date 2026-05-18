@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 
 /**
  * J6 crisis layout per j6.md §28+§82 "The crisis surface is exempt from
@@ -80,21 +82,36 @@ export function CrisisLayout({ children, showHeader = true }: CrisisLayoutProps)
         }}
       />
 
-      {/* Eyebrow header + countdown */}
+      {/* Eyebrow header + countdown + exit link.
+          Master feedback 2026-05-18: the surface had no way out. j6.md §28
+          says "exempt from top-nav" (the operator's eye must land on the
+          one decision), but "exempt from nav" ≠ "no exit". A single
+          discreet "Salir" link on the left preserves focus while letting
+          the operator back out when the surface was opened by mistake or
+          when the incident is resolved. */}
       {showHeader && (
         <header
           role="banner"
-          className="border-b border-border px-6 py-3"
+          className="grid grid-cols-[auto_1fr_auto] items-center gap-2 border-b border-border px-4 py-2 sm:px-6"
           style={{ backgroundColor: 'var(--color-surface)' }}
         >
+          <Link
+            to="/owner-dashboard"
+            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-mute hover:bg-(--color-bg) hover:text-ink focus:outline-none focus:ring-2 focus:ring-(--color-focus)"
+            aria-label="Salir del modo crisis y volver al panel"
+            title="Salir del modo crisis"
+          >
+            <ArrowLeft aria-hidden="true" size={14} />
+            <span className="hidden sm:inline">Salir</span>
+          </Link>
           <p
             className="text-center text-xs uppercase tracking-[0.08em]"
             style={{ color: 'var(--color-mute)' }}
           >
             <span>Investigación de incidente</span>
             <span aria-hidden="true"> · </span>
-            <span>{formatClock(new Date(now))} CEST</span>
-            <span aria-hidden="true"> · </span>
+            <span className="hidden sm:inline">{formatClock(new Date(now))} CEST</span>
+            <span aria-hidden="true" className="hidden sm:inline"> · </span>
             <span>
               ventana legal{' '}
               <strong
@@ -115,6 +132,8 @@ export function CrisisLayout({ children, showHeader = true }: CrisisLayoutProps)
               </strong>
             </span>
           </p>
+          {/* Empty cell to balance the grid. */}
+          <span aria-hidden="true" />
         </header>
       )}
 

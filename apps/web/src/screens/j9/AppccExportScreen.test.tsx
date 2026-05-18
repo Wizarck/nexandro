@@ -307,4 +307,29 @@ describe('AppccExportScreen', () => {
       (screen.getByLabelText(/Trazabilidad de fotos/) as HTMLInputElement).checked,
     ).toBe(true);
   });
+
+  // Master feedback 2026-05-18: no way to exit inspector mode once activated.
+  it('exits inspector mode + resets scope to defaults when the X button is clicked', async () => {
+    vi.mocked(useCurrentRole).mockReturnValue('OWNER');
+    vi.mocked(useCurrentOrgId).mockReturnValue('org-1');
+    fetchMock.mockImplementation(() => Promise.resolve(emptyArchive()));
+
+    renderWithClient('/compliance/export?mode=inspeccion');
+
+    // Banner is visible + procurement/photo are checked.
+    expect(screen.getByRole('alert').textContent).toMatch(/Modo inspección activo/);
+    expect((screen.getByLabelText(/Compras/) as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByLabelText(/Trazabilidad de fotos/) as HTMLInputElement).checked).toBe(true);
+
+    const exitBtn = screen.getByTestId('disable-inspector-mode-button');
+    fireEvent.click(exitBtn);
+
+    // Banner gone, chip returns, scope restored to quarterly default (haccp+lot only).
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.getByTestId('enable-inspector-mode-chip')).toBeInTheDocument();
+    expect((screen.getByLabelText(/HACCP/) as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByLabelText(/Lot lifecycle|Ciclo de vida/) as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByLabelText(/Compras/) as HTMLInputElement).checked).toBe(false);
+    expect((screen.getByLabelText(/Trazabilidad de fotos/) as HTMLInputElement).checked).toBe(false);
+  });
 });
