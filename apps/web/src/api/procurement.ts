@@ -97,6 +97,8 @@ export interface GrListItem {
   state: string;
   requiresReview: boolean;
   supplierInvoiceRef: string | null;
+  /** Photo-ingestion provenance — set when Hermes seeded the GR draft. */
+  sourcePhotoIngestionId: string | null;
   createdAt: string;
 }
 
@@ -139,6 +141,72 @@ export type ResolvableReconciliationState = Exclude<
  * All variants also include `{ grLineId, poLineId }` from the detector.
  */
 export type ReconciliationDiff = Record<string, unknown>;
+
+export interface GrLineDetail {
+  id: string;
+  grId: string;
+  poLineId: string | null;
+  productId: string;
+  qtyReceivedActual: number;
+  unitPriceActual: number;
+  lotIdCreated: string | null;
+  /** ISO-8601 (UTC) timestamp; null when the operator did not override. */
+  expiresAtOverride: string | null;
+  createdAt: string;
+}
+
+export interface GrDetail {
+  id: string;
+  organizationId: string;
+  poId: string | null;
+  supplierId: string;
+  receivedAt: string;
+  receivedAtLocationId: string;
+  receivingUserId: string;
+  supplierInvoiceRef: string | null;
+  state: string;
+  requiresReview: boolean;
+  sourcePhotoIngestionId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  lines: GrLineDetail[];
+}
+
+export async function getGoodsReceiptDetail(
+  organizationId: string,
+  grId: string,
+): Promise<GrDetail> {
+  const qs = new URLSearchParams({ organizationId }).toString();
+  return api<GrDetail>(`/m3/procurement/gr/${grId}?${qs}`);
+}
+
+/**
+ * Per-line confirm body — fields the operator can edit at the dock per
+ * j11 §5 (cantidad recibida · lote · caducidad).
+ *
+ * FOLLOWUP (Sprint 4 W3-2 backend gap): the corresponding endpoint
+ * `POST /m3/procurement/gr/:id/lines/:lineId/confirm` is not yet wired
+ * — `GrConfirmationService.confirm()` operates on full `CreateGrInput`
+ * (new draft → confirmed in one shot). The hook below throws an
+ * informative error when invoked so the UI can stay shipped with a
+ * disabled / TODO `Confirmar` affordance until the backend lands.
+ */
+export interface ConfirmGrLineInput {
+  quantityReceived: number;
+  lotCode?: string;
+  expiryDate?: string;
+}
+
+export async function confirmGoodsReceiptLine(
+  _organizationId: string,
+  _grId: string,
+  _lineId: string,
+  _input: ConfirmGrLineInput,
+): Promise<never> {
+  throw new Error(
+    'confirmGoodsReceiptLine: backend endpoint not yet wired — see Sprint 4 W3-2 followup in apps/api/src/procurement/gr/interface/gr.controller.ts',
+  );
+}
 
 export interface ReconciliationListItem {
   id: string;

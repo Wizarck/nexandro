@@ -3,11 +3,15 @@ import { ApiError } from '../api/client';
 import {
   cancelPurchaseOrder,
   closePurchaseOrder,
+  confirmGoodsReceiptLine,
+  getGoodsReceiptDetail,
   getGoodsReceipts,
   getPurchaseOrderById,
   getPurchaseOrders,
   getReconciliations,
   resolveReconciliation,
+  type ConfirmGrLineInput,
+  type GrDetail,
   type GrListResponse,
   type PoDetail,
   type PoListResponse,
@@ -93,6 +97,60 @@ export function useGoodsReceipts(orgId: string | undefined) {
     },
     enabled: !!orgId,
     staleTime: STALE_30_S,
+  });
+}
+
+/**
+ * Sprint 4 W3-2 — single-GR detail for the dock drawer (j11 §5).
+ * Short-circuits when `orgId` or `grId` is missing so the screen can mount
+ * the drawer container conditionally without firing requests.
+ */
+export function useGoodsReceipt(
+  orgId: string | undefined,
+  grId: string | undefined,
+) {
+  return useQuery<GrDetail, ApiError>({
+    queryKey: ['procurement', 'gr', orgId, 'detail', grId],
+    queryFn: () => {
+      if (!orgId || !grId) throw new Error('orgId + grId required');
+      return getGoodsReceiptDetail(orgId, grId);
+    },
+    enabled: !!orgId && !!grId,
+    staleTime: STALE_30_S,
+  });
+}
+
+/**
+ * Sprint 4 W3-2 — per-line confirm mutation. The backend endpoint is a
+ * documented followup (`GrConfirmationService` only handles full-GR
+ * confirmation today); the hook is wired so the UI can call it,
+ * surface the rejection, and the moment the backend lands the only
+ * change required is removing the stub throw in `procurement.ts`.
+ * Invalidates BOTH the GR list and the open-GR detail on success so
+ * the dock view stays in sync with the just-confirmed line.
+ */
+export function useConfirmGrLine(
+  orgId: string | undefined,
+  grId: string | undefined,
+) {
+  const queryClient = useQueryClient();
+  return useMutation<
+    unknown,
+    Error,
+    { lineId: string; input: ConfirmGrLineInput }
+  >({
+    mutationFn: ({ lineId, input }) => {
+      if (!orgId || !grId) {
+        return Promise.reject(new Error('orgId + grId required'));
+      }
+      return confirmGoodsReceiptLine(orgId, grId, lineId, input);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['procurement', 'gr', orgId] });
+      queryClient.invalidateQueries({
+        queryKey: ['procurement', 'gr', orgId, 'detail', grId],
+      });
+    },
   });
 }
 
