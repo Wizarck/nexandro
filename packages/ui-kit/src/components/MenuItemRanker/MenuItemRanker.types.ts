@@ -26,5 +26,12 @@ export interface MenuItemRankerProps {
   locale?: string;
   /** When provided, renders a "View details" affordance on each card; the consumer handles routing. */
   onViewDetails?: (item: DashboardMenuItem) => void;
+  /**
+   * When `true`, each card carries a muted "Datos de ejemplo" chip and the
+   * top of the region renders an explanatory banner. Used by the OwnerDashboard
+   * demo fallback when the org has no real menu items yet (audit 2026-05-18 v3
+   * §Sprint-2 backlog — surface must answer §1.1 JTBD on first contact).
+   */
+  demoMode?: boolean;
   className?: string;
 }

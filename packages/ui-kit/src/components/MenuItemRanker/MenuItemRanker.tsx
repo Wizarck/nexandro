@@ -22,6 +22,7 @@ export function MenuItemRanker({
   emptyStateCopy = 'Aún no hay platos para clasificar. Cuando registres tus primeros platos, verás aquí los 5 con mejor margen y los 5 que necesitan atención.',
   locale = 'es-ES',
   onViewDetails,
+  demoMode = false,
   className,
 }: MenuItemRankerProps) {
   if (loading) {
@@ -61,8 +62,22 @@ export function MenuItemRanker({
       role="region"
       aria-label="Owner dashboard ranking"
     >
+      {demoMode && (
+        <p
+          className="col-span-full rounded-md border border-border bg-surface px-3 py-2 text-xs"
+          style={{ color: 'var(--color-mute)', borderColor: 'var(--color-border)' }}
+        >
+          Datos de ejemplo · Conecta tu POS o añade tus platos para ver los tuyos.
+        </p>
+      )}
       {top.length > 0 && (
-        <RankSection title="Mejor margen" items={top} locale={locale} onViewDetails={onViewDetails} />
+        <RankSection
+          title="Mejor margen"
+          items={top}
+          locale={locale}
+          onViewDetails={onViewDetails}
+          demoMode={demoMode}
+        />
       )}
       {bottom.length > 0 && (
         <RankSection
@@ -70,6 +85,7 @@ export function MenuItemRanker({
           items={bottom}
           locale={locale}
           onViewDetails={onViewDetails}
+          demoMode={demoMode}
         />
       )}
     </div>
@@ -81,11 +97,13 @@ function RankSection({
   items,
   locale,
   onViewDetails,
+  demoMode,
 }: {
   title: string;
   items: DashboardMenuItem[];
   locale: string;
   onViewDetails?: (item: DashboardMenuItem) => void;
+  demoMode?: boolean;
 }) {
   return (
     <section aria-label={title}>
@@ -95,7 +113,12 @@ function RankSection({
       <ul className="list-none space-y-3 p-0">
         {items.map((item) => (
           <li key={item.menuItemId}>
-            <RankCard item={item} locale={locale} onViewDetails={onViewDetails} />
+            <RankCard
+              item={item}
+              locale={locale}
+              onViewDetails={onViewDetails}
+              demoMode={demoMode}
+            />
           </li>
         ))}
       </ul>
@@ -107,10 +130,12 @@ function RankCard({
   item,
   locale,
   onViewDetails,
+  demoMode,
 }: {
   item: DashboardMenuItem;
   locale: string;
   onViewDetails?: (item: DashboardMenuItem) => void;
+  demoMode?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const headingId = `ranker-${item.menuItemId}-h`;
@@ -135,7 +160,20 @@ function RankCard({
           <h4 id={headingId} className="text-base font-semibold text-ink">
             {item.displayLabel}
           </h4>
-          <p className="text-xs uppercase tracking-wide text-mute">{item.channel}</p>
+          <p className="text-xs uppercase tracking-wide text-mute">
+            {item.channel}
+            {demoMode && (
+              <span
+                className="ml-2 rounded-pill border px-1.5 py-0.5 text-[10px] normal-case tracking-normal"
+                style={{
+                  color: 'var(--color-mute)',
+                  borderColor: 'var(--color-border)',
+                }}
+              >
+                Datos de ejemplo
+              </span>
+            )}
+          </p>
         </div>
         <div
           className="rounded-pill px-2 py-0.5 text-xs font-semibold"
