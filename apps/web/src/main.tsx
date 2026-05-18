@@ -7,6 +7,10 @@ import { App } from './App';
 import { AuditLogScreen } from './screens/AuditLogScreen';
 import { OwnerDashboardScreen } from './screens/OwnerDashboardScreen';
 import { OwnerOrgSettingsScreen } from './screens/OwnerOrgSettingsScreen';
+import { OwnerSettingsShell } from './screens/settings/OwnerSettingsShell';
+import { OwnerBusinessSection } from './screens/settings/OwnerBusinessSection';
+import { OwnerPrivacySection } from './screens/settings/OwnerPrivacySection';
+import { Navigate } from 'react-router-dom';
 import { RecipeBuilderJ1Screen } from './screens/RecipeBuilderJ1Screen';
 import { CostInvestigationJ2Screen } from './screens/CostInvestigationJ2Screen';
 import { AiObsDashboardScreen } from './m3/ai-obs/AiObsDashboardScreen';
@@ -38,7 +42,14 @@ const router = createBrowserRouter([
       },
       {
         path: 'owner-settings',
-        element: <OwnerOrgSettingsScreen />,
+        element: <OwnerSettingsShell />,
+        children: [
+          // Default: redirect to Negocio (audit L2-1).
+          { index: true, element: <Navigate to="/owner-settings/negocio" replace /> },
+          { path: 'negocio', element: <OwnerBusinessSection /> },
+          { path: 'etiquetas', element: <OwnerOrgSettingsScreen /> },
+          { path: 'privacidad', element: <OwnerPrivacySection /> },
+        ],
       },
       {
         path: 'audit-log',
