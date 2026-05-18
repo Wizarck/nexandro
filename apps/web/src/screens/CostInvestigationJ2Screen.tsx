@@ -16,19 +16,16 @@ export function CostInvestigationJ2Screen() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 space-y-6">
-      <div className="rounded-md border border-border bg-warn-bg px-4 py-2 text-sm text-ink" role="note">
-        <strong>Proof of concept</strong> — m2-ui-backfill-wave1 J2 stub.
-      </div>
-
       <header>
-        <h1 className="text-2xl font-semibold text-ink">What changed? (J2)</h1>
+        <h1 className="text-2xl font-semibold text-ink">Drift de coste · qué cambió</h1>
         <p className="text-sm text-mute">
           Per-component cost deltas for recipe <code>{recipeId ?? '—'}</code> since{' '}
           <code>{fromIso}</code>.
         </p>
         {!recipeId && (
           <p className="mt-2 text-sm text-mute">
-            Pass <code>?recipeId=&lt;uuid&gt;</code> + <code>?from=&lt;ISO date&gt;</code> in the URL.
+            Llega aquí desde el Dashboard (Top/Bottom 5 → «Ver detalle») o pega{' '}
+            <code>?recipeId=&lt;uuid&gt;</code> en la URL.
           </p>
         )}
       </header>

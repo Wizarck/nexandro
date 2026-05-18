@@ -24,6 +24,7 @@ import { HaccpRecordScreen } from './screens/j10/HaccpRecordScreen';
 import { AppccExportScreen } from './screens/j9/AppccExportScreen';
 import { PhotoIngestReviewScreen } from './screens/j12/PhotoIngestReviewScreen';
 import { ReviewQueueScreen } from './screens/ReviewQueueScreen';
+import { RecallTraceTreeScreen } from './screens/j6/RecallTraceTreeScreen';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -59,13 +60,34 @@ const router = createBrowserRouter([
         path: 'audit-log',
         element: <AuditLogScreen />,
       },
+      // M2 escandallo surfaces — promoted out of /poc/* per Sprint 3
+      // audit (2026-05-18). J1 + J2 were canonical M2 MVP screens that
+      // stayed behind /poc/* URLs and never reached top-nav. Old paths
+      // kept as redirects so deep links from emails / audit-logs don't 404.
       {
-        path: 'poc/recipe-builder-j1',
+        path: 'recipes',
         element: <RecipeBuilderJ1Screen />,
       },
       {
-        path: 'poc/cost-investigation-j2',
+        path: 'recipes/cost-drift',
         element: <CostInvestigationJ2Screen />,
+      },
+      {
+        path: 'poc/recipe-builder-j1',
+        element: <Navigate to="/recipes" replace />,
+      },
+      {
+        path: 'poc/cost-investigation-j2',
+        element: <Navigate to="/recipes/cost-drift" replace />,
+      },
+      // M3 standalone trace surface — Wave 2.5 #12 had no route registration
+      // (the embedded copy lives inside RecallInvestigateJ6Screen). Sprint 3
+      // audit (2026-05-18) restored it as a standalone "trace any lot
+      // without opening an incident" surface — useful for forensic lookups
+      // that don't need the 4 h crisis window.
+      {
+        path: 'recall/trace',
+        element: <RecallTraceTreeScreen />,
       },
       {
         path: 'ai-obs/dashboard',

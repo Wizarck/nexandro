@@ -61,7 +61,7 @@ export function OwnerDashboardScreen() {
   const rankerBottom: DashboardMenuItem[] = demo ? demo.bottom : realBottom;
 
   function onViewDetails(item: DashboardMenuItem) {
-    navigate(`/poc/cost-investigation-j2?recipeId=${item.recipeId}`);
+    navigate(`/recipes/cost-drift?recipeId=${item.recipeId}`);
   }
 
   // Use a static date in tests; otherwise live wall-clock.

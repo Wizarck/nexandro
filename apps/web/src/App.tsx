@@ -48,12 +48,21 @@ const NAV_GROUPS: ReadonlyArray<NavGroup> = [
   {
     label: 'Operaciones',
     items: [
+      // Sprint 3 audit (2026-05-18): J1+J2 escandallo surfaces were stuck
+      // at /poc/* URLs and never reached top-nav despite being canonical
+      // M2 MVP. "Escandallos" lands on the recipe builder; the cost-drift
+      // screen is the J3 dashboard's drill-down — not promoted to nav.
+      { to: '/recipes', label: 'Escandallos' },
       { to: '/haccp/record', label: 'HACCP' },
       { to: '/compliance/export', label: 'Expediente APPCC', roles: ['OWNER', 'MANAGER'] },
       // Master feedback 2026-05-18: "Recall" era spanglish; el término legal
       // EU en español es "retirada de productos del mercado" (Reg. 178/2002
       // art. 19). URL queda como /recall/investigate para no romper enlaces.
       { to: '/recall/investigate', label: 'Retiradas', roles: ['OWNER', 'MANAGER'] },
+      // Sprint 3: trazabilidad ad-hoc sin abrir incidente — útil para
+      // búsquedas forenses fuera de la ventana de crisis 4h. Mismo backend
+      // que el árbol embebido en /recall/investigate/:id.
+      { to: '/recall/trace', label: 'Trazabilidad', roles: ['OWNER', 'MANAGER'] },
       { to: '/photo-ingest/review', label: 'Foto-ingestión', roles: ['OWNER', 'MANAGER'] },
       { to: '/m3/review-queue', label: 'Cola revisión', roles: ['OWNER', 'MANAGER'] },
     ],
