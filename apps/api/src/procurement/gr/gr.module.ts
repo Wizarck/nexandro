@@ -6,6 +6,7 @@ import { GoodsReceiptLine } from './domain/goods-receipt-line.entity';
 import { GoodsReceiptRepository } from './application/gr.repository';
 import { GoodsReceiptLineRepository } from './application/gr-line.repository';
 import { GrConfirmationService } from './application/gr-confirmation.service';
+import { GrController } from './interface/gr.controller';
 
 /**
  * procurement.gr bounded context (M3 Wave 2.2 — slice #7).
@@ -26,6 +27,7 @@ import { GrConfirmationService } from './application/gr-confirmation.service';
     TypeOrmModule.forFeature([GoodsReceipt, GoodsReceiptLine]),
     InventoryModule,
   ],
+  controllers: [GrController],
   providers: [
     GoodsReceiptRepository,
     GoodsReceiptLineRepository,

@@ -10,6 +10,7 @@ import { PoCounterService } from './infrastructure/po-counter.service';
 import { PoNumberService } from './application/po-number.service';
 import { PoFactory } from './application/po.factory';
 import { PoService } from './application/po.service';
+import { PoController } from './interface/po.controller';
 
 /**
  * Procurement.po bounded context (M3 foundation slice).
@@ -27,6 +28,7 @@ import { PoService } from './application/po.service';
     TypeOrmModule.forFeature([PurchaseOrder, PurchaseOrderLine, PoCounter]),
     SuppliersModule,
   ],
+  controllers: [PoController],
   providers: [
     PurchaseOrderRepository,
     PurchaseOrderLineRepository,

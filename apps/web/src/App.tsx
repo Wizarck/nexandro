@@ -68,6 +68,15 @@ const NAV_GROUPS: ReadonlyArray<NavGroup> = [
     ],
   },
   {
+    // Sprint 3 Block C — j11 Procurement shell. Group "Compras" with a
+    // single "Compras" item for now; future items (proveedores, gastos,
+    // reportes) live here. Owner + Manager only per j11 spec personas.
+    label: 'Compras',
+    items: [
+      { to: '/procurement?tab=po', label: 'Compras', roles: ['OWNER', 'MANAGER'] },
+    ],
+  },
+  {
     label: 'Configuración',
     items: [
       // Audit v2 E-1: "IA: gasto" demoted out of top-nav per roundtable

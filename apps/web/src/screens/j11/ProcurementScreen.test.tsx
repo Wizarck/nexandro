@@ -1,0 +1,160 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ProcurementScreen } from './ProcurementScreen';
+
+vi.mock('../../lib/currentUser', () => ({
+  useCurrentRole: vi.fn(),
+  useCurrentOrgId: vi.fn(),
+}));
+
+import { useCurrentOrgId, useCurrentRole } from '../../lib/currentUser';
+
+const fetchMock = vi.fn();
+
+beforeEach(() => {
+  fetchMock.mockReset();
+  global.fetch = fetchMock as unknown as typeof fetch;
+});
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'content-type': 'application/json' },
+  });
+}
+
+function renderWithClient(initialUrl = '/procurement') {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={client}>
+      <MemoryRouter initialEntries={[initialUrl]}>
+        <ProcurementScreen />
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+}
+
+describe('ProcurementScreen (Sprint 3 Block C — j11 shell)', () => {
+  it('Staff sees access-denied fallback and zero fetches fire', () => {
+    vi.mocked(useCurrentRole).mockReturnValue('STAFF');
+    vi.mocked(useCurrentOrgId).mockReturnValue('org-1');
+
+    renderWithClient();
+
+    expect(
+      screen.getByText(
+        'Solo el Owner y el Manager pueden ver la pantalla de Compras.',
+      ),
+    ).toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('Owner with no ?tab defaults to PO tab + renders empty state', async () => {
+    vi.mocked(useCurrentRole).mockReturnValue('OWNER');
+    vi.mocked(useCurrentOrgId).mockReturnValue('org-1');
+    fetchMock.mockResolvedValueOnce(jsonResponse({ items: [], total: 0 }));
+
+    renderWithClient('/procurement');
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('Aún no hay órdenes de compra activas'),
+      ).toBeInTheDocument(),
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0][0])).toContain('/m3/procurement/po');
+  });
+
+  it('clicking Recepciones tab switches to GR fetch + empty state', async () => {
+    vi.mocked(useCurrentRole).mockReturnValue('MANAGER');
+    vi.mocked(useCurrentOrgId).mockReturnValue('org-1');
+    // PO tab loads first.
+    fetchMock.mockResolvedValueOnce(jsonResponse({ items: [], total: 0 }));
+    // Then GR tab.
+    fetchMock.mockResolvedValueOnce(jsonResponse({ items: [], total: 0 }));
+
+    renderWithClient('/procurement');
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('Aún no hay órdenes de compra activas'),
+      ).toBeInTheDocument(),
+    );
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Recepciones' }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('Aún no hay recepciones registradas'),
+      ).toBeInTheDocument(),
+    );
+    const grCalls = fetchMock.mock.calls.filter(([url]) =>
+      String(url).includes('/m3/procurement/gr'),
+    );
+    expect(grCalls.length).toBeGreaterThan(0);
+  });
+
+  it('deep-link ?tab=recon lands on reconciliation tab + empty state', async () => {
+    vi.mocked(useCurrentRole).mockReturnValue('OWNER');
+    vi.mocked(useCurrentOrgId).mockReturnValue('org-1');
+    fetchMock.mockResolvedValueOnce(jsonResponse({ items: [], total: 0 }));
+
+    renderWithClient('/procurement?tab=recon');
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('Aún no hay reconciliaciones abiertas'),
+      ).toBeInTheDocument(),
+    );
+    expect(String(fetchMock.mock.calls[0][0])).toContain(
+      '/m3/procurement/reconciliation',
+    );
+  });
+
+  it('renders rows when PO endpoint returns data', async () => {
+    vi.mocked(useCurrentRole).mockReturnValue('OWNER');
+    vi.mocked(useCurrentOrgId).mockReturnValue('org-1');
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({
+        items: [
+          {
+            id: 'po-1',
+            poNumber: 'PO-2026-0001',
+            supplierId: 'sup-1',
+            state: 'sent',
+            currency: 'EUR',
+            total: 123.45,
+            expectedDeliveryDate: '2026-06-01',
+            createdAt: '2026-05-18T10:00:00.000Z',
+          },
+        ],
+        total: 1,
+      }),
+    );
+
+    renderWithClient('/procurement?tab=po');
+
+    await waitFor(() =>
+      expect(screen.getByText('PO-2026-0001')).toBeInTheDocument(),
+    );
+    expect(screen.getByText('123.45 EUR')).toBeInTheDocument();
+    expect(screen.queryByText('Aún no hay órdenes de compra activas')).toBeNull();
+  });
+
+  it('shows signed-out fallback when role is null', () => {
+    vi.mocked(useCurrentRole).mockReturnValue(null);
+    vi.mocked(useCurrentOrgId).mockReturnValue('org-1');
+
+    renderWithClient();
+
+    expect(
+      screen.getByText(
+        'Solo el Owner y el Manager pueden ver la pantalla de Compras.',
+      ),
+    ).toBeInTheDocument();
+  });
+});
