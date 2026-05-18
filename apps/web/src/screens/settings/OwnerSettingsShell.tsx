@@ -4,13 +4,14 @@ import { useCurrentRole } from '../../lib/currentUser';
 
 /**
  * Settings shell per audit 2026-05-18 L2-1, extended in Sprint 3 Block B
- * with the 4 Settings-críticos surfaces (audit 2026-05-18 backend gap —
- * 4 controllers had zero frontend representation) and in Sprint 4 W1-B with
- * the 2 reference-data tabs (FSMS standards + External catalog).
+ * with 4 Settings-críticos surfaces, then in Sprint 4 W1-A with Ingredientes
+ * + Proveedores, and W1-B with reference-data tabs FSMS + External catalog.
  *
  *   Negocio          — identity (name, locale, timezone, currency)
  *   Sedes            — `/locations/*` CRUD                        [Block B]
  *   Equipo           — `/users/*` list + provision                [Block B]
+ *   Ingredientes     — `/ingredients/*` CRUD                      [W1-A]
+ *   Proveedores      — `/suppliers/*` CRUD                        [W1-A]
  *   Catálogo         — `/categories/*` + `/uom` read-only         [Block B]
  *   Normativa HACCP  — `/m3/haccp/fsms-standards` read-only       [W1-B]
  *   Catálogo externo — OFF mirror health + manual sync (Owner)    [W1-B]
@@ -57,6 +58,9 @@ const SECTIONS: ReadonlyArray<SectionLink> = [
   { to: '/owner-settings/negocio', label: 'Negocio', enabled: true },
   { to: '/owner-settings/sedes', label: 'Sedes', enabled: true },
   { to: '/owner-settings/equipo', label: 'Equipo', enabled: true },
+  // Sprint 4 W1-A — Ingredientes + Proveedores (transactional catalog).
+  { to: '/owner-settings/ingredientes', label: 'Ingredientes', enabled: true },
+  { to: '/owner-settings/proveedores', label: 'Proveedores', enabled: true },
   { to: '/owner-settings/catalogo', label: 'Catálogo', enabled: true },
   // Sprint 4 W1-B — reference data tabs (read-only browse / mirror status).
   { to: '/owner-settings/normativa-haccp', label: 'Normativa HACCP', enabled: true },

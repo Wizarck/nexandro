@@ -16,6 +16,8 @@ import { OwnerUsersSection } from './screens/settings/OwnerUsersSection';
 import { OwnerCatalogSection } from './screens/settings/OwnerCatalogSection';
 import { OwnerFsmsStandardsSection } from './screens/settings/OwnerFsmsStandardsSection';
 import { OwnerExternalCatalogSection } from './screens/settings/OwnerExternalCatalogSection';
+import { OwnerIngredientsSection } from './screens/settings/OwnerIngredientsSection';
+import { OwnerSuppliersSection } from './screens/settings/OwnerSuppliersSection';
 import { OnboardingWizard } from './screens/onboarding/OnboardingWizard';
 import { OnboardingBusinessStep } from './screens/onboarding/steps/OnboardingBusinessStep';
 import { OnboardingRedirectStep } from './screens/onboarding/steps/OnboardingRedirectStep';
@@ -63,6 +65,11 @@ const router = createBrowserRouter([
           // backend controllers that had no FE representation (audit 2026-05-18).
           { path: 'sedes', element: <OwnerLocationsSection /> },
           { path: 'equipo', element: <OwnerUsersSection /> },
+          // Sprint 4 W1-A — Ingredientes + Proveedores Settings tabs (audit
+          // 2026-05-18 backend gap: both controllers had zero frontend
+          // representation).
+          { path: 'ingredientes', element: <OwnerIngredientsSection /> },
+          { path: 'proveedores', element: <OwnerSuppliersSection /> },
           { path: 'catalogo', element: <OwnerCatalogSection /> },
           // Sprint 4 W1-B — 2 reference-data tabs wiring controllers that had
           // zero frontend representation (FSMS standards + OFF external
