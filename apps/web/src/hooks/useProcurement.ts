@@ -1,10 +1,14 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '../api/client';
 import {
+  cancelPurchaseOrder,
+  closePurchaseOrder,
   getGoodsReceipts,
+  getPurchaseOrderById,
   getPurchaseOrders,
   getReconciliations,
   type GrListResponse,
+  type PoDetail,
   type PoListResponse,
   type ReconciliationListResponse,
 } from '../api/procurement';
@@ -39,6 +43,67 @@ export function useGoodsReceipts(orgId: string | undefined) {
     },
     enabled: !!orgId,
     staleTime: STALE_30_S,
+  });
+}
+
+/**
+ * Single PO detail for the j11 drawer (Sprint 4 W3-1). Disabled when
+ * either `orgId` or `id` is missing so the drawer can mount in a
+ * `selectedId === null` state without firing a request.
+ */
+export function usePurchaseOrder(
+  orgId: string | undefined,
+  id: string | null | undefined,
+) {
+  return useQuery<PoDetail, ApiError>({
+    queryKey: ['procurement', 'po', orgId, id],
+    queryFn: () => {
+      if (!orgId) throw new Error('orgId required');
+      if (!id) throw new Error('id required');
+      return getPurchaseOrderById(orgId, id);
+    },
+    enabled: !!orgId && !!id,
+    staleTime: STALE_30_S,
+  });
+}
+
+/**
+ * Cancel a PO (j11 W3-1). On success, invalidates both the active PO
+ * list query and the detail query for this id so the drawer + table
+ * refetch the new state badge.
+ */
+export function useCancelPurchaseOrder(orgId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation<PoDetail, ApiError, { id: string; reason: string }>({
+    mutationFn: ({ id, reason }) => {
+      if (!orgId) throw new Error('orgId required');
+      return cancelPurchaseOrder(orgId, id, reason);
+    },
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: ['procurement', 'po', orgId] });
+      qc.invalidateQueries({
+        queryKey: ['procurement', 'po', orgId, vars.id],
+      });
+    },
+  });
+}
+
+/**
+ * Close a PO (j11 W3-1). Same invalidation pattern as cancel.
+ */
+export function useClosePurchaseOrder(orgId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation<PoDetail, ApiError, { id: string }>({
+    mutationFn: ({ id }) => {
+      if (!orgId) throw new Error('orgId required');
+      return closePurchaseOrder(orgId, id);
+    },
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: ['procurement', 'po', orgId] });
+      qc.invalidateQueries({
+        queryKey: ['procurement', 'po', orgId, vars.id],
+      });
+    },
   });
 }
 
