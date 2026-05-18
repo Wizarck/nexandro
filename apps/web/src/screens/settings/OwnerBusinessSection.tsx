@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { Save } from 'lucide-react';
 import { useCurrentOrgId } from '../../lib/currentUser';
 import { useOrganizationQuery, useOrganizationMutation } from '../../hooks/useOrganization';
 
@@ -159,7 +160,7 @@ function Form({ orgId }: { orgId: string }) {
           disabled={mutation.isPending}
           className="inline-flex items-center gap-2 rounded-md border border-(--color-primary) bg-(--color-primary) px-6 py-2.5 text-sm font-semibold text-(--color-on-primary) shadow-sm transition hover:shadow-md hover:brightness-110 active:translate-y-px focus:outline-none focus:ring-2 focus:ring-(--color-focus) focus:ring-offset-2"
         >
-          <span aria-hidden="true">💾</span>
+          <Save aria-hidden="true" size={16} />
           {mutation.isPending ? 'Guardando…' : 'Guardar cambios'}
         </button>
       </div>
