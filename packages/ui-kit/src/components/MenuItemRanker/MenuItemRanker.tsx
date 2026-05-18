@@ -17,8 +17,10 @@ export function MenuItemRanker({
   top,
   bottom,
   loading = false,
-  emptyStateCopy = 'Add MenuItems to see the ranking.',
-  locale = 'en-EU',
+  // Audit 2026-05-18 L0-1: was English ("Add MenuItems to see the ranking.")
+  // — a developer placeholder string on the Owner persona's primary screen.
+  emptyStateCopy = 'Aún no hay platos para clasificar. Cuando registres tus primeros platos, verás aquí los 5 con mejor margen y los 5 que necesitan atención.',
+  locale = 'es-ES',
   onViewDetails,
   className,
 }: MenuItemRankerProps) {
@@ -60,11 +62,11 @@ export function MenuItemRanker({
       aria-label="Owner dashboard ranking"
     >
       {top.length > 0 && (
-        <RankSection title="Top performers" items={top} locale={locale} onViewDetails={onViewDetails} />
+        <RankSection title="Mejor margen" items={top} locale={locale} onViewDetails={onViewDetails} />
       )}
       {bottom.length > 0 && (
         <RankSection
-          title="Needs attention"
+          title="Necesita atención"
           items={bottom}
           locale={locale}
           onViewDetails={onViewDetails}
@@ -161,7 +163,7 @@ function RankCard({
               className="text-sm font-semibold text-accent hover:text-accent-press"
               style={{ minHeight: 'var(--touch-target-min)' }}
             >
-              View cost details →
+              Ver detalle de costes →
             </button>
           )}
         </div>

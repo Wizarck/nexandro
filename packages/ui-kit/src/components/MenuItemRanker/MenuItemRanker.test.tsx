@@ -53,20 +53,20 @@ const BOTTOM: DashboardMenuItem[] = [
 describe('MenuItemRanker', () => {
   it('renders both Top and Bottom sections when both arrays are populated', () => {
     render(<MenuItemRanker top={TOP} bottom={BOTTOM} />);
-    expect(screen.getByLabelText('Top performers')).toBeInTheDocument();
-    expect(screen.getByLabelText('Needs attention')).toBeInTheDocument();
+    expect(screen.getByLabelText('Mejor margen')).toBeInTheDocument();
+    expect(screen.getByLabelText('Necesita atención')).toBeInTheDocument();
   });
 
   it('renders only Top section when bottom is empty', () => {
     render(<MenuItemRanker top={TOP} bottom={[]} />);
-    expect(screen.getByLabelText('Top performers')).toBeInTheDocument();
-    expect(screen.queryByLabelText('Needs attention')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Mejor margen')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Necesita atención')).not.toBeInTheDocument();
   });
 
   it('renders only Bottom section when top is empty', () => {
     render(<MenuItemRanker top={[]} bottom={BOTTOM} />);
-    expect(screen.queryByLabelText('Top performers')).not.toBeInTheDocument();
-    expect(screen.getByLabelText('Needs attention')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Mejor margen')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Necesita atención')).toBeInTheDocument();
   });
 
   it('renders empty-state when both are empty', () => {
@@ -119,23 +119,23 @@ describe('MenuItemRanker', () => {
     expect(button).toHaveAttribute('aria-expanded', 'false');
   });
 
-  it('onViewDetails fires with the item when expanded card "View cost details →" clicked', () => {
+  it('onViewDetails fires with the item when expanded card "Ver detalle de costes →" clicked', () => {
     const onView = vi.fn();
     render(<MenuItemRanker top={TOP} bottom={[]} onViewDetails={onView} />);
     fireEvent.click(screen.getByText('Tagliatelle').closest('button')!);
-    fireEvent.click(screen.getByText(/View cost details/));
+    fireEvent.click(screen.getByText(/Ver detalle de costes/));
     expect(onView).toHaveBeenCalledWith(expect.objectContaining({ menuItemId: 'm1' }));
   });
 
   it('omits the View-details button when onViewDetails prop is absent', () => {
     render(<MenuItemRanker top={TOP} bottom={[]} />);
     fireEvent.click(screen.getByText('Tagliatelle').closest('button')!);
-    expect(screen.queryByText(/View cost details/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Ver detalle de costes/)).not.toBeInTheDocument();
   });
 
   it('cards expose articles labelled by their displayLabel', () => {
     render(<MenuItemRanker top={TOP} bottom={[]} />);
-    const article = screen.getByLabelText('Top performers').querySelector('article');
+    const article = screen.getByLabelText('Mejor margen').querySelector('article');
     expect(article).toBeInTheDocument();
     const heading = within(article!).getByRole('heading', { name: 'Tagliatelle' });
     expect(heading).toBeInTheDocument();

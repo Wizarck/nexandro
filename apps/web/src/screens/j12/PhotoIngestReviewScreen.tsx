@@ -206,28 +206,47 @@ function Inner({
 
       <BulkReviewChips scope={scope} onChange={setScope} />
 
-      <div className="mt-4 grid gap-6 lg:grid-cols-12">
-        <aside className="lg:col-span-3">
-          <HitlQueueList
-            rows={queueRows}
-            selectedItemId={selectedItemId}
-            onSelect={setSelectedItemId}
-          />
-        </aside>
-        <main className="lg:col-span-9">
-          {selectedItemId == null ? (
-            <EmptyState />
-          ) : (
-            <DetailPane
-              orgId={orgId}
-              actorUserId={actorUserId}
-              itemId={selectedItemId}
-              onAdvance={() => advanceQueue(1)}
-              onPrev={() => advanceQueue(-1)}
+      {queueRows.length === 0 ? (
+        // Per audit 2026-05-18 L0-5 + Foto-ingestión flags #2/#4: was rendering
+        // TWO redundant "No hay elementos pendientes de revisión" boxes side-
+        // by-side (HitlQueueList + DetailPane EmptyState). Collapse to one
+        // full-width empty state with the upload CTA as the primary action +
+        // confidence-band legend strip so Carmen learns the band rules even
+        // before her first item arrives.
+        <EmptyState />
+      ) : (
+        <div className="mt-4 grid gap-6 lg:grid-cols-12">
+          <aside className="lg:col-span-3">
+            <HitlQueueList
+              rows={queueRows}
+              selectedItemId={selectedItemId}
+              onSelect={setSelectedItemId}
             />
-          )}
-        </main>
-      </div>
+          </aside>
+          <main className="lg:col-span-9">
+            {selectedItemId == null ? (
+              <div
+                role="status"
+                className="rounded-lg border border-dashed p-6 text-center text-sm"
+                style={{
+                  color: 'var(--color-mute)',
+                  borderColor: 'var(--color-border-strong)',
+                }}
+              >
+                Selecciona un ítem de la cola para revisar foto y campos extraídos.
+              </div>
+            ) : (
+              <DetailPane
+                orgId={orgId}
+                actorUserId={actorUserId}
+                itemId={selectedItemId}
+                onAdvance={() => advanceQueue(1)}
+                onPrev={() => advanceQueue(-1)}
+              />
+            )}
+          </main>
+        </div>
+      )}
 
       <KeyboardHintsBar />
     </div>
@@ -990,13 +1009,58 @@ function EmptyState() {
   return (
     <div
       role="status"
-      className="rounded-lg border border-dashed p-6 text-center text-sm"
+      className="mt-4 rounded-lg border p-8 text-center"
       style={{
-        color: 'var(--color-mute)',
-        borderColor: 'var(--color-border-strong)',
+        backgroundColor: 'var(--color-surface)',
+        borderColor: 'var(--color-border)',
+        color: 'var(--color-ink)',
       }}
     >
-      No hay elementos pendientes de revisión. Sube una foto para comenzar.
+      <p className="text-3xl" aria-hidden="true">📷</p>
+      <h2 className="mt-2 text-lg font-semibold" style={{ color: 'var(--color-ink)' }}>
+        Cola vacía · todo al día
+      </h2>
+      <p
+        className="mx-auto mt-1 max-w-md text-sm"
+        style={{ color: 'var(--color-mute)' }}
+      >
+        Los ítems aparecen aquí cuando la extracción de IA cae en la banda de
+        revisión humana (60 % – 85 % de confianza). Auto-rellena por encima del
+        85 %, marca manual por debajo del 60 %.
+      </p>
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+        <span
+          className="rounded-pill border px-2 py-0.5 text-xs"
+          style={{
+            borderColor: 'var(--color-success)',
+            color: 'var(--color-success)',
+          }}
+        >
+          ● ≥85 % auto-fill
+        </span>
+        <span
+          className="rounded-pill border px-2 py-0.5 text-xs"
+          style={{
+            borderColor: 'var(--color-mute)',
+            color: 'var(--color-mute)',
+          }}
+        >
+          ● 60–85 % revisar
+        </span>
+        <span
+          className="rounded-pill border px-2 py-0.5 text-xs"
+          style={{
+            borderColor: 'var(--color-destructive)',
+            color: 'var(--color-destructive)',
+          }}
+        >
+          ● &lt;60 % manual
+        </span>
+      </div>
+      <p className="mt-4 text-xs" style={{ color: 'var(--color-mute)' }}>
+        Sube una foto desde Hermes (WhatsApp / Telegram) o usa el botón{' '}
+        <code className="font-mono">+ Subir foto</code> cuando esté disponible.
+      </p>
     </div>
   );
 }

@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   CcpPicker,
   CorrectiveActionPicker,
   OutOfSpecStickyWarning,
   ReadingInput,
   RecentReadingsStrip,
+  RoleGuard,
   SpecRangeReadback,
   type Ccp,
   type RecentReadingRow,
@@ -41,7 +43,7 @@ export function HaccpRecordScreen() {
   const orgId = useCurrentOrgId();
   if (role == null) return <SignedOut />;
   if (orgId == null) return <NoOrg />;
-  return <Inner orgId={orgId} actorUserId={role} />;
+  return <Inner orgId={orgId} actorUserId={role} role={role} />;
 }
 
 const DRAFT_TTL_MS = 10 * 60_000;
@@ -125,7 +127,15 @@ function toRecentRow(reading: CcpReading): RecentReadingRow {
   };
 }
 
-function Inner({ orgId, actorUserId }: { orgId: string; actorUserId: string }) {
+function Inner({
+  orgId,
+  actorUserId,
+  role,
+}: {
+  orgId: string;
+  actorUserId: string;
+  role: string | null;
+}) {
   const ccpsQuery = useCcps(orgId);
   const ccpSummaries = useMemo(
     () => ccpsQuery.data ?? [],
@@ -144,23 +154,45 @@ function Inner({ orgId, actorUserId }: { orgId: string; actorUserId: string }) {
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-6">
-      <div
-        className="text-xs uppercase tracking-[0.04em]"
-        style={{ color: 'var(--color-mute)' }}
-      >
-        HACCP · Lectura de PCC
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div
+            className="text-xs uppercase tracking-[0.04em]"
+            style={{ color: 'var(--color-mute)' }}
+          >
+            HACCP · Lectura de PCC
+          </div>
+          <h1
+            className="mt-2 text-3xl font-semibold leading-tight"
+            style={{ color: 'var(--color-ink)' }}
+          >
+            {selectedSummary?.name ?? 'Registrar lectura HACCP'}
+          </h1>
+          <p className="mt-1 text-sm" style={{ color: 'var(--color-mute)' }}>
+            {selectedSummary
+              ? `referencia ${selectedSummary.fsmsRef}`
+              : 'Elige un PCC para empezar a registrar la lectura.'}
+          </p>
+        </div>
+        {/* Audit 2026-05-18 L1-5 follow-up: surface the APPCC bundle generator
+            from HACCP. Iker's reflex when the inspector knocks is HACCP, not
+            "/compliance/export". This shortcut closes the discoverability gap
+            while the dedicated nav tab also exists. Owner+Manager only. */}
+        <RoleGuard role={['OWNER', 'MANAGER']} currentRole={role as 'OWNER' | 'MANAGER' | 'STAFF' | null}>
+          <Link
+            to="/compliance/export"
+            className="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium shadow-sm transition hover:shadow-md focus:outline-none focus:ring-2 focus:ring-(--color-focus)"
+            style={{
+              borderColor: 'var(--color-border-strong)',
+              backgroundColor: 'var(--color-surface)',
+              color: 'var(--color-ink)',
+            }}
+          >
+            <span aria-hidden="true">📄</span>
+            Generar expediente APPCC
+          </Link>
+        </RoleGuard>
       </div>
-      <h1
-        className="mt-2 text-3xl font-semibold leading-tight"
-        style={{ color: 'var(--color-ink)' }}
-      >
-        {selectedSummary?.name ?? 'Registrar lectura HACCP'}
-      </h1>
-      <p className="mt-1 text-sm" style={{ color: 'var(--color-mute)' }}>
-        {selectedSummary
-          ? `referencia ${selectedSummary.fsmsRef}`
-          : 'Elige un PCC para empezar a registrar la lectura.'}
-      </p>
 
       {/* Daily progress strip per j10.md §9 + audit L1-3: gives the Head
           Chef + Inspector the at-a-glance state ("¿estamos al día?") and
