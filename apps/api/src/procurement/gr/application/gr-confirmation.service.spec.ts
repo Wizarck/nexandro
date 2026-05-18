@@ -366,4 +366,91 @@ describe('GrConfirmationService (unit)', () => {
       await expect(svc.confirm(input)).rejects.toThrow();
     });
   });
+
+  describe('Sprint 4 W3-5b — post-commit reconciliation hook', () => {
+    /**
+     * The hook is OPTIONAL — when the 4 reconciliation deps are
+     * present and the GR is PO-linked, the hook runs detect + persist
+     * AFTER the transaction commits. We exercise the wiring with a
+     * stub detector that returns one fake row + a stub repo that
+     * records create() calls.
+     */
+
+    function makeServiceWithReconciliation(opts: {
+      detectorRows?: unknown[];
+      throwOnFind?: boolean;
+    }): {
+      svc: GrConfirmationService;
+      created: unknown[];
+    } {
+      process.env.M3_PO_AGGREGATE_ENABLED = 'true';
+      const created: unknown[] = [];
+      const mockPoRepo = {
+        findById: jest.fn(async () => {
+          if (opts.throwOnFind) throw new Error('boom-po');
+          return { id: 'po-1', organizationId: orgId, poNumber: 'PO-1', currency: 'EUR' };
+        }),
+      } as unknown as ConstructorParameters<typeof GrConfirmationService>[6];
+      const mockPoLineRepo = {
+        findByPo: jest.fn(async () => []),
+      } as unknown as ConstructorParameters<typeof GrConfirmationService>[7];
+      const mockDetector = {
+        detect: jest.fn(() => opts.detectorRows ?? []),
+      } as unknown as ConstructorParameters<typeof GrConfirmationService>[8];
+      const mockReconRepo = {
+        create: jest.fn(async (row: unknown) => {
+          created.push(row);
+          return row;
+        }),
+      } as unknown as ConstructorParameters<typeof GrConfirmationService>[9];
+
+      const noopPoStateMachine: PoStateMachineLike = {
+        transitionFromGrConfirmation: jest.fn(async () => {}),
+      };
+
+      const svc = new GrConfirmationService(
+        mockDataSource,
+        mockGrRepo,
+        mockGrLineRepo,
+        mockLotRepo,
+        emitter,
+        noopPoStateMachine,
+        mockPoRepo,
+        mockPoLineRepo,
+        mockDetector,
+        mockReconRepo,
+      );
+      return { svc, created };
+    }
+
+    it('persists each Reconciliation row returned by the detector (PO-linked GR)', async () => {
+      const fakeRecon = { id: 'r-1', state: 'abierta' };
+      const { svc, created } = makeServiceWithReconciliation({
+        detectorRows: [fakeRecon],
+      });
+      const out = await svc.confirm(poLinkedGrInput());
+      expect(out.state).toBe('confirmed');
+      expect(created).toEqual([fakeRecon]);
+    });
+
+    it('does NOT run the hook for an independent (no-PO) GR', async () => {
+      const { svc, created } = makeServiceWithReconciliation({
+        detectorRows: [{ id: 'r-1' }],
+      });
+      const out = await svc.confirm(independentGrInput(1));
+      expect(out.state).toBe('confirmed');
+      // Independent GR has poId=null, so the hook is short-circuited
+      // before reaching the detector. No rows persisted.
+      expect(created).toEqual([]);
+    });
+
+    it('swallows a detector/persist failure — GR still returns confirmed', async () => {
+      const { svc, created } = makeServiceWithReconciliation({
+        throwOnFind: true,
+      });
+      const out = await svc.confirm(poLinkedGrInput());
+      expect(out.state).toBe('confirmed');
+      expect(created).toEqual([]);
+    });
+  });
 });

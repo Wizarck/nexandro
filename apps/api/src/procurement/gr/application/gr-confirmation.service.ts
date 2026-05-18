@@ -1,10 +1,14 @@
 import { randomUUID } from 'node:crypto';
-import { Inject, Injectable, Optional } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource, EntityManager } from 'typeorm';
 import { Lot } from '../../../inventory/lot/domain/lot.entity';
 import { LotRepository } from '../../../inventory/lot/application/lot.repository';
+import { PurchaseOrderRepository } from '../../po/infrastructure/purchase-order.repository';
+import { PurchaseOrderLineRepository } from '../../po/infrastructure/purchase-order-line.repository';
+import { DiscrepancyDetectorService } from '../../reconciliation/application/discrepancy-detector.service';
+import { ReconciliationRepository } from '../../reconciliation/infrastructure/reconciliation.repository';
 import { GoodsReceipt } from '../domain/goods-receipt.entity';
 import { GoodsReceiptLine } from '../domain/goods-receipt-line.entity';
 import {
@@ -83,6 +87,8 @@ export const PO_STATE_MACHINE_TOKEN = 'PO_STATE_MACHINE';
  */
 @Injectable()
 export class GrConfirmationService {
+  private readonly logger = new Logger(GrConfirmationService.name);
+
   constructor(
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly grRepo: GoodsReceiptRepository,
@@ -92,6 +98,22 @@ export class GrConfirmationService {
     @Optional()
     @Inject(PO_STATE_MACHINE_TOKEN)
     private readonly poStateMachine: PoStateMachineLike | null,
+    /**
+     * Sprint 4 W3-5b — optional reconciliation seam. Marked @Optional so
+     * the GR spec (which doesn't wire these) and any historic test
+     * harness keep compiling. When the three deps are present the
+     * service runs detect+persist AFTER the GR transaction commits;
+     * failures are logged + swallowed so a transient detector hiccup
+     * cannot take down the GR write that just succeeded.
+     */
+    @Optional()
+    private readonly poRepo: PurchaseOrderRepository | null = null,
+    @Optional()
+    private readonly poLineRepo: PurchaseOrderLineRepository | null = null,
+    @Optional()
+    private readonly detector: DiscrepancyDetectorService | null = null,
+    @Optional()
+    private readonly reconciliationRepo: ReconciliationRepository | null = null,
   ) {}
 
   /**
@@ -132,8 +154,15 @@ export class GrConfirmationService {
       throw new PoAggregateNotEnabledError();
     }
 
-    // Run all DB mutations inside a single transaction.
-    return this.dataSource.transaction(async (manager) => {
+    // Run all DB mutations inside a single transaction. We capture
+    // `committedHeader` + `committedLines` outside the closure so the
+    // post-commit reconciliation hook can read them without
+    // re-querying. They're populated INSIDE the transaction and read
+    // only AFTER the closure resolves successfully (no torn reads).
+    let committedHeader: GoodsReceipt | null = null;
+    let committedLines: GoodsReceiptLine[] = [];
+
+    const result = await this.dataSource.transaction(async (manager) => {
       // Step 2 — over-receipt accumulator check (only for PO-linked lines).
       await this.assertWithinOverReceiptTolerance(validated, manager);
 
@@ -218,14 +247,79 @@ export class GrConfirmationService {
       );
       this.emitEvents(finalGrId, validated, confirmedLines, varianceEvents);
 
+      // Capture the committed snapshot for the post-commit reconciliation
+      // hook. These locals exist OUTSIDE the txn closure but are read
+      // only after the closure resolves successfully (on throw, the
+      // outer await rejects and the hook never runs).
+      committedHeader = header;
+      committedLines = lineEntities;
+
       return {
         grId: finalGrId,
         organizationId: validated.organizationId,
-        state: 'confirmed',
+        state: 'confirmed' as const,
         lines: confirmedLines,
         varianceEvents,
       };
     });
+
+    // Sprint 4 W3-5b — post-commit reconciliation hook. Runs ONLY when:
+    //   - the GR was PO-linked (independent GRs have nothing to
+    //     reconcile against), AND
+    //   - every Reconciliation dep is wired (the seam is @Optional so
+    //     existing GR-only specs keep compiling).
+    // Failures are logged + swallowed because the GR row is already
+    // persisted; a transient detector hiccup must NOT propagate as a
+    // 500 to a goods-receipt that just succeeded.
+    await this.maybeRunReconciliation(committedHeader, committedLines);
+
+    return result;
+  }
+
+  private async maybeRunReconciliation(
+    header: GoodsReceipt | null,
+    lines: GoodsReceiptLine[],
+  ): Promise<void> {
+    if (
+      header === null ||
+      header.poId === null ||
+      this.poRepo === null ||
+      this.poLineRepo === null ||
+      this.detector === null ||
+      this.reconciliationRepo === null
+    ) {
+      return;
+    }
+    try {
+      const po = await this.poRepo.findById(header.organizationId, header.poId);
+      if (po === null) {
+        return;
+      }
+      const poLines = await this.poLineRepo.findByPo(
+        header.organizationId,
+        header.poId,
+      );
+      const reconciliations = this.detector.detect({
+        po,
+        poLines,
+        gr: header,
+        grLines: lines,
+      });
+      for (const recon of reconciliations) {
+        await this.reconciliationRepo.create(recon);
+      }
+      if (reconciliations.length > 0) {
+        this.logger.log(
+          `reconciliation.detected gr=${header.id} count=${reconciliations.length}`,
+        );
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      this.logger.error(
+        `reconciliation.detect-or-persist.failed gr=${header.id} ${msg}`,
+      );
+      // Intentionally swallow — GR is already committed.
+    }
   }
 
   /**

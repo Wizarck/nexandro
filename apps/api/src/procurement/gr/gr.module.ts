@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { InventoryModule } from '../../inventory/inventory.module';
+import { PoModule } from '../po/po.module';
+import { ReconciliationModule } from '../reconciliation/reconciliation.module';
 import { GoodsReceipt } from './domain/goods-receipt.entity';
 import { GoodsReceiptLine } from './domain/goods-receipt-line.entity';
 import { GoodsReceiptRepository } from './application/gr.repository';
@@ -26,6 +28,12 @@ import { GrController } from './interface/gr.controller';
   imports: [
     TypeOrmModule.forFeature([GoodsReceipt, GoodsReceiptLine]),
     InventoryModule,
+    // Sprint 4 W3-5b: PoModule exposes PurchaseOrder* repos consumed by
+    // the post-commit reconciliation hook; ReconciliationModule exposes
+    // the detector + reconciliation repo. Both modules are leaf modules
+    // (no back-reference to GrModule) so no circular-import risk.
+    PoModule,
+    ReconciliationModule,
   ],
   controllers: [GrController],
   providers: [
