@@ -10,6 +10,10 @@ import { OwnerOrgSettingsScreen } from './screens/OwnerOrgSettingsScreen';
 import { OwnerSettingsShell } from './screens/settings/OwnerSettingsShell';
 import { OwnerBusinessSection } from './screens/settings/OwnerBusinessSection';
 import { OwnerPrivacySection } from './screens/settings/OwnerPrivacySection';
+import { OwnerAgentCredentialsSection } from './screens/settings/OwnerAgentCredentialsSection';
+import { OwnerLocationsSection } from './screens/settings/OwnerLocationsSection';
+import { OwnerUsersSection } from './screens/settings/OwnerUsersSection';
+import { OwnerCatalogSection } from './screens/settings/OwnerCatalogSection';
 import { OnboardingWizard } from './screens/onboarding/OnboardingWizard';
 import { OnboardingBusinessStep } from './screens/onboarding/steps/OnboardingBusinessStep';
 import { OnboardingPlaceholderStep } from './screens/onboarding/steps/OnboardingPlaceholderStep';
@@ -52,7 +56,13 @@ const router = createBrowserRouter([
           // Default: redirect to Negocio (audit L2-1).
           { index: true, element: <Navigate to="/owner-settings/negocio" replace /> },
           { path: 'negocio', element: <OwnerBusinessSection /> },
+          // Sprint 3 Block B — 4 Settings-críticos surfaces wiring existing
+          // backend controllers that had no FE representation (audit 2026-05-18).
+          { path: 'sedes', element: <OwnerLocationsSection /> },
+          { path: 'equipo', element: <OwnerUsersSection /> },
+          { path: 'catalogo', element: <OwnerCatalogSection /> },
           { path: 'etiquetas', element: <OwnerOrgSettingsScreen /> },
+          { path: 'ia', element: <OwnerAgentCredentialsSection /> },
           { path: 'privacidad', element: <OwnerPrivacySection /> },
         ],
       },

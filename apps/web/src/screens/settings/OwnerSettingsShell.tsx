@@ -3,24 +3,20 @@ import { RoleGuard } from '@nexandro/ui-kit';
 import { useCurrentRole } from '../../lib/currentUser';
 
 /**
- * Settings shell per audit 2026-05-18 L2-1.
- *
- * Was: single screen /owner-settings rendered just the label-printing form,
- * which created an IA mismatch ("Configuración" nav → "Configuración de
- * etiquetas" page) and silently hid 90 % of the surfaces the Owner role
- * promises (per personas-jtbd.md §2 RBAC: org settings, users & roles,
- * billing, locations, integrations).
- *
- * Now: left-nav shell with 3 ship-able sections and 4 "Próximamente" rows.
- * Honest about what's in scope today + what's coming.
+ * Settings shell per audit 2026-05-18 L2-1, extended in Sprint 3 Block B
+ * with the 4 Settings-críticos surfaces (audit 2026-05-18 backend gap —
+ * 4 controllers had zero frontend representation).
  *
  *   Negocio       — identity (name, locale, timezone, currency)
+ *   Sedes         — `/locations/*` CRUD                        [Block B]
+ *   Equipo        — `/users/*` list + provision                 [Block B]
+ *   Catálogo      — `/categories/*` + `/uom` read-only          [Block B]
  *   Etiquetas     — the existing LabelFieldsForm
- *   Privacidad    — GDPR placeholders (DPO, retention, export, delete)
- *   ⊘ Sedes       — next slice (multi-venue)
- *   ⊘ Usuarios    — next slice (R8 real auth + invite flow)
+ *   IA            — `/agent-credentials/*` MCP attribution      [Block B]
+ *   Privacidad    — GDPR core (DPO, retention, export, delete)
  *   ⊘ Facturación — Enterprise tier, R10
  *   ⊘ Integraciones — Telemetría OTLP advanced; POS hooks
+ *   ⊘ Avanzado: IA — relocated AI-obs dashboard inspector
  */
 export function OwnerSettingsShell() {
   const role = useCurrentRole();
