@@ -6,7 +6,18 @@
 export const LABEL_PAGE_SIZES = ['a4', 'thermal-4x6', 'thermal-50x80'] as const;
 export type LabelPageSize = (typeof LABEL_PAGE_SIZES)[number];
 
-export const PRINT_ADAPTER_IDS = ['ipp'] as const;
+/**
+ * Print adapter IDs the SETTINGS UI exposes.
+ *
+ * - `ipp` — server-side dispatch to a CUPS / IPP printer URL. Unattended.
+ * - `system` — client-side print via `window.print()` against the browser's
+ *   OS print dialog. The Owner picks any printer their laptop already sees
+ *   (USB, AirPrint, network) without nexandro needing to discover anything.
+ *
+ * `system` deliberately has no `config` fields — the OS dialog handles the
+ * selection. Saved value: `{ id: 'system', config: {} }`.
+ */
+export const PRINT_ADAPTER_IDS = ['ipp', 'system'] as const;
 export type PrintAdapterId = (typeof PRINT_ADAPTER_IDS)[number];
 
 export interface LabelFieldsContactInfo {

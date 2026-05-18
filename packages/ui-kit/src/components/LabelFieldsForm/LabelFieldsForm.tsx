@@ -266,7 +266,9 @@ export function LabelFieldsForm({
                 ...v,
                 printAdapter: {
                   id: e.target.value,
-                  config: v.printAdapter?.config ?? {},
+                  // Clear adapter config when switching kinds — IPP fields
+                  // don't apply to system, and vice versa.
+                  config: {},
                 },
               }))
             }
@@ -275,64 +277,92 @@ export function LabelFieldsForm({
           >
             {PRINT_ADAPTER_IDS.map((id) => (
               <option key={id} value={id}>
-                {id.toUpperCase()}
+                {labelForPrintAdapter(id)}
               </option>
             ))}
           </select>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="sm:col-span-2">
-            <label className={labelCls} htmlFor="lf-adapter-url">URL del servidor IPP</label>
-            <input
-              id="lf-adapter-url"
-              type="url"
-              value={String(values.printAdapter?.config?.url ?? '')}
-              onChange={(e) => updateAdapterConfig('url', e.target.value)}
-              className={inputCls}
-              aria-invalid={Boolean(fieldError('printAdapter.config.url'))}
-              placeholder="ipp://printer.local:631/printers/labels"
-            />
-            {fieldError('printAdapter.config.url') && (
-              <p className={errorCls}>{fieldError('printAdapter.config.url')}</p>
-            )}
+        {(values.printAdapter?.id ?? 'ipp') === 'ipp' && (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label className={labelCls} htmlFor="lf-adapter-url">URL del servidor IPP</label>
+              <input
+                id="lf-adapter-url"
+                type="url"
+                value={String(values.printAdapter?.config?.url ?? '')}
+                onChange={(e) => updateAdapterConfig('url', e.target.value)}
+                className={inputCls}
+                aria-invalid={Boolean(fieldError('printAdapter.config.url'))}
+                placeholder="ipp://printer.local:631/printers/labels"
+              />
+              {fieldError('printAdapter.config.url') && (
+                <p className={errorCls}>{fieldError('printAdapter.config.url')}</p>
+              )}
+            </div>
+            <div>
+              <label className={labelCls} htmlFor="lf-adapter-queue">Cola</label>
+              <input
+                id="lf-adapter-queue"
+                type="text"
+                maxLength={100}
+                value={String(values.printAdapter?.config?.queue ?? '')}
+                onChange={(e) => updateAdapterConfig('queue', e.target.value)}
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className={labelCls} htmlFor="lf-adapter-timeout">Timeout (ms)</label>
+              <input
+                id="lf-adapter-timeout"
+                type="number"
+                min={100}
+                max={60000}
+                value={String(values.printAdapter?.config?.timeoutMs ?? '')}
+                onChange={(e) => updateAdapterConfig('timeoutMs', e.target.value)}
+                className={inputCls}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className={labelCls} htmlFor="lf-adapter-key">API key</label>
+              <input
+                id="lf-adapter-key"
+                type="password"
+                maxLength={200}
+                value={String(values.printAdapter?.config?.apiKey ?? '')}
+                onChange={(e) => updateAdapterConfig('apiKey', e.target.value)}
+                className={inputCls}
+                autoComplete="off"
+              />
+            </div>
           </div>
-          <div>
-            <label className={labelCls} htmlFor="lf-adapter-queue">Cola</label>
-            <input
-              id="lf-adapter-queue"
-              type="text"
-              maxLength={100}
-              value={String(values.printAdapter?.config?.queue ?? '')}
-              onChange={(e) => updateAdapterConfig('queue', e.target.value)}
-              className={inputCls}
-            />
+        )}
+
+        {(values.printAdapter?.id ?? 'ipp') === 'system' && (
+          <p className="rounded-md bg-(--color-bg) p-3 text-sm text-mute">
+            Las etiquetas se imprimirán abriendo el diálogo de impresión del navegador.
+            Elige cualquier impresora que tu sistema ya reconozca (USB, AirPrint, red).
+            No requiere configuración adicional.
+          </p>
+        )}
+
+        {!disabled && (
+          <div className="flex justify-start">
+            <button
+              type="button"
+              onClick={() => openSystemPrintPreview(values)}
+              className={cn(
+                'inline-flex items-center gap-2 rounded-md border border-border-strong bg-surface',
+                'px-4 py-2 text-sm font-medium text-ink shadow-sm',
+                'transition hover:bg-(--color-bg) hover:shadow-md active:translate-y-px',
+                'focus:outline-none focus:ring-2 focus:ring-(--color-focus) focus:ring-offset-2 focus:ring-offset-(--color-bg)',
+              )}
+            >
+              <span aria-hidden="true">🖨️</span>
+              Imprimir etiqueta de prueba
+            </button>
           </div>
-          <div>
-            <label className={labelCls} htmlFor="lf-adapter-timeout">Timeout (ms)</label>
-            <input
-              id="lf-adapter-timeout"
-              type="number"
-              min={100}
-              max={60000}
-              value={String(values.printAdapter?.config?.timeoutMs ?? '')}
-              onChange={(e) => updateAdapterConfig('timeoutMs', e.target.value)}
-              className={inputCls}
-            />
-          </div>
-          <div className="sm:col-span-2">
-            <label className={labelCls} htmlFor="lf-adapter-key">API key</label>
-            <input
-              id="lf-adapter-key"
-              type="password"
-              maxLength={200}
-              value={String(values.printAdapter?.config?.apiKey ?? '')}
-              onChange={(e) => updateAdapterConfig('apiKey', e.target.value)}
-              className={inputCls}
-              autoComplete="off"
-            />
-          </div>
-        </div>
+        )}
       </fieldset>
 
       {!disabled && (
@@ -378,6 +408,98 @@ function labelForPageSize(size: LabelPageSize): string {
     case 'thermal-50x80':
       return 'Térmica 50×80 mm';
   }
+}
+
+function labelForPrintAdapter(id: string): string {
+  switch (id) {
+    case 'ipp':
+      return 'IPP / CUPS (servidor de impresión)';
+    case 'system':
+      return 'Impresora del sistema (diálogo del navegador)';
+    default:
+      return id.toUpperCase();
+  }
+}
+
+/**
+ * Opens a small popup window with a sample label rendered from the current
+ * form values and immediately fires `window.print()` so the OS print dialog
+ * appears. Independent of the saved `printAdapter.id` so the Owner can
+ * preview what a system-print would look like before switching.
+ *
+ * Falls back to alert() if the popup is blocked.
+ */
+function openSystemPrintPreview(values: LabelFieldsFormValues): void {
+  if (typeof window === 'undefined') return;
+  const w = window.open('', 'nexandro-label-preview', 'width=420,height=360');
+  if (!w) {
+    alert(
+      'No se pudo abrir la vista previa de impresión: tu navegador bloqueó la ventana emergente. ' +
+        'Permite ventanas emergentes para nexandro.palafitofood.com e inténtalo de nuevo.',
+    );
+    return;
+  }
+  const businessName = values.businessName?.trim() || 'Mi negocio';
+  const addrParts = [
+    values.postalAddress?.street,
+    values.postalAddress?.postalCode,
+    values.postalAddress?.city,
+    values.postalAddress?.country,
+  ].filter((p): p is string => Boolean(p && p.trim()));
+  const contactParts = [values.contactInfo?.phone, values.contactInfo?.email].filter(
+    (p): p is string => Boolean(p && p.trim()),
+  );
+  const brand = values.brandMarkUrl?.trim() ?? '';
+  w.document.write(`<!doctype html>
+<html lang="es"><head>
+  <meta charset="utf-8" />
+  <title>Etiqueta de prueba — ${escapeHtml(businessName)}</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 16px; color: #1a1a1a; }
+    .label { border: 1px solid #1a1a1a; padding: 12px 14px; max-width: 360px; }
+    .brand { max-height: 32px; max-width: 120px; margin-bottom: 6px; display: block; }
+    h1 { font-size: 13pt; margin: 0 0 4px; }
+    p { font-size: 9pt; margin: 2px 0; line-height: 1.3; }
+    .footnote { font-size: 7.5pt; color: #555; margin-top: 8px; }
+    @media print {
+      @page { margin: 0; }
+      body { padding: 0; }
+      .label { border-color: #000; }
+    }
+  </style>
+</head><body>
+  <div class="label">
+    ${brand ? `<img class="brand" src="${escapeAttr(brand)}" alt="" onerror="this.style.display='none'" />` : ''}
+    <h1>${escapeHtml(businessName)}</h1>
+    <p><strong>Etiqueta de prueba</strong></p>
+    ${addrParts.length > 0 ? `<p>${escapeHtml(addrParts.join(', '))}</p>` : ''}
+    ${contactParts.length > 0 ? `<p>${escapeHtml(contactParts.join(' · '))}</p>` : ''}
+    <p class="footnote">nexandro — prueba de impresión del sistema</p>
+  </div>
+  <script>
+    window.addEventListener('load', () => {
+      setTimeout(() => { try { window.print(); } catch (e) {} }, 100);
+    });
+  </script>
+</body></html>`);
+  w.document.close();
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => {
+    switch (c) {
+      case '&': return '&amp;';
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      case '"': return '&quot;';
+      case "'": return '&#39;';
+      default: return c;
+    }
+  });
+}
+
+function escapeAttr(s: string): string {
+  return escapeHtml(s);
 }
 
 /**
