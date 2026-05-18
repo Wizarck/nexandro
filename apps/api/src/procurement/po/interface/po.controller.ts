@@ -1,9 +1,18 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  ParseUUIDPipe,
+  Query,
+} from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { IsUUID } from 'class-validator';
 import { Roles } from '../../../shared/decorators/roles.decorator';
 import { PurchaseOrderRepository } from '../infrastructure/purchase-order.repository';
+import { PurchaseOrderLineRepository } from '../infrastructure/purchase-order-line.repository';
 import { PurchaseOrder } from '../domain/purchase-order.entity';
+import { PurchaseOrderLine } from '../domain/purchase-order-line.entity';
 
 /**
  * GET /m3/procurement/po — minimum-viable read surface for the j11
@@ -45,10 +54,41 @@ export interface PoListResponseDto {
   total: number;
 }
 
+export class PoDetailQueryDto {
+  @IsUUID()
+  organizationId!: string;
+}
+
+export interface PoLineResponseDto {
+  id: string;
+  lineNumber: number;
+  ingredientId: string;
+  quantityOrdered: number;
+  unit: string;
+  unitPrice: number;
+  vatRate: number;
+  vatInclusive: boolean;
+  lineSubtotal: number;
+  lineVat: number;
+  lineTotal: number;
+}
+
+export interface PoDetailResponseDto extends PoListItemResponseDto {
+  subtotal: number;
+  vatTotal: number;
+  notes: string | null;
+  sentAt: string | null;
+  closedAt: string | null;
+  lines: PoLineResponseDto[];
+}
+
 @ApiTags('procurement')
 @Controller('m3/procurement/po')
 export class PoController {
-  constructor(private readonly poRepo: PurchaseOrderRepository) {}
+  constructor(
+    private readonly poRepo: PurchaseOrderRepository,
+    private readonly lineRepo: PurchaseOrderLineRepository,
+  ) {}
 
   @Get()
   @Roles('OWNER', 'MANAGER')
@@ -68,6 +108,38 @@ export class PoController {
       total: rows.length,
     };
   }
+
+  /**
+   * Detail surface for the j11 PO drawer (Sprint 4 W3-1).
+   *
+   * Returns the PO header + all lines for the drawer's lines table.
+   * Multi-tenant gate enforced at the repository layer (both findById and
+   * findByPo take organizationId as the first parameter).
+   *
+   * FOLLOWUP: enrich with supplier display name + address + the audit-log
+   * aggregate badge once the j11 audit chip lands. Today the drawer pulls
+   * supplier id only; the operator UI can resolve the display name via the
+   * suppliers list payload it already holds in cache.
+   */
+  @Get(':id')
+  @Roles('OWNER', 'MANAGER')
+  @ApiOperation({
+    summary:
+      'Get a single purchase order with its lines (j11 PO detail drawer).',
+  })
+  async detail(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Query() query: PoDetailQueryDto,
+  ): Promise<PoDetailResponseDto> {
+    const po = await this.poRepo.findById(query.organizationId, id);
+    if (po === null) {
+      throw new NotFoundException(
+        `PurchaseOrder ${id} not found for organization ${query.organizationId}.`,
+      );
+    }
+    const lines = await this.lineRepo.findByPo(query.organizationId, id);
+    return toDetailDto(po, lines);
+  }
 }
 
 function toItemDto(po: PurchaseOrder): PoListItemResponseDto {
@@ -82,5 +154,36 @@ function toItemDto(po: PurchaseOrder): PoListItemResponseDto {
       ? po.expectedDeliveryDate.toISOString().slice(0, 10)
       : null,
     createdAt: po.createdAt.toISOString(),
+  };
+}
+
+function toLineDto(line: PurchaseOrderLine): PoLineResponseDto {
+  return {
+    id: line.id,
+    lineNumber: line.lineNumber,
+    ingredientId: line.ingredientId,
+    quantityOrdered: line.quantityOrdered,
+    unit: line.unit,
+    unitPrice: line.unitPrice,
+    vatRate: line.vatRate,
+    vatInclusive: line.vatInclusive,
+    lineSubtotal: line.lineSubtotal,
+    lineVat: line.lineVat,
+    lineTotal: line.lineTotal,
+  };
+}
+
+function toDetailDto(
+  po: PurchaseOrder,
+  lines: PurchaseOrderLine[],
+): PoDetailResponseDto {
+  return {
+    ...toItemDto(po),
+    subtotal: po.subtotal,
+    vatTotal: po.vatTotal,
+    notes: po.notes,
+    sentAt: po.sentAt ? po.sentAt.toISOString() : null,
+    closedAt: po.closedAt ? po.closedAt.toISOString() : null,
+    lines: lines.map(toLineDto),
   };
 }

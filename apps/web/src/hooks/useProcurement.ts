@@ -1,11 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '../api/client';
 import {
+  cancelPurchaseOrder,
+  closePurchaseOrder,
   getGoodsReceipts,
+  getPurchaseOrderById,
   getPurchaseOrders,
   getReconciliations,
   resolveReconciliation,
   type GrListResponse,
+  type PoDetail,
   type PoListResponse,
   type ReconciliationListItem,
   type ReconciliationListResponse,
@@ -30,6 +34,53 @@ export function usePurchaseOrders(orgId: string | undefined) {
     },
     enabled: !!orgId,
     staleTime: STALE_30_S,
+  });
+}
+
+/**
+ * PO detail (Sprint 4 W3-1) — owns its own fetch so the drawer can mount
+ * independently of the list. Returns null query if id is missing.
+ */
+export function usePurchaseOrder(
+  orgId: string | undefined,
+  id: string | null,
+) {
+  return useQuery<PoDetail, ApiError>({
+    queryKey: ['procurement', 'po', orgId, id],
+    queryFn: () => {
+      if (!orgId || !id) throw new Error('orgId+id required');
+      return getPurchaseOrderById(orgId, id);
+    },
+    enabled: !!orgId && !!id,
+    staleTime: STALE_30_S,
+  });
+}
+
+export function useCancelPo(orgId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation<PoDetail, ApiError, { id: string; reason: string }>({
+    mutationFn: ({ id, reason }) => {
+      if (!orgId) throw new Error('orgId required');
+      return cancelPurchaseOrder(orgId, id, reason);
+    },
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: ['procurement', 'po', orgId] });
+      qc.invalidateQueries({ queryKey: ['procurement', 'po', orgId, vars.id] });
+    },
+  });
+}
+
+export function useClosePo(orgId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation<PoDetail, ApiError, { id: string }>({
+    mutationFn: ({ id }) => {
+      if (!orgId) throw new Error('orgId required');
+      return closePurchaseOrder(orgId, id);
+    },
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: ['procurement', 'po', orgId] });
+      qc.invalidateQueries({ queryKey: ['procurement', 'po', orgId, vars.id] });
+    },
   });
 }
 
