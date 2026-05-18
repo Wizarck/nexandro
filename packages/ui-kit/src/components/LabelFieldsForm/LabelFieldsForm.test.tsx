@@ -64,6 +64,69 @@ describe('LabelFieldsForm', () => {
     render(<LabelFieldsForm onSubmit={vi.fn()} disabled />);
     expect(screen.queryByRole('button', { name: /Guardar/ })).not.toBeInTheDocument();
   });
+
+  it('hides IPP-specific fields when "system" adapter is selected', () => {
+    render(
+      <LabelFieldsForm
+        initialValues={{ printAdapter: { id: 'system', config: {} } }}
+        onSubmit={vi.fn()}
+      />,
+    );
+    expect(screen.queryByLabelText('URL del servidor IPP')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Cola')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Timeout (ms)')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('API key')).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/Las etiquetas se imprimirán abriendo el diálogo de impresión/),
+    ).toBeInTheDocument();
+  });
+
+  it('switching adapter to system clears prior IPP config from saved payload', () => {
+    const onSubmit = vi.fn();
+    render(
+      <LabelFieldsForm
+        initialValues={{
+          printAdapter: { id: 'ipp', config: { url: 'ipp://x', queue: 'q' } },
+        }}
+        onSubmit={onSubmit}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText('Tipo de impresora'), { target: { value: 'system' } });
+    fireEvent.click(screen.getByRole('button', { name: /Guardar cambios/ }));
+    const submitted = onSubmit.mock.calls[0][0];
+    expect(submitted.printAdapter).toEqual({ id: 'system', config: {} });
+  });
+
+  it('test-print button opens a popup window with the form values and triggers print', () => {
+    const printSpy = vi.fn();
+    const closeSpy = vi.fn();
+    const writeCalls: string[] = [];
+    const fakeWindow = {
+      document: { write: (s: string) => writeCalls.push(s), close: vi.fn() },
+      addEventListener: vi.fn(),
+      print: printSpy,
+      close: closeSpy,
+    };
+    const openSpy = vi
+      .spyOn(window, 'open')
+      .mockImplementation(() => fakeWindow as unknown as Window);
+
+    render(
+      <LabelFieldsForm
+        initialValues={{
+          businessName: 'Trattoria Acme',
+          postalAddress: { street: 'Calle 1', city: 'Madrid', postalCode: '28001', country: 'ES' },
+        }}
+        onSubmit={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Imprimir etiqueta de prueba/ }));
+
+    expect(openSpy).toHaveBeenCalled();
+    expect(writeCalls.join('')).toContain('Trattoria Acme');
+    expect(writeCalls.join('')).toContain('Calle 1');
+    openSpy.mockRestore();
+  });
 });
 
 describe('sanitize()', () => {
