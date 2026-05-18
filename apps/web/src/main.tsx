@@ -16,7 +16,7 @@ import { OwnerUsersSection } from './screens/settings/OwnerUsersSection';
 import { OwnerCatalogSection } from './screens/settings/OwnerCatalogSection';
 import { OnboardingWizard } from './screens/onboarding/OnboardingWizard';
 import { OnboardingBusinessStep } from './screens/onboarding/steps/OnboardingBusinessStep';
-import { OnboardingPlaceholderStep } from './screens/onboarding/steps/OnboardingPlaceholderStep';
+import { OnboardingRedirectStep } from './screens/onboarding/steps/OnboardingRedirectStep';
 import { OnboardingComplete } from './screens/onboarding/OnboardingComplete';
 import { Navigate } from 'react-router-dom';
 import { RecipeBuilderJ1Screen } from './screens/RecipeBuilderJ1Screen';
@@ -155,43 +155,51 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/onboarding/negocio" replace /> },
       { path: 'negocio', element: <OnboardingBusinessStep /> },
+      // Sprint 4 W1-C (2026-05-18): steps 2-5 were Sprint 1 placeholders
+      // ("próximamente"). Now that Sprint 3 Block B landed sedes / equipo /
+      // catalogo and Block A promoted /recipes out of /poc/*, each step
+      // hands off to the real surface via OnboardingRedirectStep.
       {
         path: 'sede',
         element: (
-          <OnboardingPlaceholderStep
+          <OnboardingRedirectStep
             step={2}
             promise="Crear tu sede principal (nombre, dirección, tipo: restaurante / dark kitchen / bar / catering)."
-            pending="Multi-sede aterriza con la próxima slice (Configuración → Sedes)."
+            targetPath="/owner-settings/sedes"
+            targetLabel="Sedes"
           />
         ),
       },
       {
         path: 'categorias',
         element: (
-          <OnboardingPlaceholderStep
+          <OnboardingRedirectStep
             step={3}
             promise="Elegir entre la taxonomía por defecto (35 categorías traducidas), arrancar vacío, o importar desde CSV."
-            pending="La taxonomía por defecto ya viene sembrada en demo. La elección explícita llega cuando se incorpore el flujo no-demo."
+            targetPath="/owner-settings/catalogo"
+            targetLabel="Catálogo"
           />
         ),
       },
       {
         path: 'administrador',
         element: (
-          <OnboardingPlaceholderStep
+          <OnboardingRedirectStep
             step={4}
             promise="Invitar a tu jefe de cocina y a tu equipo (rol OWNER / MANAGER / STAFF) por email."
-            pending="Autenticación real + invitaciones (R8 del roadmap) aterriza después. Hoy demo-mode auto-login."
+            targetPath="/owner-settings/equipo"
+            targetLabel="Equipo"
           />
         ),
       },
       {
         path: 'primer-plato',
         element: (
-          <OnboardingPlaceholderStep
+          <OnboardingRedirectStep
             step={5}
             promise="Crear tu primer ingrediente + proveedor + precio y ver el coste por gramo en vivo (el 'aha moment' de personas-jtbd.md §3.5)."
-            pending="La pantalla de ingredientes existe pero el guiado in-line del wizard llega con la siguiente iteración. Mientras tanto, salta aquí y entra por la barra superior."
+            targetPath="/recipes"
+            targetLabel="Escandallos"
           />
         ),
       },

@@ -79,11 +79,13 @@ const NAV_GROUPS: ReadonlyArray<NavGroup> = [
   {
     label: 'Configuración',
     items: [
-      // Audit v2 E-1: "IA: gasto" demoted out of top-nav per roundtable
-      // ("Roberto-persona doesn't read tokens/models"). Surface stays
-      // accessible at /ai-obs/dashboard for power users + admins; moved
-      // into Configuración → Avanzado: IA (próximamente) so it has a home.
       { to: '/owner-settings', label: 'Configuración', roles: ['OWNER'] },
+      // Sprint 4 W1-6 (2026-05-18): re-promoted per Master directive
+      // (override of audit v2 E-1, which had demoted this out of top-nav
+      // arguing "Roberto-persona doesn't read tokens/models"). Master
+      // overrides: Owner+Manager DO need a direct entry to gasto IA in
+      // top-nav. Surface itself (AiObsDashboardScreen) is unchanged.
+      { to: '/ai-obs/dashboard', label: 'IA: gasto', roles: ['OWNER', 'MANAGER'] },
     ],
   },
 ];

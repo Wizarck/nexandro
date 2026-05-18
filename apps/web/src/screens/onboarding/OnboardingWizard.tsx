@@ -4,11 +4,16 @@ import { Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-route
  * Onboarding wizard shell per personas-jtbd.md §3 + audit 2026-05-18 L2-3.
  *
  * 5 steps mirror the discovery spec:
- *   1. Negocio       (Org name / currency / locale / timezone) — LIVE
- *   2. Sede          (first venue) — stub, próximamente
- *   3. Taxonomía     (default 35-row seed) — uses existing seed, presents the choice
- *   4. Administrador (invite Owner user) — stub, próximamente (needs R8 auth)
- *   5. Primer plato  (deep-link to ingredients screen) — stub, próximamente
+ *   1. Negocio       (Org name / currency / locale / timezone) — LIVE inline
+ *   2. Sede          (first venue) — LIVE via redirect to /owner-settings/sedes
+ *   3. Taxonomía     (default 35-row seed) — LIVE via redirect to /owner-settings/catalogo
+ *   4. Administrador (invite Owner user) — LIVE via redirect to /owner-settings/equipo
+ *   5. Primer plato  (deep-link to ingredients) — LIVE via redirect to /recipes
+ *
+ * Sprint 4 W1-C (2026-05-18): steps 2-5 were Sprint 1 placeholders ("pronto").
+ * After Sprint 3 Block B landed the backing surfaces (sedes / equipo /
+ * catalogo) and Sprint 3 Block A promoted /recipes out of /poc/*, every
+ * step now hands off to a real surface via `OnboardingRedirectStep`.
  *
  * Route shape: `/onboarding/{1,2,3,4,5}/...`. Direct deep-links allowed.
  * Default `/onboarding` redirects to step 1.
@@ -44,28 +49,28 @@ export const ONBOARDING_STEPS: ReadonlyArray<OnboardingStep> = [
     slug: 'sede',
     label: 'Tu primera sede',
     description: 'La ubicación física de tu cocina.',
-    status: 'placeholder',
+    status: 'live',
   },
   {
     num: 3,
     slug: 'categorias',
     label: 'Categorías de ingredientes',
     description: 'Usa la taxonomía por defecto (35 categorías) o empieza vacío.',
-    status: 'placeholder',
+    status: 'live',
   },
   {
     num: 4,
     slug: 'administrador',
     label: 'Tu equipo',
     description: 'Invita a tu jefe de cocina y a tu equipo.',
-    status: 'placeholder',
+    status: 'live',
   },
   {
     num: 5,
     slug: 'primer-plato',
     label: 'Primer plato',
     description: '1 ingrediente + 1 proveedor + 1 precio = coste por porción en vivo.',
-    status: 'placeholder',
+    status: 'live',
   },
 ];
 
