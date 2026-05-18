@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useResolveReconciliation } from '../../../hooks/useProcurement';
 import type {
   ReconciliationDiff,
@@ -230,6 +231,7 @@ export function ReconciliationDrawer({
               testId={`reconciliation-action-${a.key}`}
             />
           ))}
+          <AuditChip reconciliationId={row.id} />
         </footer>
 
         {confirmAction !== null && (
@@ -600,6 +602,57 @@ function DiffRowCells({ row }: { row: DiffRow }) {
  * demands, never less. The exact €500 calculation will land when the
  * detector denormalises unit_price into every diff payload (followup).
  */
+/**
+ * Sprint 4 W3-8 — audit chip per row.
+ *
+ * Renders an `audit_log AL-2026-NNNNNN · ver chain →` chip in the
+ * drawer footer that deep-links to /audit-log?aggregate_id={recon.id}.
+ *
+ * `AL-2026-NNNNNN` is a friendly synthetic label derived from the
+ * reconciliation UUID (first 6 hex chars uppercased). The real audit
+ * envelope id is not denormalised onto the reconciliation row today —
+ * /audit-log filters by aggregate_id so the link still lands on the
+ * exact chain of events for this reconciliation.
+ *
+ * The "ver chain →" affordance is intentionally a plain text link
+ * (no button styling) — the action is navigation, not mutation, and
+ * the AuditLogScreen owns the actual drill-down experience.
+ */
+function AuditChip({ reconciliationId }: { reconciliationId: string }) {
+  const synthetic = buildSyntheticAuditLabel(reconciliationId);
+  const href = `/audit-log?aggregate_id=${encodeURIComponent(reconciliationId)}`;
+  return (
+    <div
+      data-testid="reconciliation-audit-chip"
+      className="flex items-center justify-between gap-2 rounded-md border border-border-strong bg-surface px-3 py-2 text-xs text-mute"
+    >
+      <span className="font-mono">
+        audit_log <span className="text-ink">{synthetic}</span>
+      </span>
+      <Link
+        to={href}
+        data-testid="reconciliation-audit-chip-link"
+        className="text-(--color-accent) underline hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-(--color-focus)"
+      >
+        ver chain →
+      </Link>
+    </div>
+  );
+}
+
+/**
+ * Build the `AL-2026-NNNNNN` display label from a UUID. We take the
+ * first 6 hex chars of the id (case-insensitive) and uppercase them
+ * so two reconciliations rarely share a label. The year segment is
+ * hard-coded to the current civil year since reconciliations are
+ * scoped to ops-recent activity (no historical browse use case yet).
+ */
+function buildSyntheticAuditLabel(id: string): string {
+  const hex = id.replace(/-/g, '').slice(0, 6).toUpperCase();
+  const year = new Date().getUTCFullYear();
+  return `AL-${year}-${hex}`;
+}
+
 function isMaterialDiscrepancy(row: ReconciliationListItem): boolean {
   if (row.discrepancyType === 'producto') return true;
   if (row.discrepancyType === 'lote-no-conforme') return true;

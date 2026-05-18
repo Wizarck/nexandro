@@ -8,6 +8,7 @@ import {
   createPurchaseOrder,
   getGoodsReceiptDetail,
   getGoodsReceipts,
+  getProcurementCounts,
   getPurchaseOrderById,
   getPurchaseOrders,
   getReconciliations,
@@ -22,6 +23,8 @@ import {
   type PoDetail,
   type PoListFilters,
   type PoListResponse,
+  type ProcurementCounts,
+  type ReconciliationListFilters,
   type ReconciliationListItem,
   type ReconciliationListResponse,
   type ResolveReconciliationPayload,
@@ -225,12 +228,49 @@ export function useConfirmGrLine(
   });
 }
 
-export function useReconciliation(orgId: string | undefined) {
+export function useReconciliation(
+  orgId: string | undefined,
+  filters: ReconciliationListFilters = {},
+) {
+  // Cache key includes filters so each chip combination is its own
+  // cache entry. Sort to keep key stable when callers pass arrays in
+  // a different order (e.g. set-iteration vs sorted UI state).
+  const states = [...(filters.states ?? [])].sort();
+  const discrepancyTypes = [...(filters.discrepancyTypes ?? [])].sort();
+  const supplierIds = [...(filters.supplierIds ?? [])].sort();
   return useQuery<ReconciliationListResponse, ApiError>({
-    queryKey: ['procurement', 'reconciliation', orgId],
+    queryKey: [
+      'procurement',
+      'reconciliation',
+      orgId,
+      { states, discrepancyTypes, supplierIds },
+    ],
     queryFn: () => {
       if (!orgId) throw new Error('orgId required');
-      return getReconciliations(orgId);
+      return getReconciliations(orgId, {
+        states: states.length > 0 ? states : undefined,
+        discrepancyTypes:
+          discrepancyTypes.length > 0 ? discrepancyTypes : undefined,
+        supplierIds: supplierIds.length > 0 ? supplierIds : undefined,
+      });
+    },
+    enabled: !!orgId,
+    staleTime: STALE_30_S,
+  });
+}
+
+/**
+ * Sprint 4 W3-10 — tab counters. One light call surfaces the 3 counts
+ * the ProcurementScreen header chips need. Stale time matches the list
+ * queries; resolves cascade-invalidate the count via the mutation
+ * `onSuccess` below.
+ */
+export function useProcurementCounts(orgId: string | undefined) {
+  return useQuery<ProcurementCounts, ApiError>({
+    queryKey: ['procurement', 'counts', orgId],
+    queryFn: () => {
+      if (!orgId) throw new Error('orgId required');
+      return getProcurementCounts(orgId);
     },
     enabled: !!orgId,
     staleTime: STALE_30_S,
@@ -257,6 +297,11 @@ export function useResolveReconciliation(orgId: string | undefined) {
     onSuccess: () => {
       qc.invalidateQueries({
         queryKey: ['procurement', 'reconciliation', orgId],
+      });
+      // W3-10: resolving a reconciliation drops it out of the "abierta"
+      // count, so the tab counter chip needs a refresh too.
+      qc.invalidateQueries({
+        queryKey: ['procurement', 'counts', orgId],
       });
     },
   });

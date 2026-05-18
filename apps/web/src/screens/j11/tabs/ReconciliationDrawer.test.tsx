@@ -268,6 +268,56 @@ describe('ReconciliationDrawer (Sprint 4 W3-6)', () => {
     ).toBeNull();
   });
 
+  it('W3-8: audit chip is rendered in the footer with a synthetic AL- label', async () => {
+    vi.mocked(useCurrentRole).mockReturnValue('OWNER');
+    vi.mocked(useCurrentOrgId).mockReturnValue('org-1');
+
+    renderRecon([
+      buildRow({ id: 'abcdef12-3456-4789-8abc-def012345678' }),
+    ]);
+
+    fireEvent.click(await screen.findByTestId('reconciliation-row'));
+
+    const chip = await screen.findByTestId('reconciliation-audit-chip');
+    expect(chip).toBeInTheDocument();
+    // Label format = AL-YYYY-NNNNNN where NNNNNN is first 6 hex chars
+    // of the recon UUID, uppercased.
+    expect(chip.textContent).toContain('AL-');
+    expect(chip.textContent).toContain('ABCDEF');
+    expect(chip).toHaveTextContent('audit_log');
+
+    const link = screen.getByTestId('reconciliation-audit-chip-link');
+    expect(link.tagName).toBe('A');
+    expect(link).toHaveAttribute(
+      'href',
+      '/audit-log?aggregate_id=abcdef12-3456-4789-8abc-def012345678',
+    );
+    expect(link).toHaveTextContent('ver chain →');
+  });
+
+  it('W3-8: audit chip survives the resolved state (still visible after action)', async () => {
+    vi.mocked(useCurrentRole).mockReturnValue('OWNER');
+    vi.mocked(useCurrentOrgId).mockReturnValue('org-1');
+
+    renderRecon([
+      buildRow({
+        state: 'aceptada',
+        resolvedAt: '2026-05-18T11:00:00.000Z',
+        resolvedByUserId: 'user-1',
+        resolutionNotes: 'ok',
+      }),
+    ]);
+
+    fireEvent.click(await screen.findByTestId('reconciliation-row'));
+
+    expect(
+      await screen.findByTestId('reconciliation-audit-chip'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId('reconciliation-audit-chip-link'),
+    ).toHaveAttribute('href', '/audit-log?aggregate_id=recon-1');
+  });
+
   it('drawer with a resolved row shows the resolved note + disabled actions', async () => {
     vi.mocked(useCurrentRole).mockReturnValue('OWNER');
     vi.mocked(useCurrentOrgId).mockReturnValue('org-1');

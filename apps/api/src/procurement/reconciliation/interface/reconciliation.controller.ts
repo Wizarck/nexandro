@@ -12,8 +12,14 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import type { Request } from 'express';
+import { GoodsReceipt } from '../../gr/domain/goods-receipt.entity';
+import { PurchaseOrder } from '../../po/domain/purchase-order.entity';
 import {
+  ArrayMaxSize,
+  IsArray,
   IsIn,
   IsInt,
   IsOptional,
@@ -23,7 +29,7 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { Roles } from '../../../shared/decorators/roles.decorator';
 import { AuthenticatedUserPayload } from '../../../shared/guards/roles.guard';
 import { ReconciliationService } from '../application/reconciliation.service';
@@ -34,10 +40,27 @@ import {
 } from '../domain/errors';
 import {
   DISCREPANCY_TYPES,
+  DiscrepancyType,
   RECONCILIATION_STATES,
   Reconciliation,
   ReconciliationState,
 } from '../domain/reconciliation.entity';
+
+/**
+ * Coerce a query-string value into a string[] for the multi-select filter
+ * params. Express's qs parser already turns `?state[]=abierta&state[]=aceptada`
+ * into `['abierta','aceptada']`, but a single `?state=abierta` arrives as a
+ * scalar. Normalise both into an array (and drop empty strings) so the
+ * downstream validator sees a uniform shape.
+ */
+function toStringArray(raw: unknown): string[] | undefined {
+  if (raw === undefined || raw === null) return undefined;
+  const arr = Array.isArray(raw) ? raw : [raw];
+  const out = arr
+    .map((v) => (typeof v === 'string' ? v : String(v)))
+    .filter((s) => s.length > 0);
+  return out.length === 0 ? undefined : out;
+}
 
 /**
  * Query DTO for GET /m3/procurement/reconciliation.
@@ -46,7 +69,15 @@ import {
  * can render the "abierta" counter alongside the resolved history.
  * `state=abierta` is the explicit default the frontend sends for the
  * tab landing view.
+ *
+ * Sprint 4 W3-9: adds multi-value `state[]`, `discrepancyType[]`, and
+ * `supplierIds[]` filters consumed by the reconciliation filter-chip
+ * group. Singular `state` retained for backward compatibility — if both
+ * arrive, the array form wins. Each list capped at 16 elements (UI
+ * surfaces ≤4 states + ≤4 types + ≤16 suppliers per multi-select).
  */
+const RECONCILIATION_FILTER_MAX = 16;
+
 export class ReconciliationListQueryDto {
   @IsUUID()
   organizationId!: string;
@@ -54,6 +85,27 @@ export class ReconciliationListQueryDto {
   @IsOptional()
   @IsIn(RECONCILIATION_STATES as unknown as string[])
   state?: ReconciliationState;
+
+  @IsOptional()
+  @Transform(({ value }) => toStringArray(value))
+  @IsArray()
+  @ArrayMaxSize(RECONCILIATION_FILTER_MAX)
+  @IsIn(RECONCILIATION_STATES as unknown as string[], { each: true })
+  states?: ReconciliationState[];
+
+  @IsOptional()
+  @Transform(({ value }) => toStringArray(value))
+  @IsArray()
+  @ArrayMaxSize(RECONCILIATION_FILTER_MAX)
+  @IsIn(DISCREPANCY_TYPES as unknown as string[], { each: true })
+  discrepancyTypes?: DiscrepancyType[];
+
+  @IsOptional()
+  @Transform(({ value }) => toStringArray(value))
+  @IsArray()
+  @ArrayMaxSize(RECONCILIATION_FILTER_MAX)
+  @IsUUID('4', { each: true })
+  supplierIds?: string[];
 
   @IsOptional()
   @Type(() => Number)
@@ -118,6 +170,30 @@ export interface ReconciliationListResponseDto {
 }
 
 /**
+ * Sprint 4 W3-10 — counter chip payload for the j11 ProcurementScreen
+ * tabs. One round-trip; each count is independent so a failure in one
+ * source does not block the others (e.g. if PO repo throws, the
+ * endpoint still returns the recon + gr counts).
+ *
+ *  - poActive    : PurchaseOrder.state IN ('sent','partially_received')
+ *  - grPending   : GoodsReceipt.state = 'draft'
+ *  - reconOpen   : Reconciliation.state = 'abierta'
+ *
+ * Bucket choices mirror the operator's "needs action" surface per
+ * docs/ux/j11.md §4-6 — confirmed/closed/resolved rows are NOT counted.
+ */
+export interface ProcurementCountsResponseDto {
+  poActive: number;
+  grPending: number;
+  reconOpen: number;
+}
+
+export class ProcurementCountsQueryDto {
+  @IsUUID()
+  organizationId!: string;
+}
+
+/**
  * REST surface for the j11 Reconciliación tab (docs/ux/j11.md §6).
  *
  * Replaces the placeholder controller shipped in PR #218 (Sprint 3
@@ -146,7 +222,13 @@ export interface ReconciliationListResponseDto {
 @ApiTags('procurement')
 @Controller('m3/procurement/reconciliation')
 export class ReconciliationController {
-  constructor(private readonly service: ReconciliationService) {}
+  constructor(
+    private readonly service: ReconciliationService,
+    @InjectRepository(GoodsReceipt)
+    private readonly grRepo: Repository<GoodsReceipt>,
+    @InjectRepository(PurchaseOrder)
+    private readonly poRepo: Repository<PurchaseOrder>,
+  ) {}
 
   @Get()
   @Roles('OWNER', 'MANAGER')
@@ -157,8 +239,18 @@ export class ReconciliationController {
   async list(
     @Query() query: ReconciliationListQueryDto,
   ): Promise<ReconciliationListResponseDto> {
+    // Array `states` filter takes precedence over singular `state` (W3-9).
+    // When the operator picks multi-state chips the frontend always uses
+    // the array form; the singular surface is retained for the legacy
+    // `?state=abierta` default-tab GET only.
+    const stateFilter: ReconciliationState | ReconciliationState[] | undefined =
+      query.states !== undefined && query.states.length > 0
+        ? query.states
+        : query.state;
     const rows = await this.service.list(query.organizationId, {
-      state: query.state,
+      state: stateFilter,
+      discrepancyTypes: query.discrepancyTypes,
+      supplierIds: query.supplierIds,
       limit: query.limit ?? 50,
       offset: query.offset ?? 0,
     });
@@ -166,6 +258,47 @@ export class ReconciliationController {
       items: rows.map(toItemDto),
       total: rows.length,
     };
+  }
+
+  /**
+   * Sprint 4 W3-10 — tab-counter aggregator. Three independent COUNT
+   * queries run in parallel; the response collapses all three so the
+   * j11 ProcurementScreen header only takes one HTTP round-trip.
+   *
+   * Lives on the reconciliation controller (not a new top-level
+   * `procurement.counts` controller) because the reconciliation count
+   * is the only one we already had infrastructure for; the PO + GR
+   * counts are direct `Repository.count(...)` calls so we do NOT pull
+   * GrModule or PoModule into ReconciliationModule. Entities are
+   * registered in `ReconciliationModule`'s `TypeOrmModule.forFeature`
+   * to side-step the circular-import risk (GrModule already imports
+   * ReconciliationModule).
+   */
+  @Get('counts')
+  @Roles('OWNER', 'MANAGER')
+  @ApiOperation({
+    summary:
+      'Tab counters for the j11 Procurement shell (PO active · GR pending · Recon open).',
+  })
+  async counts(
+    @Query() query: ProcurementCountsQueryDto,
+  ): Promise<ProcurementCountsResponseDto> {
+    const [poActive, grPending, reconOpen] = await Promise.all([
+      this.poRepo.count({
+        where: [
+          { organizationId: query.organizationId, state: 'sent' },
+          {
+            organizationId: query.organizationId,
+            state: 'partially_received',
+          },
+        ],
+      }),
+      this.grRepo.count({
+        where: { organizationId: query.organizationId, state: 'draft' },
+      }),
+      this.service.countOpen(query.organizationId),
+    ]);
+    return { poActive, grPending, reconOpen };
   }
 
   @Post(':id/resolve')

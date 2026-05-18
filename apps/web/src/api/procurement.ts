@@ -372,13 +372,48 @@ export interface ReconciliationListResponse {
   total: number;
 }
 
+/**
+ * Optional multi-value filters consumed by the j11 Reconciliación tab
+ * filter-chip group (Sprint 4 W3-9). Empty arrays are skipped — they are
+ * semantically identical to "no chip picked", and the backend treats
+ * them the same way.
+ */
+export interface ReconciliationListFilters {
+  states?: ReconciliationState[];
+  discrepancyTypes?: ReconciliationDiscrepancyType[];
+  supplierIds?: string[];
+}
+
 export async function getReconciliations(
   organizationId: string,
+  filters: ReconciliationListFilters = {},
 ): Promise<ReconciliationListResponse> {
-  const qs = new URLSearchParams({ organizationId }).toString();
+  const qs = new URLSearchParams({ organizationId });
+  for (const s of filters.states ?? []) qs.append('states[]', s);
+  for (const d of filters.discrepancyTypes ?? []) qs.append('discrepancyTypes[]', d);
+  for (const id of filters.supplierIds ?? []) qs.append('supplierIds[]', id);
   return api<ReconciliationListResponse>(
-    `/m3/procurement/reconciliation?${qs}`,
+    `/m3/procurement/reconciliation?${qs.toString()}`,
   );
+}
+
+/**
+ * Sprint 4 W3-10 — tab-counter response. One light call surfaces the
+ * 3 procurement tab badges (PO active · GR pending · Recon open) so
+ * the j11 ProcurementScreen header reflects current ops volume without
+ * mounting all three tabs.
+ */
+export interface ProcurementCounts {
+  poActive: number;
+  grPending: number;
+  reconOpen: number;
+}
+
+export async function getProcurementCounts(
+  organizationId: string,
+): Promise<ProcurementCounts> {
+  const qs = new URLSearchParams({ organizationId }).toString();
+  return api<ProcurementCounts>(`/m3/procurement/reconciliation/counts?${qs}`);
 }
 
 export interface ResolveReconciliationPayload {

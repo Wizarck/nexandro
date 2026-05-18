@@ -34,13 +34,17 @@ function makeRecon(overrides: Partial<Reconciliation> = {}): Reconciliation {
 function buildService(): {
   svc: ReconciliationService;
   repo: jest.Mocked<
-    Pick<ReconciliationRepository, 'listByOrg' | 'findById' | 'resolve'>
+    Pick<
+      ReconciliationRepository,
+      'listByOrg' | 'findById' | 'resolve' | 'countByOrg'
+    >
   >;
 } {
   const repo = {
     listByOrg: jest.fn(),
     findById: jest.fn(),
     resolve: jest.fn(),
+    countByOrg: jest.fn(),
   };
   const svc = new ReconciliationService(repo as unknown as ReconciliationRepository);
   return { svc, repo: repo as never };
@@ -71,6 +75,32 @@ describe('ReconciliationService', () => {
         limit: 50,
         offset: 10,
       });
+    });
+
+    it('forwards multi-value state/discrepancyTypes/supplierIds (W3-9)', async () => {
+      const { svc, repo } = buildService();
+      repo.listByOrg.mockResolvedValue([]);
+      const supplier = '99999999-9999-4999-8999-999999999999';
+      await svc.list(ORG, {
+        state: ['abierta', 'aceptada'],
+        discrepancyTypes: ['cantidad', 'precio'],
+        supplierIds: [supplier],
+      });
+      expect(repo.listByOrg).toHaveBeenCalledWith(ORG, {
+        state: ['abierta', 'aceptada'],
+        discrepancyTypes: ['cantidad', 'precio'],
+        supplierIds: [supplier],
+      });
+    });
+  });
+
+  describe('countOpen (W3-10)', () => {
+    it('delegates to repo with state=abierta', async () => {
+      const { svc, repo } = buildService();
+      repo.countByOrg.mockResolvedValue(7);
+      const result = await svc.countOpen(ORG);
+      expect(result).toBe(7);
+      expect(repo.countByOrg).toHaveBeenCalledWith(ORG, { state: 'abierta' });
     });
   });
 
