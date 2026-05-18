@@ -90,7 +90,10 @@ export function LabelFieldsForm({
   );
   const fieldsetCls = 'space-y-3 rounded-lg border border-border-subtle p-5';
   const legendCls = 'ml-2 px-2 text-sm font-semibold text-ink';
-  const labelCls = 'block text-xs font-medium uppercase tracking-wide text-mute';
+  // Sentence case labels per DESIGN.md §3 anti-reflex "No all-caps body
+  // text" + audit 2026-05-18 L3-2. Was: text-xs font-medium uppercase
+  // tracking-wide text-mute (read as a tax form).
+  const labelCls = 'mb-1 block text-sm font-medium text-mute';
   const errorCls = 'text-xs text-(--color-danger-fg) mt-1';
 
   const fieldError = (key: string): string | undefined => errors[key];

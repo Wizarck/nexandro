@@ -6,7 +6,6 @@ import {
   ExtractedFieldList,
   HitlQueueList,
   PhotoViewer,
-  TransparencyBanner,
   type CorrectionsHistoryEntry,
   type CorrectionsHistoryFieldDiff,
   type ExtractedField,
@@ -186,7 +185,24 @@ function Inner({
         Cola de revisión · {queueRows.length} elementos
       </h1>
 
-      <TransparencyBanner />
+      {/* Per j12.md §1 + audit 2026-05-18: this surface is Carmen's (Head
+          Chef), not Marta's (APPCC inspector). The j9 TransparencyBanner
+          (audit_log / capítulo 0) is verbatim-locked for the compliance-
+          export bundle; here we need the EU AI Act HITL operator-trust
+          paragraph instead. Inline so the j9 banner stays unmodified. */}
+      <p
+        role="note"
+        className="my-4 rounded-r-md border-l-4 px-5 py-3 text-sm italic"
+        style={{
+          backgroundColor: 'var(--color-surface)',
+          borderLeftColor: 'var(--color-accent)',
+          color: 'var(--color-mute)',
+        }}
+      >
+        nexandro pide tu revisión humana sólo cuando la extracción del modelo está entre
+        60 % y 85 % de confianza. Por encima del 85 %, autocompleta; por debajo del 60 %,
+        marca el campo para entrada manual. Esto cumple con el iron-rule HITL del EU AI Act.
+      </p>
 
       <BulkReviewChips scope={scope} onChange={setScope} />
 

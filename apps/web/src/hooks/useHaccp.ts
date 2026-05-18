@@ -29,11 +29,15 @@ import { ApiError } from '../api/client';
 
 const STALE_30_S = 30_000;
 
+// Per audit 2026-05-18 L0-1: CCP labels MUST follow the org's defaultLocale.
+// The seed-data labels below were mixed English/Spanish ("Cooling curve",
+// "Hot-hold") which is unparseable for the Line Cook persona (low tech
+// comfort, oily fingers, 30-second target). Real-kitchen Spanish vocabulary.
 const DEMO_CCPS: CcpSummary[] = [
   {
     id: 'ccp-cooling-curve',
     organizationId: 'org-demo',
-    name: 'Cooling curve · cámara entrante',
+    name: 'Curva de enfriamiento · cámara de entrantes',
     fsmsRef: 'FSMS-2026-v2',
     inputType: 'numeric',
     spec: { min: -2, max: 2, unit: '°C' },
@@ -46,7 +50,7 @@ const DEMO_CCPS: CcpSummary[] = [
   {
     id: 'ccp-hot-hold',
     organizationId: 'org-demo',
-    name: 'Hot-hold ensalada',
+    name: 'Mantenimiento en caliente · ensaladas',
     fsmsRef: 'FSMS-2026-v2',
     inputType: 'numeric',
     spec: { min: 60, max: 75, unit: '°C' },
@@ -54,7 +58,7 @@ const DEMO_CCPS: CcpSummary[] = [
   {
     id: 'ccp-cleaning-fish',
     organizationId: 'org-demo',
-    name: 'Cleaning · pase pescado',
+    name: 'Limpieza · pase de pescado',
     fsmsRef: 'FSMS-2026-v2',
     inputType: 'checkbox',
   },

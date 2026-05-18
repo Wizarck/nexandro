@@ -44,8 +44,11 @@ export function AiObsDashboardScreen() {
         className="text-2xl font-semibold text-(--color-ink)"
         style={{ color: 'var(--color-ink)' }}
       >
-        AI Observability
+        Coste y salud de la IA
       </h2>
+      <p className="text-sm text-(--color-mute)" style={{ color: 'var(--color-mute)' }}>
+        Cuánto te cuesta la IA este mes y si está fallando.
+      </p>
       <RoleGuard
         role={['OWNER', 'MANAGER']}
         currentRole={role}
@@ -268,8 +271,14 @@ function Inner({ orgId }: { orgId: string }) {
       {/* Blast radius (wide) */}
       <BlastRadiusCard models={o.blastRadius} />
 
-      {/* OTLP banner */}
-      <OtlpBanner exporter={o.otlpExporter} />
+      {/* OTLP banner — dev-only. Per audit 2026-05-18 the exporter URL
+          (e.g. http://localhost:4318) and gen_ai.* span jargon are
+          operator-hostile and a least-privilege leak. Hidden unless
+          VITE_NEXANDRO_DEV=true so the surface stays operator-shaped in
+          prod; future home is Configuración → Avanzado → Telemetría. */}
+      {String(import.meta.env.VITE_NEXANDRO_DEV ?? '').toLowerCase() === 'true' && (
+        <OtlpBanner exporter={o.otlpExporter} />
+      )}
     </>
   );
 }

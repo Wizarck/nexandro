@@ -30,14 +30,14 @@ export function OwnerDashboardScreen() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
       <header className="mb-6">
-        <h1 className="text-2xl font-semibold text-ink">Owner dashboard</h1>
+        <h1 className="text-2xl font-semibold text-ink">Panel del propietario</h1>
         <p className="text-sm text-mute">
-          Top + bottom-5 MenuItems by margin in the last 7 days. Tap a card to inspect the full
-          margin breakdown.
+          Los 5 platos con mejor y peor margen de los últimos 7 días. Toca una tarjeta para ver el
+          detalle del margen.
         </p>
         {!orgId && (
           <p className="mt-2 text-sm text-mute">
-            Pass <code>?organizationId=&lt;uuid&gt;</code> in the URL or set{' '}
+            Añade <code>?organizationId=&lt;uuid&gt;</code> a la URL o define{' '}
             <code>VITE_DEMO_ORG_ID</code>.
           </p>
         )}

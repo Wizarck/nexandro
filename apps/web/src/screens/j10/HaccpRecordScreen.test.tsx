@@ -77,7 +77,7 @@ describe('HaccpRecordScreen', () => {
     );
     renderWithClient();
     await waitFor(() =>
-      expect(screen.getByText('Cooling curve · cámara entrante')).toBeInTheDocument(),
+      expect(screen.getByText('Curva de enfriamiento · cámara de entrantes')).toBeInTheDocument(),
     );
   });
 
@@ -115,9 +115,9 @@ describe('HaccpRecordScreen', () => {
 
     // Pick the cooling curve CCP.
     await waitFor(() =>
-      expect(screen.getByText('Cooling curve · cámara entrante')).toBeInTheDocument(),
+      expect(screen.getByText('Curva de enfriamiento · cámara de entrantes')).toBeInTheDocument(),
     );
-    fireEvent.click(screen.getByText('Cooling curve · cámara entrante'));
+    fireEvent.click(screen.getByText('Curva de enfriamiento · cámara de entrantes'));
 
     // Reading input mounts. Type an out-of-spec value.
     const input = await screen.findByLabelText('Valor de la lectura');
@@ -174,9 +174,9 @@ describe('HaccpRecordScreen', () => {
     renderWithClient();
 
     await waitFor(() =>
-      expect(screen.getByText('Cooling curve · cámara entrante')).toBeInTheDocument(),
+      expect(screen.getByText('Curva de enfriamiento · cámara de entrantes')).toBeInTheDocument(),
     );
-    fireEvent.click(screen.getByText('Cooling curve · cámara entrante'));
+    fireEvent.click(screen.getByText('Curva de enfriamiento · cámara de entrantes'));
 
     const input = await screen.findByLabelText('Valor de la lectura');
     fireEvent.change(input, { target: { value: '1.2' } });
@@ -205,9 +205,9 @@ describe('HaccpRecordScreen', () => {
 
     renderWithClient();
     await waitFor(() =>
-      expect(screen.getByText('Cooling curve · cámara entrante')).toBeInTheDocument(),
+      expect(screen.getByText('Curva de enfriamiento · cámara de entrantes')).toBeInTheDocument(),
     );
-    fireEvent.click(screen.getByText('Cooling curve · cámara entrante'));
+    fireEvent.click(screen.getByText('Curva de enfriamiento · cámara de entrantes'));
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toBeInTheDocument();

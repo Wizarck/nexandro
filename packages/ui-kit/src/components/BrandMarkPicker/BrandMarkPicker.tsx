@@ -174,7 +174,7 @@ export function BrandMarkPicker({
 
       {!disabled && (
         <div>
-          <label className="block text-xs font-medium uppercase tracking-wide text-mute" htmlFor="bmp-url">
+          <label className="mb-1 block text-sm font-medium text-mute" htmlFor="bmp-url">
             …o pega una URL externa
           </label>
           <input
