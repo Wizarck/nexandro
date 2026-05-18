@@ -23,6 +23,7 @@ import { IngredientsModule } from './ingredients/ingredients.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { CostSnapshotModule } from './inventory/cost/snapshot/cost-snapshot.module';
 import { LabelsModule } from './labels/labels.module';
+import { LlmCredentialsModule } from './llm-credentials/llm-credentials.module';
 import { MenusModule } from './menus/menus.module';
 import { PhotoStorageModule } from './photo-storage/photo-storage.module';
 import { PrivacyModule } from './privacy/privacy.module';
@@ -137,6 +138,16 @@ import { SharedModule } from './shared/shared.module';
 
     // M2 labels (m2-labels-rendering — EU 1169/2011 PDF + PrintAdapter abstraction).
     LabelsModule,
+
+    // Sprint 4 W2-1a — m4-byo-llm-provider-key: per-org BYO LLM provider
+    // API key registry. Owner-only REST surface under
+    // `/organizations/:orgId/llm-credentials`. The cleartext API key is
+    // AES-256-GCM-encrypted at the boundary and never echoed back. Requires
+    // the `LLM_CREDENTIALS_ENCRYPTION_KEY` env var (32-byte hex) — the
+    // module's `EncryptionService` constructor will throw at boot if
+    // missing or malformed, so the failure mode is "container refuses to
+    // start" rather than silent fallback.
+    LlmCredentialsModule,
 
     // Brand-mark uploads (Owner settings UX — Master review 2026-05-18).
     // Storage adapter env-gated: `NEXANDRO_BRAND_ASSET_STORAGE=local` (default,
