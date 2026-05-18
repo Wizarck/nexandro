@@ -22,6 +22,7 @@ import { OnboardingWizard } from './screens/onboarding/OnboardingWizard';
 import { OnboardingBusinessStep } from './screens/onboarding/steps/OnboardingBusinessStep';
 import { OnboardingRedirectStep } from './screens/onboarding/steps/OnboardingRedirectStep';
 import { OnboardingComplete } from './screens/onboarding/OnboardingComplete';
+import { InvitationAcceptScreen } from './screens/onboarding/InvitationAcceptScreen';
 import { Navigate } from 'react-router-dom';
 import { RecipeBuilderJ1Screen } from './screens/RecipeBuilderJ1Screen';
 import { CostInvestigationJ2Screen } from './screens/CostInvestigationJ2Screen';
@@ -219,6 +220,13 @@ const router = createBrowserRouter([
       },
       { path: 'listo', element: <OnboardingComplete /> },
     ],
+  },
+  // Sprint 4 W2-2b — invitation accept landing for unauthenticated invitees.
+  // OUTSIDE App so there's no top-nav competing with the persona's eye
+  // (same treatment as the wizard). Token is the auth — no RoleGuard.
+  {
+    path: '/onboarding/invitation/:token',
+    element: <InvitationAcceptScreen />,
   },
 ]);
 
