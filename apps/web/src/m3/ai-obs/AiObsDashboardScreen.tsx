@@ -40,6 +40,30 @@ export function AiObsDashboardScreen() {
   const orgId = useCurrentOrgId();
   return (
     <div className="mx-auto max-w-7xl space-y-4 px-6 py-6">
+      {/* Audit v3 P0-5: surface was demoted from top-nav in PR #207 E-1
+          per Owner-persona feedback ("doesn't read tokens/models"). The
+          route stays alive for power users + bookmarks, but anyone landing
+          here directly gets a banner pointing to where it now lives. */}
+      <div
+        role="note"
+        className="rounded-md border-l-4 px-4 py-3 text-sm"
+        style={{
+          backgroundColor: 'var(--color-surface)',
+          borderLeftColor: 'var(--color-accent)',
+          color: 'var(--color-ink)',
+        }}
+      >
+        <strong className="font-semibold">Vista preliminar · en revisión.</strong>{' '}
+        Esta pantalla detalla métricas técnicas de la IA. Su entrada principal vive ahora en{' '}
+        <a
+          href="/owner-settings"
+          className="underline decoration-(--color-accent) underline-offset-2 hover:text-(--color-accent)"
+          style={{ color: 'var(--color-accent-press)' }}
+        >
+          Configuración → Avanzado: IA
+        </a>{' '}
+        (próximamente con vista resumida orientada a coste mensual €).
+      </div>
       <h2
         className="text-2xl font-semibold text-(--color-ink)"
         style={{ color: 'var(--color-ink)' }}

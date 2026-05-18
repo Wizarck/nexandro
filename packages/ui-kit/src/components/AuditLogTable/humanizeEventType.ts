@@ -46,6 +46,9 @@ const TABLE: Record<string, EventDescriptor> = {
   RECIPE_UPDATED: { label: 'Receta · modificada', category: 'recetas' },
   RECIPE_COST_REBUILT: { label: 'Receta · coste recalculado', category: 'recetas' },
   RECIPE_ALLERGENS_OVERRIDE_CHANGED: { label: 'Receta · alérgenos sobrescritos', category: 'recetas' },
+  // Audit v3 P0-2: 3 enums that slipped through PR #203 humanization.
+  RECIPE_SOURCE_OVERRIDE_CHANGED: { label: 'Receta · proveedor sobrescrito', category: 'recetas' },
+  RECIPE_INGREDIENT_UPDATED: { label: 'Receta · ingrediente modificado', category: 'recetas' },
   INGREDIENT_CREATED: { label: 'Ingrediente · creado', category: 'recetas' },
   INGREDIENT_UPDATED: { label: 'Ingrediente · modificado', category: 'recetas' },
   INGREDIENT_OVERRIDE_CHANGED: { label: 'Ingrediente · sobrescrito', category: 'recetas' },
@@ -53,6 +56,8 @@ const TABLE: Record<string, EventDescriptor> = {
   MENU_ITEM_UPDATED: { label: 'Plato · modificado', category: 'recetas' },
 
   // Compras / proveedores
+  // Audit v3 P0-2: SUPPLIER_PRICE_UPDATED added (was rendering as English fallback)
+  SUPPLIER_PRICE_UPDATED: { label: 'Proveedor · precio actualizado', category: 'compras' },
   PO_CREATED: { label: 'Pedido · creado', category: 'compras' },
   PO_SENT: { label: 'Pedido · enviado', category: 'compras' },
   PO_RECEIVED_PARTIAL: { label: 'Pedido · recibido parcial', category: 'compras' },

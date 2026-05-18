@@ -141,8 +141,11 @@ function CcpRow({ ccp, onSelect }: { ccp: Ccp; onSelect: () => void }) {
         <span className="ml-3 flex items-center gap-3">
           {dueLabel && (
             <span
-              className="rounded-pill border px-2 py-0.5 text-xs font-medium"
+              className="rounded-pill border-2 px-2 py-0.5 text-xs font-medium"
               style={{
+                // Audit v3 P0-1: 2px border (was 1px) so the amber chip pops
+                // against the cream surface on desktop. v3 roundtable measured
+                // ~1.5:1 contrast at 1px; bumping to 2px restores WCAG 3:1.
                 borderColor: severityColor ?? 'var(--color-border)',
                 color: severityColor ?? 'var(--color-mute)',
                 backgroundColor: severityBg,

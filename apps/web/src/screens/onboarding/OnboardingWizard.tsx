@@ -109,8 +109,11 @@ function SkipLink() {
 function Stepper() {
   const location = useLocation();
   return (
-    <nav aria-label="Progreso de la configuración" className="overflow-x-auto">
-      <ol className="flex min-w-max items-center gap-2">
+    // Audit v3 P0-3: was overflowing past the 1024px shell with badges.
+    // Tighter gap (gap-1) + reduced step padding (px-2.5) + scrollbar
+    // visible so the operator knows the queue continues if it ever does.
+    <nav aria-label="Progreso de la configuración" className="overflow-x-auto pb-1">
+      <ol className="flex min-w-max items-center gap-1">
         {ONBOARDING_STEPS.map((s) => {
           const to = `/onboarding/${s.slug}`;
           const active = location.pathname === to;
@@ -125,7 +128,7 @@ function Stepper() {
                 to={to}
                 aria-disabled={isPlaceholder ? 'true' : undefined}
                 className={[
-                  'flex items-center gap-2 rounded-md border px-3 py-2 text-sm transition',
+                  'flex items-center gap-2 rounded-md border px-2.5 py-2 text-sm transition',
                   'focus:outline-none focus:ring-2 focus:ring-(--color-focus)',
                   active
                     ? 'border-(--color-primary) bg-(--color-accent-soft) font-semibold text-ink'
@@ -148,8 +151,13 @@ function Stepper() {
                 </span>
                 <span className="hidden sm:inline">{s.label}</span>
                 {isPlaceholder && (
+                  // Audit v3 P0-3: was `hidden sm:inline` which dropped the
+                  // badge on mobile (the persona §1.1 is mobile-primary).
+                  // Now always-inline so Owner sees the roadmap signal on
+                  // every viewport. The label hides on mobile (the number
+                  // alone is enough), but the badge survives as a 9px pill.
                   <span
-                    className="hidden rounded-pill bg-(--color-warn-bg) px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide sm:inline"
+                    className="ml-1 rounded-pill bg-(--color-warn-bg) px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide"
                     style={{ color: 'var(--color-status-below-target-fg)' }}
                   >
                     pronto

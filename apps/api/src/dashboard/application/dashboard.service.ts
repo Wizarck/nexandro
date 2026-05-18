@@ -178,13 +178,18 @@ export class DashboardService {
   ): Promise<KpisResult> {
     const views = await this.menuItems.findAll(organizationId, { isActive: true });
     if (views.length === 0) {
+      // Audit v3 P0-6: cost was 0 (rendering "0,00 €") next to em-dashes
+      // for sales/margin — Owner read the asymmetry as "Coste connector
+      // works, the rest is broken". Honest stub: when there are no
+      // plates, NO KPI has data, so all four are null + note.
+      const noPlatesNote = 'Aún no hay platos activos. Crea platos para ver KPIs.';
       return {
         organizationId,
         windowDays,
         hasMenuItems: false,
-        sales: { valueEur: null, note: 'Aún no hay platos activos. Crea platos para ver KPIs.' },
-        cost: { valueEur: 0 },
-        marginEur: { valueEur: null, note: 'Disponible cuando haya platos con margen calculado.' },
+        sales: { valueEur: null, note: noPlatesNote },
+        cost: { valueEur: null, note: noPlatesNote },
+        marginEur: { valueEur: null, note: noPlatesNote },
         marginPct: { value: null },
         deltaVsPrev: null,
       };
