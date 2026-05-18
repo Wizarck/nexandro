@@ -5,18 +5,21 @@ import { useCurrentRole } from '../../lib/currentUser';
 /**
  * Settings shell per audit 2026-05-18 L2-1, extended in Sprint 3 Block B
  * with the 4 Settings-críticos surfaces (audit 2026-05-18 backend gap —
- * 4 controllers had zero frontend representation).
+ * 4 controllers had zero frontend representation) and in Sprint 4 W1-B with
+ * the 2 reference-data tabs (FSMS standards + External catalog).
  *
- *   Negocio       — identity (name, locale, timezone, currency)
- *   Sedes         — `/locations/*` CRUD                        [Block B]
- *   Equipo        — `/users/*` list + provision                 [Block B]
- *   Catálogo      — `/categories/*` + `/uom` read-only          [Block B]
- *   Etiquetas     — the existing LabelFieldsForm
- *   IA            — `/agent-credentials/*` MCP attribution      [Block B]
- *   Privacidad    — GDPR core (DPO, retention, export, delete)
- *   ⊘ Facturación — Enterprise tier, R10
- *   ⊘ Integraciones — Telemetría OTLP advanced; POS hooks
- *   ⊘ Avanzado: IA — relocated AI-obs dashboard inspector
+ *   Negocio          — identity (name, locale, timezone, currency)
+ *   Sedes            — `/locations/*` CRUD                        [Block B]
+ *   Equipo           — `/users/*` list + provision                [Block B]
+ *   Catálogo         — `/categories/*` + `/uom` read-only         [Block B]
+ *   Normativa HACCP  — `/m3/haccp/fsms-standards` read-only       [W1-B]
+ *   Catálogo externo — OFF mirror health + manual sync (Owner)    [W1-B]
+ *   Etiquetas        — the existing LabelFieldsForm
+ *   IA               — `/agent-credentials/*` MCP attribution     [Block B]
+ *   Privacidad       — GDPR core (DPO, retention, export, delete)
+ *   ⊘ Facturación    — Enterprise tier, R10
+ *   ⊘ Integraciones  — Telemetría OTLP advanced; POS hooks
+ *   ⊘ Avanzado: IA   — relocated AI-obs dashboard inspector
  */
 export function OwnerSettingsShell() {
   const role = useCurrentRole();
@@ -52,10 +55,15 @@ interface SectionLink {
 
 const SECTIONS: ReadonlyArray<SectionLink> = [
   { to: '/owner-settings/negocio', label: 'Negocio', enabled: true },
+  { to: '/owner-settings/sedes', label: 'Sedes', enabled: true },
+  { to: '/owner-settings/equipo', label: 'Equipo', enabled: true },
+  { to: '/owner-settings/catalogo', label: 'Catálogo', enabled: true },
+  // Sprint 4 W1-B — reference data tabs (read-only browse / mirror status).
+  { to: '/owner-settings/normativa-haccp', label: 'Normativa HACCP', enabled: true },
+  { to: '/owner-settings/catalogo-externo', label: 'Catálogo externo', enabled: true },
   { to: '/owner-settings/etiquetas', label: 'Etiquetas', enabled: true },
+  { to: '/owner-settings/ia', label: 'IA', enabled: true },
   { to: '/owner-settings/privacidad', label: 'Privacidad y datos', enabled: true },
-  { to: '/owner-settings/sedes', label: 'Sedes', enabled: false },
-  { to: '/owner-settings/usuarios', label: 'Usuarios y permisos', enabled: false },
   { to: '/owner-settings/facturacion', label: 'Facturación', enabled: false },
   { to: '/owner-settings/integraciones', label: 'Integraciones', enabled: false },
   // Audit v2 E-1: "IA: gasto" relocated from top-nav into Configuración.

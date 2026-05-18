@@ -14,6 +14,8 @@ import { OwnerAgentCredentialsSection } from './screens/settings/OwnerAgentCrede
 import { OwnerLocationsSection } from './screens/settings/OwnerLocationsSection';
 import { OwnerUsersSection } from './screens/settings/OwnerUsersSection';
 import { OwnerCatalogSection } from './screens/settings/OwnerCatalogSection';
+import { OwnerFsmsStandardsSection } from './screens/settings/OwnerFsmsStandardsSection';
+import { OwnerExternalCatalogSection } from './screens/settings/OwnerExternalCatalogSection';
 import { OnboardingWizard } from './screens/onboarding/OnboardingWizard';
 import { OnboardingBusinessStep } from './screens/onboarding/steps/OnboardingBusinessStep';
 import { OnboardingRedirectStep } from './screens/onboarding/steps/OnboardingRedirectStep';
@@ -62,6 +64,11 @@ const router = createBrowserRouter([
           { path: 'sedes', element: <OwnerLocationsSection /> },
           { path: 'equipo', element: <OwnerUsersSection /> },
           { path: 'catalogo', element: <OwnerCatalogSection /> },
+          // Sprint 4 W1-B — 2 reference-data tabs wiring controllers that had
+          // zero frontend representation (FSMS standards + OFF external
+          // catalog mirror health/sync).
+          { path: 'normativa-haccp', element: <OwnerFsmsStandardsSection /> },
+          { path: 'catalogo-externo', element: <OwnerExternalCatalogSection /> },
           { path: 'etiquetas', element: <OwnerOrgSettingsScreen /> },
           { path: 'ia', element: <OwnerAgentCredentialsSection /> },
           { path: 'privacidad', element: <OwnerPrivacySection /> },
