@@ -87,15 +87,21 @@ describe('ProcurementScreen (Sprint 3 Block C — j11 shell)', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: 'Recepciones' }));
 
+    // Sprint 4 W3-9: GrTab now defaults to `pendingOnly` so the empty
+    // state copy is scoped to "no pendientes" rather than the generic
+    // shell-era message.
     await waitFor(() =>
       expect(
-        screen.getByText('Aún no hay recepciones registradas'),
+        screen.getByText('No hay recepciones pendientes'),
       ).toBeInTheDocument(),
     );
     const grCalls = fetchMock.mock.calls.filter(([url]) =>
       String(url).includes('/m3/procurement/gr'),
     );
     expect(grCalls.length).toBeGreaterThan(0);
+    // The default filter must hit the API with the `pendingOnly` flag
+    // so the dock workflow lands on its working set on first paint.
+    expect(String(grCalls[0][0])).toContain('pendingOnly=true');
   });
 
   it('deep-link ?tab=recon lands on reconciliation tab + empty state', async () => {
