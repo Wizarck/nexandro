@@ -16,6 +16,13 @@ import {
  * same PR, with per-line edit fields (cantidad recibida · lote ·
  * caducidad) that submit through `useConfirmGrLine`.
  *
+ * Sprint 4 W3-8 layered: the footer now carries the
+ * `audit_log AL-2026-NNNNNN · ver chain →` chip linking to
+ * `/audit-log?aggregate_id={gr.id}` (j11 §"Notes for
+ * implementation"). The AL-short id slot mirrors the GR uuid suffix
+ * until the canonical short id is denormalised onto the detail
+ * payload (followup).
+ *
  * Backend integration note: the per-line confirm endpoint is a
  * documented followup (see `apps/web/src/api/procurement.ts`
  * `confirmGoodsReceiptLine`). The mutation surfaces the rejection in
@@ -123,11 +130,65 @@ function DrawerBody({ orgId, detail }: { orgId: string; detail: GrDetail }) {
       <HermesBanners detail={detail} />
       <HeaderFacts detail={detail} />
       <LinesList orgId={orgId} grId={detail.id} lines={detail.lines} />
-      <p className="pt-4 text-xs text-mute">
-        audit_log de la recepción · próximamente
-      </p>
+      <AuditChipFooter grId={detail.id} />
     </>
   );
+}
+
+/**
+ * Sprint 4 W3-8 — audit-chip footer linking the dock drawer to the
+ * canonical audit_log entry for this GR. Same pattern as M2-audit-log-ui
+ * (Wave 1.19): the link carries `aggregate_id` so the AuditLogScreen
+ * lands pre-filtered on the operator's GR.
+ *
+ * Copy lock per Master review on j11 §"Notes for implementation":
+ * `audit_log AL-2026-NNNNNN · ver chain →`. Today the GR detail payload
+ * does NOT yet expose the `AL-2026-NNNNNN` short id (the hash-chain
+ * shipping label is built on the audit-log side post-write). Until
+ * that field is denormalised onto the GR detail, the chip surfaces
+ * the linkable `audit_log` label + the chain-view affordance; the
+ * `AL-2026-NNNNNN` short id slot in renders as the `gr.id`
+ * shortened-uuid suffix so the row is still scannable. The
+ * AuditLogScreen reads `aggregate_id` from URL params (followup —
+ * the URL contract is canonical even while the screen reads from
+ * form state).
+ */
+function AuditChipFooter({ grId }: { grId: string }) {
+  const shortId = formatAuditChipShortId(grId);
+  const href = `/audit-log?aggregate_id=${encodeURIComponent(grId)}`;
+  return (
+    <p
+      className="pt-4 text-xs text-mute"
+      data-testid="gr-detail-audit-chip"
+    >
+      <span>audit_log </span>
+      <span className="font-mono text-ink">{shortId}</span>
+      <span> · </span>
+      <a
+        href={href}
+        data-testid="gr-detail-audit-chip-link"
+        className="text-(--color-accent) underline-offset-2 hover:underline focus:outline-none focus:ring-2 focus:ring-(--color-focus)"
+        aria-label={`Ver la cadena de audit_log para esta recepción (${shortId})`}
+      >
+        ver chain →
+      </a>
+    </p>
+  );
+}
+
+/**
+ * The dock-drawer chip displays a stable, scannable short id derived
+ * from the GR uuid until the backend denormalises the canonical
+ * `AL-2026-NNNNNN` short id onto the GR detail payload. Picking the
+ * last 6 hex chars of the uuid gives the operator a stable
+ * 6-character identifier that's safe to read aloud over the dock
+ * floor and is uniqueness-safe across realistic GR volumes within
+ * a single org-day.
+ */
+function formatAuditChipShortId(grId: string): string {
+  const compact = grId.replace(/-/g, '');
+  const tail = compact.slice(-6).toUpperCase();
+  return `AL-${new Date().getFullYear()}-${tail}`;
 }
 
 function HermesBanners({ detail }: { detail: GrDetail }) {
