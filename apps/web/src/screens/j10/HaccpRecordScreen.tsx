@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { FileText } from 'lucide-react';
 import {
   CcpPicker,
   CorrectiveActionPicker,
@@ -191,7 +192,7 @@ function Inner({
               color: 'var(--color-ink)',
             }}
           >
-            <span aria-hidden="true">📄</span>
+            <FileText aria-hidden="true" size={16} />
             Generar expediente APPCC
           </Link>
         </RoleGuard>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Camera } from 'lucide-react';
 import {
   AiProvenanceChip,
   CorrectionsHistoryDiffModal,
@@ -1016,7 +1017,9 @@ function EmptyState() {
         color: 'var(--color-ink)',
       }}
     >
-      <p className="text-3xl" aria-hidden="true">📷</p>
+      <div className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-full bg-(--color-accent-soft)">
+        <Camera aria-hidden="true" size={24} className="text-(--color-accent)" />
+      </div>
       <h2 className="mt-2 text-lg font-semibold" style={{ color: 'var(--color-ink)' }}>
         Cola vacía · todo al día
       </h2>
