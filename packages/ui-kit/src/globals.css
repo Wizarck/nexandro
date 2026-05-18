@@ -1,3 +1,13 @@
+/*
+ * Fraunces — display serif for H1/headlines per DESIGN.md §3 + audit v2
+ * Phase A1. Loaded once globally; component-level `font-serif` utility
+ * (Tailwind v4 maps to var(--font-serif)) or H1 default inherit picks it up.
+ * Weights 400/500/600/700 cover body emphasis + display H1.
+ *
+ * Inter — body sans per DESIGN.md §3. Was system-ui only; now Inter with
+ * system fallback so the brand reads consistently across OSes.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
 @import "./tokens.css";
 
 /*
@@ -26,6 +36,33 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/*
+ * Display typography per DESIGN.md §3 + audit v2 A-1. Fraunces serif for
+ * H1 establishes brand identity ("the wink" — the single typographic
+ * choice that says nexandro vs generic SaaS). H2 stays sans to keep the
+ * serif special. opsz axis from Fraunces variable font scales optical
+ * size with rendered size for hairline detail at small sizes.
+ */
+h1 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  font-optical-sizing: auto;
+}
+
+/*
+ * Utility: opt-in display class for hero KPI numbers, brand wordmarks,
+ * and editorial moments where a sub-H1 needs the Fraunces wink (e.g.
+ * the dominant Margen number in the Owner dashboard).
+ */
+.font-display {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-optical-sizing: auto;
+  letter-spacing: -0.015em;
 }
 
 button {

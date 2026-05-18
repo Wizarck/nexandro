@@ -21,7 +21,7 @@ export function OwnerPrivacySection() {
   return (
     <section className="space-y-6" aria-label="Privacidad y datos">
       <header>
-        <h2 className="text-xl font-semibold text-ink">Privacidad y datos</h2>
+        <h2 className="font-display text-2xl text-ink">Privacidad y datos</h2>
         <p className="mt-1 text-sm text-mute">
           Lo que nexandro guarda, durante cuánto tiempo, y cómo puedes ejercer tus derechos RGPD.
         </p>

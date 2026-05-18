@@ -10,7 +10,7 @@ export function OnboardingComplete() {
   return (
     <div className="space-y-6 text-center" aria-label="Configuración completada">
       <p className="text-3xl" aria-hidden="true">🍷</p>
-      <h2 className="text-2xl font-semibold text-ink">Listo. nexandro ya está configurado.</h2>
+      <h2 className="font-display text-3xl text-ink">Listo. nexandro ya está configurado.</h2>
       <p className="mx-auto max-w-md text-sm text-mute">
         Esto es lo más útil que puedes hacer ahora mismo:
       </p>

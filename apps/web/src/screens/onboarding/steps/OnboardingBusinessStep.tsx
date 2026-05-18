@@ -54,7 +54,7 @@ export function OnboardingBusinessStep() {
         >
           Paso 1 de 5
         </p>
-        <h2 className="mt-1 text-2xl font-semibold text-ink">Hablemos de tu negocio</h2>
+        <h2 className="font-display mt-1 text-3xl text-ink">Hablemos de tu negocio</h2>
         <p className="mt-1 text-sm text-mute">
           Estos datos aparecen en etiquetas, exportes APPCC y comunicaciones. Puedes cambiarlos
           después en Configuración → Negocio.

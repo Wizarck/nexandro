@@ -48,7 +48,7 @@ export function OnboardingPlaceholderStep({
         >
           Paso {step} de 5
         </p>
-        <h2 className="mt-1 text-2xl font-semibold text-ink">{info.label}</h2>
+        <h2 className="font-display mt-1 text-3xl text-ink">{info.label}</h2>
         <p className="mt-1 text-sm text-mute">{info.description}</p>
       </header>
 

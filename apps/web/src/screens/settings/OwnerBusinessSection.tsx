@@ -67,7 +67,7 @@ function Form({ orgId }: { orgId: string }) {
   return (
     <form onSubmit={onSubmit} className="space-y-6" aria-label="Datos del negocio">
       <header>
-        <h2 className="text-xl font-semibold text-ink">Negocio</h2>
+        <h2 className="font-display text-2xl text-ink">Negocio</h2>
         <p className="mt-1 text-sm text-mute">
           Estos datos identifican tu organización en etiquetas, exportaciones APPCC y comunicaciones.
         </p>

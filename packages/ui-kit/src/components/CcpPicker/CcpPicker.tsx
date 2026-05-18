@@ -73,13 +73,31 @@ export function CcpPicker({
   );
 }
 
+/** Threshold for the amber "due soon" treatment per audit v2 A-2. */
+const DUE_SOON_MS = 2 * 60 * 60 * 1000;
+
 function CcpRow({ ccp, onSelect }: { ccp: Ccp; onSelect: () => void }) {
-  const overdue =
-    ccp.dueBy != null && Date.parse(ccp.dueBy) < Date.now();
+  const now = Date.now();
+  const dueAt = ccp.dueBy ? Date.parse(ccp.dueBy) : null;
+  const overdue = dueAt != null && dueAt < now;
+  const dueSoon = !overdue && dueAt != null && dueAt - now < DUE_SOON_MS;
   const dueLabel = ccp.dueBy ? formatDueBy(ccp.dueBy, overdue) : null;
   const lastReadingAgo = ccp.lastReading?.recordedAt
     ? formatHace(ccp.lastReading.recordedAt)
     : null;
+
+  // Three-state severity (audit v2 A-2): overdue → paprika; due-soon → amber
+  // warn-bg; ok → no rule. Carmen's eye picks the right colour in <1s.
+  const severityColor = overdue
+    ? 'var(--color-destructive)'
+    : dueSoon
+      ? 'var(--color-status-below-target-fg)'
+      : null;
+  const severityBg = overdue
+    ? 'var(--color-warn-bg)'
+    : dueSoon
+      ? 'var(--color-warn-bg)'
+      : 'transparent';
 
   return (
     <li>
@@ -89,14 +107,16 @@ function CcpRow({ ccp, onSelect }: { ccp: Ccp; onSelect: () => void }) {
         className="relative flex w-full items-center justify-between bg-transparent py-3 pl-5 pr-4 text-left text-sm"
         style={{
           color: 'var(--color-ink)',
-          // Per audit 2026-05-18 L1-2: 2 px left-edge severity rule on
-          // overdue rows so Carmen can scan red CCPs at a glance even
-          // before reading the pill.
+          // Per audit 2026-05-18 L1-2 + v2 A-2: 3 px left-edge severity rule.
+          // overdue = paprika, due-soon (≤2h) = amber, ok = transparent.
           borderLeft: overdue
             ? '3px solid var(--color-destructive)'
-            : '3px solid transparent',
+            : dueSoon
+              ? '3px solid var(--color-status-below-target-fg)'
+              : '3px solid transparent',
         }}
         data-overdue={overdue ? 'true' : 'false'}
+        data-due-soon={dueSoon ? 'true' : 'false'}
         data-ccp-id={ccp.id}
       >
         <span className="flex flex-col">
@@ -123,15 +143,9 @@ function CcpRow({ ccp, onSelect }: { ccp: Ccp; onSelect: () => void }) {
             <span
               className="rounded-pill border px-2 py-0.5 text-xs font-medium"
               style={{
-                borderColor: overdue
-                  ? 'var(--color-destructive)'
-                  : 'var(--color-border)',
-                color: overdue
-                  ? 'var(--color-destructive)'
-                  : 'var(--color-mute)',
-                backgroundColor: overdue
-                  ? 'var(--color-warn-bg)'
-                  : 'transparent',
+                borderColor: severityColor ?? 'var(--color-border)',
+                color: severityColor ?? 'var(--color-mute)',
+                backgroundColor: severityBg,
               }}
             >
               {dueLabel}
