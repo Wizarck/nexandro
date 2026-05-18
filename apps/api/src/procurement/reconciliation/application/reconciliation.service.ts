@@ -67,6 +67,15 @@ export class ReconciliationService {
   }
 
   /**
+   * Sprint 4 W3-10 — open-reconciliation count for the j11 tab counter.
+   * Defaults to `state='abierta'` because the badge surfaces ops-pending
+   * work; pass an explicit `state` opt to count another bucket.
+   */
+  async countOpen(organizationId: string): Promise<number> {
+    return this.repo.countByOrg(organizationId, { state: 'abierta' });
+  }
+
+  /**
    * Single-row lookup. Throws ReconciliationNotFoundError on cross-
    * tenant access or unknown id. Used by the drawer detail view.
    */

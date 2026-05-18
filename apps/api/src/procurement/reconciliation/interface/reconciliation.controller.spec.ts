@@ -4,6 +4,9 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import type { Request } from 'express';
+import type { Repository } from 'typeorm';
+import { GoodsReceipt } from '../../gr/domain/goods-receipt.entity';
+import { PurchaseOrder } from '../../po/domain/purchase-order.entity';
 import {
   IllegalReconciliationTransition,
   ReconciliationInvariantError,
@@ -13,6 +16,7 @@ import { Reconciliation } from '../domain/reconciliation.entity';
 import { ReconciliationService } from '../application/reconciliation.service';
 import {
   ReconciliationController,
+  type ProcurementCountsQueryDto,
   type ReconciliationListQueryDto,
   type ResolveReconciliationDto,
 } from './reconciliation.controller';
@@ -52,16 +56,30 @@ function makeReq(overrides: { userId?: string; role?: string } = {}): Request {
 
 function buildController(): {
   controller: ReconciliationController;
-  svc: jest.Mocked<Pick<ReconciliationService, 'list' | 'resolve'>>;
+  svc: jest.Mocked<
+    Pick<ReconciliationService, 'list' | 'resolve' | 'countOpen'>
+  >;
+  grRepo: jest.Mocked<Pick<Repository<GoodsReceipt>, 'count'>>;
+  poRepo: jest.Mocked<Pick<Repository<PurchaseOrder>, 'count'>>;
 } {
   const svc = {
     list: jest.fn(),
     resolve: jest.fn(),
+    countOpen: jest.fn(),
   };
+  const grRepo = { count: jest.fn() };
+  const poRepo = { count: jest.fn() };
   const controller = new ReconciliationController(
     svc as unknown as ReconciliationService,
+    grRepo as unknown as Repository<GoodsReceipt>,
+    poRepo as unknown as Repository<PurchaseOrder>,
   );
-  return { controller, svc: svc as never };
+  return {
+    controller,
+    svc: svc as never,
+    grRepo: grRepo as never,
+    poRepo: poRepo as never,
+  };
 }
 
 function makeListQuery(
@@ -89,6 +107,8 @@ describe('ReconciliationController (Sprint 4 W3-5 — real backend)', () => {
       expect(result).toEqual({ items: [], total: 0 });
       expect(svc.list).toHaveBeenCalledWith(ORG, {
         state: undefined,
+        discrepancyTypes: undefined,
+        supplierIds: undefined,
         limit: 50,
         offset: 0,
       });
@@ -100,6 +120,8 @@ describe('ReconciliationController (Sprint 4 W3-5 — real backend)', () => {
       await controller.list(makeListQuery({ state: 'abierta' }));
       expect(svc.list).toHaveBeenCalledWith(ORG, {
         state: 'abierta',
+        discrepancyTypes: undefined,
+        supplierIds: undefined,
         limit: 50,
         offset: 0,
       });
@@ -148,8 +170,109 @@ describe('ReconciliationController (Sprint 4 W3-5 — real backend)', () => {
       await controller.list(makeListQuery({ limit: 10, offset: 20 }));
       expect(svc.list).toHaveBeenCalledWith(ORG, {
         state: undefined,
+        discrepancyTypes: undefined,
+        supplierIds: undefined,
         limit: 10,
         offset: 20,
+      });
+    });
+
+    it('W3-9: forwards multi-value states[]/discrepancyTypes[]/supplierIds[] filters', async () => {
+      const { controller, svc } = buildController();
+      svc.list.mockResolvedValue([]);
+      const supplier = '99999999-9999-4999-8999-999999999999';
+      await controller.list(
+        makeListQuery({
+          states: ['abierta', 'aceptada'],
+          discrepancyTypes: ['cantidad', 'precio'],
+          supplierIds: [supplier],
+        }),
+      );
+      expect(svc.list).toHaveBeenCalledWith(ORG, {
+        state: ['abierta', 'aceptada'],
+        discrepancyTypes: ['cantidad', 'precio'],
+        supplierIds: [supplier],
+        limit: 50,
+        offset: 0,
+      });
+    });
+
+    it('W3-9: array states[] precedence over singular state', async () => {
+      const { controller, svc } = buildController();
+      svc.list.mockResolvedValue([]);
+      await controller.list(
+        makeListQuery({ state: 'abierta', states: ['aceptada', 'devuelta'] }),
+      );
+      expect(svc.list).toHaveBeenCalledWith(
+        ORG,
+        expect.objectContaining({ state: ['aceptada', 'devuelta'] }),
+      );
+    });
+
+    it('W3-9: empty states[] falls back to singular state filter', async () => {
+      const { controller, svc } = buildController();
+      svc.list.mockResolvedValue([]);
+      await controller.list(makeListQuery({ state: 'abierta', states: [] }));
+      expect(svc.list).toHaveBeenCalledWith(
+        ORG,
+        expect.objectContaining({ state: 'abierta' }),
+      );
+    });
+  });
+
+  describe('GET /m3/procurement/reconciliation/counts (W3-10)', () => {
+    function makeCountsQuery(
+      overrides: Partial<ProcurementCountsQueryDto> = {},
+    ): ProcurementCountsQueryDto {
+      return { organizationId: ORG, ...overrides } as ProcurementCountsQueryDto;
+    }
+
+    it('returns the 3 counters from independent sources', async () => {
+      const { controller, svc, grRepo, poRepo } = buildController();
+      poRepo.count.mockResolvedValue(12);
+      grRepo.count.mockResolvedValue(3);
+      svc.countOpen.mockResolvedValue(2);
+
+      const result = await controller.counts(makeCountsQuery());
+
+      expect(result).toEqual({ poActive: 12, grPending: 3, reconOpen: 2 });
+      expect(poRepo.count).toHaveBeenCalledWith({
+        where: [
+          { organizationId: ORG, state: 'sent' },
+          { organizationId: ORG, state: 'partially_received' },
+        ],
+      });
+      expect(grRepo.count).toHaveBeenCalledWith({
+        where: { organizationId: ORG, state: 'draft' },
+      });
+      expect(svc.countOpen).toHaveBeenCalledWith(ORG);
+    });
+
+    it('zeroes are returned as-is (no clamp)', async () => {
+      const { controller, svc, grRepo, poRepo } = buildController();
+      poRepo.count.mockResolvedValue(0);
+      grRepo.count.mockResolvedValue(0);
+      svc.countOpen.mockResolvedValue(0);
+      const result = await controller.counts(makeCountsQuery());
+      expect(result).toEqual({ poActive: 0, grPending: 0, reconOpen: 0 });
+    });
+
+    it('respects multi-tenant orgId (each query gated)', async () => {
+      const { controller, svc, grRepo, poRepo } = buildController();
+      const other = '22222222-2222-4222-8222-222222222222';
+      poRepo.count.mockResolvedValue(0);
+      grRepo.count.mockResolvedValue(0);
+      svc.countOpen.mockResolvedValue(0);
+      await controller.counts(makeCountsQuery({ organizationId: other }));
+      expect(svc.countOpen).toHaveBeenCalledWith(other);
+      expect(poRepo.count).toHaveBeenCalledWith({
+        where: [
+          { organizationId: other, state: 'sent' },
+          { organizationId: other, state: 'partially_received' },
+        ],
+      });
+      expect(grRepo.count).toHaveBeenCalledWith({
+        where: { organizationId: other, state: 'draft' },
       });
     });
   });

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import {
+  DiscrepancyType,
   Reconciliation,
   ReconciliationState,
 } from '../domain/reconciliation.entity';
@@ -9,6 +10,14 @@ import {
 export interface ListByOrgOpts {
   /** Filter by reconciliation state. Omit to return all states. */
   state?: ReconciliationState | ReconciliationState[];
+  /**
+   * Sprint 4 W3-9 — filter chip group. Each multi-value list narrows
+   * the result set; omit to skip the filter. Empty arrays are treated
+   * the same as `undefined` (no filter), matching the operator
+   * expectation that "no chip selected = no constraint".
+   */
+  discrepancyTypes?: DiscrepancyType[];
+  supplierIds?: string[];
   limit?: number;
   offset?: number;
 }
@@ -54,16 +63,63 @@ export class ReconciliationRepository {
 
     if (opts.state !== undefined) {
       if (Array.isArray(opts.state)) {
-        qb.andWhere('recon.state IN (:...states)', { states: opts.state });
+        if (opts.state.length > 0) {
+          qb.andWhere('recon.state IN (:...filterStates)', {
+            filterStates: opts.state,
+          });
+        }
       } else {
         qb.andWhere('recon.state = :state', { state: opts.state });
       }
+    }
+
+    // Sprint 4 W3-9 — additive filter chips. Each list narrows the
+    // result; empty arrays no-op to keep "no chip selected" semantically
+    // equivalent to "filter omitted".
+    if (opts.discrepancyTypes !== undefined && opts.discrepancyTypes.length > 0) {
+      qb.andWhere('recon.discrepancy_type IN (:...discrepancyTypes)', {
+        discrepancyTypes: opts.discrepancyTypes,
+      });
+    }
+    if (opts.supplierIds !== undefined && opts.supplierIds.length > 0) {
+      qb.andWhere('recon.supplier_id IN (:...supplierIds)', {
+        supplierIds: opts.supplierIds,
+      });
     }
 
     qb.orderBy('recon.created_at', 'DESC');
     qb.take(opts.limit ?? 50);
     qb.skip(opts.offset ?? 0);
     return qb.getMany();
+  }
+
+  /**
+   * Sprint 4 W3-10 — cheap count for the j11 tab counter. Mirrors
+   * `listByOrg`'s state-filter semantics so callers can ask for the
+   * open-only count (`state='abierta'`) without paging the rows.
+   * Uses the `idx_recon_org_state` partial index.
+   */
+  async countByOrg(
+    organizationId: string,
+    opts: Pick<ListByOrgOpts, 'state'> = {},
+  ): Promise<number> {
+    const qb = this.typeormRepo
+      .createQueryBuilder('recon')
+      .where('recon.organization_id = :organizationId', { organizationId });
+
+    if (opts.state !== undefined) {
+      if (Array.isArray(opts.state)) {
+        if (opts.state.length > 0) {
+          qb.andWhere('recon.state IN (:...filterStates)', {
+            filterStates: opts.state,
+          });
+        }
+      } else {
+        qb.andWhere('recon.state = :state', { state: opts.state });
+      }
+    }
+
+    return qb.getCount();
   }
 
   /**
