@@ -12,6 +12,7 @@ import { AgentCredentialsModule } from './agent-credentials/agent-credentials.mo
 import { AiObservabilityModule } from './ai-observability/ai-observability.module';
 import { AiSuggestionsModule } from './ai-suggestions/ai-suggestions.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
+import { BrandAssetsModule } from './brand-assets/brand-assets.module';
 import { ComplianceExportModule } from './compliance-export/compliance-export.module';
 import { CostModule } from './cost/cost.module';
 import { DashboardModule } from './dashboard/dashboard.module';
@@ -61,7 +62,7 @@ import { SharedModule } from './shared/shared.module';
     // their real handlers. Per ADR-028 in docs/architecture-decisions.md.
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', '..', 'web', 'dist'),
-      exclude: ['/api/{*splat}', '/health'],
+      exclude: ['/api/{*splat}', '/health', '/static/{*splat}'],
       serveStaticOptions: {
         // index.html → no-cache so future deploys are immediately visible
         // (no manual Cloudflare purge required). /assets/* → Vite emits
@@ -72,6 +73,25 @@ import { SharedModule } from './shared/shared.module';
           } else if (p.includes('/assets/') || p.includes('\\assets\\')) {
             res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
           }
+        },
+      },
+    }),
+
+    // Static-file mount for the local-fs brand-asset storage adapter
+    // (`NEXANDRO_BRAND_ASSET_STORAGE=local`, default). Serves whatever lives
+    // under NEXANDRO_BRAND_ASSET_LOCAL_DIR at NEXANDRO_BRAND_ASSET_PUBLIC_URL_BASE.
+    // No-op (404) when the dir doesn't exist yet (no upload happened). The S3
+    // adapter bypasses this entirely — its public URLs point at the bucket's
+    // own CDN/host.
+    ServeStaticModule.forRoot({
+      rootPath: process.env.NEXANDRO_BRAND_ASSET_LOCAL_DIR ?? '/var/lib/nexandro/brand-marks',
+      serveRoot: process.env.NEXANDRO_BRAND_ASSET_PUBLIC_URL_BASE ?? '/static/brand-marks',
+      serveStaticOptions: {
+        fallthrough: true,
+        setHeaders: (res: { setHeader: (k: string, v: string) => void }) => {
+          // Brand marks are re-uploaded rarely; cache 1h at the edge but allow
+          // revalidation. The upload URL is cache-busted with ?v=<ts> anyway.
+          res.setHeader('Cache-Control', 'public, max-age=3600, must-revalidate');
         },
       },
     }),
@@ -116,6 +136,13 @@ import { SharedModule } from './shared/shared.module';
 
     // M2 labels (m2-labels-rendering — EU 1169/2011 PDF + PrintAdapter abstraction).
     LabelsModule,
+
+    // Brand-mark uploads (Owner settings UX — Master review 2026-05-18).
+    // Storage adapter env-gated: `NEXANDRO_BRAND_ASSET_STORAGE=local` (default,
+    // writes to /var/lib/nexandro/brand-marks volume) or `=s3` (R2/AWS/MinIO).
+    // Static-file serving for the local-fs mode is wired further down in this
+    // same imports[] via a second ServeStaticModule.forRoot() call.
+    BrandAssetsModule,
 
     // M2 AI yield + waste suggestions (m2-ai-yield-suggestions — provider + iron-rule guard + chef override).
     AiSuggestionsModule,
