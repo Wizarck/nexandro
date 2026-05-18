@@ -1,16 +1,18 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Reconciliation } from './domain/reconciliation.entity';
+import { ReconciliationRepository } from './infrastructure/reconciliation.repository';
 import { ReconciliationController } from './interface/reconciliation.controller';
 
 /**
- * procurement.reconciliation bounded context (Sprint 4 W3-5).
+ * procurement.reconciliation bounded context (Sprint 4 W3-5 / W3-5b).
  *
- * Sprint 3 Block C (PR #218) shipped a placeholder controller returning
- * `[]`. This module registers the real `Reconciliation` entity so the
- * migration (0046) has a TypeORM repository at boot; the controller +
- * service + repository + detector land in the same PR (checkpoint 2 of
- * the Sprint 4 W3-5 task).
+ * PR #226 (W3-5 checkpoint 1) shipped only the entity + migration 0046.
+ * Sprint 4 W3-5b (this checkpoint) lights up the rest:
+ *  - Repository (multi-tenant gate, list/find/create/resolve)
+ *  - Discrepancy detector (pure domain function)
+ *  - Application service (state machine + audit emit)
+ *  - Real controller (replaces the placeholder shell from PR #218)
  *
  * Multi-tenant invariant: every read/write goes through the dedicated
  * repository which always WHERE-clauses `organization_id`. No direct
@@ -21,5 +23,7 @@ import { ReconciliationController } from './interface/reconciliation.controller'
 @Module({
   imports: [TypeOrmModule.forFeature([Reconciliation])],
   controllers: [ReconciliationController],
+  providers: [ReconciliationRepository],
+  exports: [ReconciliationRepository],
 })
 export class ReconciliationModule {}
