@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { KeyRound, ShieldCheck, Trash2 } from 'lucide-react';
+import { Eye, EyeOff, KeyRound, ShieldCheck, Trash2 } from 'lucide-react';
 import {
   useAgentCredentialsQuery,
   useCreateAgentCredentialMutation,
@@ -7,21 +7,29 @@ import {
   useRevokeAgentCredentialMutation,
 } from '../../hooks/useAgentCredentials';
 import type { AgentCredentialResponse, AgentRole } from '../../api/agentCredentials';
+import {
+  useClearLlmCredentialMutation,
+  useLlmCredentialsStatus,
+  useTestLlmCredentialMutation,
+  useUpsertLlmCredentialMutation,
+} from '../../hooks/useLlmCredentials';
+import { LLM_PROVIDERS, type LlmProvider } from '../../api/llmCredentials';
+import { useCurrentOrgId } from '../../lib/currentUser';
 
 /**
- * IA · Sprint 3 Block B — surface for `/agent-credentials/*`.
+ * IA · Sprint 3 Block B + Sprint 4 W2-1b — surface for agent attribution +
+ * BYO LLM provider keys.
  *
  * Two cards:
  *
- *   1. **Agentes registrados** (live, backend-wired) — register an Ed25519
- *      public key for an MCP/HTTP agent acting on behalf of the org. This
- *      is what the backend actually does (per ADR-AGENT-CRED-1); it is NOT
- *      "the OpenAI/Anthropic API key picker" the audit brief sketched.
+ *   1. **Agentes registrados** (live) — register an Ed25519 public key for
+ *      an MCP/HTTP agent acting on behalf of the org per ADR-AGENT-CRED-1.
+ *      This is NOT "the OpenAI/Anthropic API key picker".
  *
- *   2. **Claves de proveedor LLM** (próximamente) — honest placeholder for
- *      the BYO-key flow. No backend exists yet; merging a fake form here
- *      would be GDPR theater + lie about scope. Followup tracked in the
- *      Block B PR body.
+ *   2. **Claves de proveedor LLM** (live, Sprint 4 W2-1b) — BYO key for
+ *      OpenAI / Anthropic / Mistral. The cleartext key NEVER leaves the
+ *      PUT request body; the backend encrypts immediately (AES-256-GCM)
+ *      and only exposes `{ provider, hasKey, lastTested* }` afterwards.
  */
 export function OwnerAgentCredentialsSection() {
   return (
@@ -29,8 +37,8 @@ export function OwnerAgentCredentialsSection() {
       <header>
         <h2 className="font-display text-2xl text-ink">IA y agentes</h2>
         <p className="mt-1 text-sm text-mute">
-          Registra los agentes con permiso para escribir en tu organización vía MCP / HTTP, y
-          (próximamente) declara tu clave de proveedor LLM.
+          Registra los agentes con permiso para escribir en tu organización vía MCP / HTTP y
+          declara tu clave de proveedor LLM (BYO key).
         </p>
       </header>
 
@@ -263,30 +271,336 @@ function NewAgentForm({ onDone }: { onDone: () => void }) {
 }
 
 // ============================================================================
-// Card 2 — Claves de proveedor LLM (placeholder, no backend)
+// Card 2 — Claves de proveedor LLM (Sprint 4 W2-1b, backend-wired)
 // ============================================================================
 
+const PROVIDER_LABELS: Record<LlmProvider, string> = {
+  openai: 'OpenAI',
+  anthropic: 'Anthropic',
+  mistral: 'Mistral',
+};
+
 function LlmProviderCard() {
+  const orgId = useCurrentOrgId();
+  const status = useLlmCredentialsStatus(orgId);
+  const upsert = useUpsertLlmCredentialMutation(orgId);
+  const testMutation = useTestLlmCredentialMutation(orgId);
+  const clearMutation = useClearLlmCredentialMutation(orgId);
+
+  const [formOpen, setFormOpen] = useState(false);
+
+  if (!orgId) {
+    return (
+      <article className="rounded-lg border border-border-subtle p-5">
+        <h3 className="text-base font-semibold text-ink">
+          <KeyRound aria-hidden="true" size={14} className="mr-1 inline" />
+          Claves de proveedor LLM
+        </h3>
+        <p className="mt-3 text-sm text-mute">
+          Inicia sesión para configurar tu clave de proveedor LLM.
+        </p>
+      </article>
+    );
+  }
+
+  const data = status.data;
+  const hasKey = !!data?.hasKey;
+  const showForm = formOpen || !hasKey;
+
+  const handleClear = () => {
+    if (clearMutation.isPending) return;
+    clearMutation.mutate(undefined, {
+      onSuccess: () => setFormOpen(false),
+    });
+  };
+
+  const handleTest = () => {
+    if (testMutation.isPending) return;
+    testMutation.mutate();
+  };
+
   return (
-    <article className="rounded-lg border border-dashed border-border-subtle p-5 opacity-90">
-      <h3 className="text-base font-semibold text-ink">
-        <KeyRound aria-hidden="true" size={14} className="mr-1 inline" />
-        Claves de proveedor LLM{' '}
-        <span className="ml-1 text-xs font-normal italic text-mute">próximamente</span>
-      </h3>
-      <p className="mt-1 text-xs text-mute">
-        nexandro es BYO key (trae tu propia clave): tú decides si tu cocina habla con OpenAI,
-        Anthropic, Mistral u otro proveedor. La gestión local de claves aterriza con la siguiente
-        slice (no hay backend ni gasto incurrido todavía).
-      </p>
-      <p className="mt-3 text-sm text-mute">
-        Hasta entonces, las claves se configuran a nivel de despliegue (variables de entorno) —
-        consulta tu runbook de despliegue o pregunta a tu administrador.
-      </p>
-      <p className="mt-3 text-xs text-mute">
+    <article className="rounded-lg border border-border-subtle p-5">
+      <header className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-base font-semibold text-ink">
+            <KeyRound aria-hidden="true" size={14} className="mr-1 inline" />
+            Claves de proveedor LLM
+          </h3>
+          <p className="mt-1 text-xs text-mute">
+            nexandro es BYO key (trae tu propia clave): tú decides si tu cocina habla con OpenAI,
+            Anthropic o Mistral. La clave se cifra al persistir (AES-256-GCM) y nunca se devuelve
+            en claro.
+          </p>
+        </div>
+        {hasKey && !formOpen && (
+          <button
+            type="button"
+            onClick={() => setFormOpen(true)}
+            className="inline-flex items-center gap-1 rounded-md border border-border-strong bg-transparent px-3 py-1.5 text-sm font-medium text-mute transition hover:bg-(--color-bg) focus:outline-none focus:ring-2 focus:ring-(--color-focus)"
+          >
+            Reemplazar
+          </button>
+        )}
+      </header>
+
+      {status.isLoading && (
+        <p className="mt-4 text-sm text-mute">Cargando estado de la clave…</p>
+      )}
+      {status.error && (
+        <p role="alert" className="mt-4 text-sm text-(--color-danger-fg)">
+          No se pudo cargar el estado: {status.error.message}
+        </p>
+      )}
+
+      {data && (
+        <div className="mt-4 space-y-3">
+          <LlmStatusLine status={data} />
+
+          {hasKey && !formOpen && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleTest}
+                disabled={testMutation.isPending}
+                className="inline-flex items-center gap-2 rounded-md border border-border-strong bg-transparent px-3 py-1.5 text-sm font-medium text-ink transition hover:bg-(--color-bg) focus:outline-none focus:ring-2 focus:ring-(--color-focus) disabled:opacity-60"
+              >
+                {testMutation.isPending ? 'Probando…' : 'Probar conexión'}
+              </button>
+              <button
+                type="button"
+                onClick={handleClear}
+                disabled={clearMutation.isPending}
+                className="inline-flex items-center gap-1 text-xs text-(--color-danger-fg) hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-(--color-focus) disabled:opacity-60"
+              >
+                <Trash2 aria-hidden="true" size={12} />
+                Eliminar
+              </button>
+            </div>
+          )}
+
+          {showForm && (
+            <LlmProviderForm
+              initialProvider={data.provider ?? 'openai'}
+              isPending={upsert.isPending}
+              error={upsert.error}
+              onCancel={hasKey ? () => setFormOpen(false) : undefined}
+              onSubmit={(payload) =>
+                upsert.mutate(payload, {
+                  onSuccess: () => setFormOpen(false),
+                })
+              }
+            />
+          )}
+
+          {testMutation.data && !showForm && (
+            <TestResultLine status={testMutation.data} />
+          )}
+          {testMutation.error && !showForm && (
+            <p role="alert" className="text-sm text-(--color-danger-fg)">
+              No se pudo probar: {testMutation.error.message}
+            </p>
+          )}
+          {clearMutation.error && (
+            <p role="alert" className="text-sm text-(--color-danger-fg)">
+              No se pudo eliminar: {clearMutation.error.message}
+            </p>
+          )}
+        </div>
+      )}
+    </article>
+  );
+}
+
+function LlmStatusLine({
+  status,
+}: {
+  status: {
+    provider: LlmProvider | null;
+    hasKey: boolean;
+    lastTestedAt: string | null;
+    lastTestResult: 'success' | 'failure' | null;
+  };
+}) {
+  if (!status.hasKey) {
+    return (
+      <p className="text-xs text-mute">
         Estado: <Badge tone="muted">sin configurar</Badge>
       </p>
-    </article>
+    );
+  }
+  const providerLabel = status.provider ? PROVIDER_LABELS[status.provider] : '—';
+  const tested = status.lastTestedAt
+    ? new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit' }).format(
+        new Date(status.lastTestedAt),
+      )
+    : null;
+  return (
+    <p className="text-xs text-mute">
+      <Badge tone="success">configurado</Badge>{' '}
+      <span className="ml-1 text-mute">
+        {providerLabel}
+        {tested ? (
+          <>
+            {' · '}último test {tested}
+            {status.lastTestResult === 'success' ? (
+              <span className="ml-1 text-(--color-success-fg)" aria-label="funciona">
+                ✓ funciona
+              </span>
+            ) : status.lastTestResult === 'failure' ? (
+              <span className="ml-1 text-(--color-danger-fg)" aria-label="fallo">
+                ✗ fallo
+              </span>
+            ) : null}
+          </>
+        ) : (
+          ' · sin probar todavía'
+        )}
+      </span>
+    </p>
+  );
+}
+
+function TestResultLine({
+  status,
+}: {
+  status: {
+    lastTestResult: 'success' | 'failure' | null;
+    lastTestError: string | null;
+  };
+}) {
+  if (status.lastTestResult === 'success') {
+    return (
+      <p className="text-sm text-(--color-success-fg)">
+        <span aria-hidden="true">✓</span> Conexión correcta
+      </p>
+    );
+  }
+  if (status.lastTestResult === 'failure') {
+    return (
+      <p className="text-sm text-(--color-danger-fg)">
+        <span aria-hidden="true">✗</span> Falló la conexión
+        {status.lastTestError ? (
+          <span className="ml-1 text-xs text-mute">({status.lastTestError})</span>
+        ) : null}
+      </p>
+    );
+  }
+  return null;
+}
+
+function LlmProviderForm({
+  initialProvider,
+  isPending,
+  error,
+  onSubmit,
+  onCancel,
+}: {
+  initialProvider: LlmProvider;
+  isPending: boolean;
+  error: { message: string } | null;
+  onSubmit: (payload: { provider: LlmProvider; apiKey: string }) => void;
+  onCancel?: () => void;
+}) {
+  const [provider, setProvider] = useState<LlmProvider>(initialProvider);
+  const [apiKey, setApiKey] = useState('');
+  const [revealed, setRevealed] = useState(false);
+
+  const canSubmit = apiKey.trim().length > 0 && !isPending;
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!canSubmit) return;
+    const trimmed = apiKey.trim();
+    onSubmit({ provider, apiKey: trimmed });
+    // Drop the cleartext from local state immediately. If the mutation
+    // fails the operator must paste again — by design (defence in depth).
+    setApiKey('');
+    setRevealed(false);
+  };
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-3 rounded-md border border-border-subtle bg-(--color-bg) p-4"
+      aria-label="Configurar clave LLM"
+    >
+      <div>
+        <label htmlFor="llm-provider" className="mb-1 block text-sm font-medium text-mute">
+          Proveedor LLM
+        </label>
+        <select
+          id="llm-provider"
+          value={provider}
+          onChange={(e) => setProvider(e.target.value as LlmProvider)}
+          className="block w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-(--color-focus)"
+        >
+          {LLM_PROVIDERS.map((p) => (
+            <option key={p} value={p}>
+              {PROVIDER_LABELS[p]}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label htmlFor="llm-api-key" className="mb-1 block text-sm font-medium text-mute">
+          Clave API
+        </label>
+        <div className="relative">
+          <input
+            id="llm-api-key"
+            type={revealed ? 'text' : 'password'}
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            maxLength={1024}
+            autoComplete="off"
+            spellCheck={false}
+            placeholder="sk-…"
+            className="block w-full rounded-md border border-border-strong bg-surface px-3 py-2 pr-10 font-mono text-xs text-ink focus:outline-none focus:ring-2 focus:ring-(--color-focus)"
+          />
+          <button
+            type="button"
+            onClick={() => setRevealed((v) => !v)}
+            aria-label={revealed ? 'Ocultar clave' : 'Mostrar clave'}
+            aria-pressed={revealed}
+            className="absolute inset-y-0 right-0 flex w-9 items-center justify-center text-mute hover:text-ink focus:outline-none focus:ring-2 focus:ring-(--color-focus)"
+          >
+            {revealed ? (
+              <EyeOff aria-hidden="true" size={14} />
+            ) : (
+              <Eye aria-hidden="true" size={14} />
+            )}
+          </button>
+        </div>
+        <p className="mt-1 text-xs text-mute">
+          La clave se cifra al persistir y nunca se devuelve en claro. Si la pierdes, vuelve a
+          pegarla aquí.
+        </p>
+      </div>
+      {error && (
+        <p role="alert" className="text-sm text-(--color-danger-fg)">
+          No se pudo guardar: {error.message}
+        </p>
+      )}
+      <div className="flex items-center justify-end gap-2">
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="inline-flex items-center gap-1 rounded-md border border-border-strong bg-transparent px-3 py-1.5 text-sm font-medium text-mute transition hover:bg-(--color-bg) focus:outline-none focus:ring-2 focus:ring-(--color-focus)"
+          >
+            Cancelar
+          </button>
+        )}
+        <button
+          type="submit"
+          disabled={!canSubmit}
+          className="inline-flex items-center gap-2 rounded-md bg-(--color-accent) px-4 py-2 text-sm font-semibold text-(--color-accent-fg) shadow-sm transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-(--color-focus) disabled:opacity-60"
+        >
+          {isPending ? 'Guardando…' : 'Guardar clave'}
+        </button>
+      </div>
+    </form>
   );
 }
 
