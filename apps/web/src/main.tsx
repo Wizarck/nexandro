@@ -57,10 +57,6 @@ const router = createBrowserRouter([
         element: <AiObsDashboardScreen />,
       },
       {
-        path: 'recall/investigate',
-        element: <IncidentSearchFieldScreen />,
-      },
-      {
         path: 'haccp/record',
         element: <HaccpRecordScreen />,
       },
@@ -83,8 +79,14 @@ const router = createBrowserRouter([
       },
     ],
   },
-  // J6 crisis surface mounts OUTSIDE App per j6.md "The crisis surface is
-  // exempt from the standard top-nav".
+  // J6 crisis surfaces mount OUTSIDE App per j6.md §28+§82 "The crisis
+  // surface is exempt from the standard top-nav". Both the search landing
+  // (no incident yet) and the incident-investigate routes use CrisisLayout
+  // — moved out of the App children list per audit 2026-05-18 L1-1.
+  {
+    path: '/recall/investigate',
+    element: <IncidentSearchFieldScreen />,
+  },
   {
     path: '/recall/investigate/:incidentId',
     element: <RecallInvestigateJ6Route />,

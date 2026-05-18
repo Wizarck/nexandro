@@ -1,17 +1,67 @@
-import type { ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 
 /**
- * J6 crisis layout per j6.md "The crisis surface is exempt from the
- * standard top-nav".
+ * J6 crisis layout per j6.md §28+§82 "The crisis surface is exempt from
+ * the standard top-nav".
  *
- * Routes that begin with `/recall/investigate*` mount on this shell —
- * no header, no sidebar, no global notifications. The shell is the
- * whole viewport so the operator's eye lands on the one decision in
- * front of them.
+ * Routes that begin `/recall/investigate*` mount on this shell — no header,
+ * no sidebar, no global notifications. The shell is the whole viewport so
+ * the operator's eye lands on the one decision in front of them.
+ *
+ * Anatomy:
+ *   - 4 px `--destructive` (paprika) top rule
+ *   - OPTIONAL eyebrow header: "Investigación de incidente · HH:MM CEST ·
+ *     ventana legal HH:MM:SS" with live tabular-nums countdown
+ *   - children (`<main>`)
+ *   - footer eyebrow `Reg. (CE) 178/2002 art. 19 · plazo 4 h`
+ *
+ * The countdown defaults to mount-time + 4h (when no real incident is
+ * being tracked yet — e.g. the search-only landing surface). Pass
+ * `showHeader={false}` from screens that render their own countdown
+ * (RecallInvestigateJ6Screen has its own via useCountdownToDeadline).
  *
  * Other M3 surfaces (J7, J8, …) use the standard AppLayout.
  */
-export function CrisisLayout({ children }: { children: ReactNode }) {
+
+interface CrisisLayoutProps {
+  children: ReactNode;
+  /** Render the eyebrow header + countdown. Defaults to true. */
+  showHeader?: boolean;
+}
+
+const WINDOW_MS = 4 * 60 * 60 * 1000;
+
+function formatCountdown(ms: number): string {
+  if (ms <= 0) return '00:00:00';
+  const s = Math.floor(ms / 1000);
+  const hh = String(Math.floor(s / 3600)).padStart(2, '0');
+  const mm = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+  const ss = String(s % 60).padStart(2, '0');
+  return `${hh}:${mm}:${ss}`;
+}
+
+function formatClock(d: Date): string {
+  return new Intl.DateTimeFormat('es-ES', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Europe/Madrid',
+  }).format(d);
+}
+
+export function CrisisLayout({ children, showHeader = true }: CrisisLayoutProps) {
+  const openedAt = useMemo(() => Date.now(), []);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (!showHeader) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [showHeader]);
+
+  const remaining = openedAt + WINDOW_MS - now;
+  const isOverdue = remaining <= 0;
+
   return (
     <div
       className="min-h-screen flex flex-col"
@@ -21,6 +71,7 @@ export function CrisisLayout({ children }: { children: ReactNode }) {
       }}
       data-testid="crisis-layout"
     >
+      {/* 4 px paprika top rule */}
       <div
         aria-hidden
         style={{
@@ -28,7 +79,53 @@ export function CrisisLayout({ children }: { children: ReactNode }) {
           backgroundColor: 'var(--color-destructive)',
         }}
       />
+
+      {/* Eyebrow header + countdown */}
+      {showHeader && (
+        <header
+          role="banner"
+          className="border-b border-border px-6 py-3"
+          style={{ backgroundColor: 'var(--color-surface)' }}
+        >
+          <p
+            className="text-center text-xs uppercase tracking-[0.08em]"
+            style={{ color: 'var(--color-mute)' }}
+          >
+            <span>Investigación de incidente</span>
+            <span aria-hidden="true"> · </span>
+            <span>{formatClock(new Date(now))} CEST</span>
+            <span aria-hidden="true"> · </span>
+            <span>
+              ventana legal{' '}
+              <strong
+                className="font-mono tabular-nums"
+                style={{
+                  color: isOverdue ? 'var(--color-destructive)' : 'var(--color-ink)',
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                {formatCountdown(remaining)}
+              </strong>
+            </span>
+          </p>
+        </header>
+      )}
+
       <main className="flex-1 px-4 py-3 pb-24">{children}</main>
+
+      {/* Regulation footer — defensible by inspector / lawyer */}
+      <footer
+        role="contentinfo"
+        className="border-t border-border px-6 py-2"
+        style={{ backgroundColor: 'var(--color-surface)' }}
+      >
+        <p
+          className="text-center text-[10px] uppercase tracking-[0.08em]"
+          style={{ color: 'var(--color-mute)' }}
+        >
+          Reg. (CE) 178/2002 art. 19 · plazo 4 h
+        </p>
+      </footer>
     </div>
   );
 }

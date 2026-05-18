@@ -4,38 +4,29 @@ import {
   RoleGuard,
   type IncidentSearchHit,
 } from '@nexandro/ui-kit';
+import { CrisisLayout } from '../../layouts/CrisisLayout';
 import { useIncidentSearch } from '../../hooks/useIncidentSearch';
 import { useCurrentOrgId, useCurrentRole } from '../../lib/currentUser';
 
 /**
- * Partial J6 recall investigation screen (slice #11 m3-incident-search-
+ * J6 recall investigation landing surface (slice #11 m3-incident-search-
  * multi-anchor). Owner + Manager only.
  *
- * This slice ships the search field + dropdown only. The trace tree
- * (slice #12) and dispatch CTA bar (slice #13) mount in subsequent
- * slices. On hit selection, the screen currently logs to the console;
- * slice #12 wires the trace tree pivot.
+ * Wrapped in CrisisLayout per j6.md §28+§82: NO top nav, NO sidebar,
+ * NO global notifications. The header eyebrow + 4 h countdown comes from
+ * CrisisLayout; the regulation footer too. This screen contributes the
+ * search field + "Reportar sin lote conocido" ghost link.
  *
- * Per j6.md §1+§8 — header is just the eyebrow + clock; this slice's
- * partial screen renders a minimal title + the search field full-width.
+ * Per audit 2026-05-18 L1-1: was previously mounted inside the standard
+ * <App> layout with normal nav, in direct violation of j6 §28+§82.
  */
 export function IncidentSearchFieldScreen() {
   const role = useCurrentRole();
   const orgId = useCurrentOrgId();
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
-      <h2
-        className="text-xl font-semibold text-ink"
-        style={{ fontFamily: 'var(--font-display)' }}
-      >
-        Investigación de retirada
-      </h2>
-      <p className="mt-1 text-sm text-mute">
-        Lote, proveedor, ingrediente o síntoma — la lista se actualiza al
-        teclear.
-      </p>
-      <div className="mt-4">
+    <CrisisLayout>
+      <div className="mx-auto max-w-2xl px-4 py-6">
         <RoleGuard
           role={['OWNER', 'MANAGER']}
           currentRole={role}
@@ -44,7 +35,7 @@ export function IncidentSearchFieldScreen() {
           {orgId ? <Inner orgId={orgId} /> : <SignedOut />}
         </RoleGuard>
       </div>
-    </div>
+    </CrisisLayout>
   );
 }
 
@@ -88,6 +79,20 @@ function Inner({ orgId }: { orgId: string }) {
           {' · '}
           <span>{lastSelected.kind}</span>
         </div>
+      )}
+      {/* j6.md §40 — fallback escape hatch when the operator has no lot
+          anchor (supplier called with a symptom but no batch number yet). */}
+      {queryStr.length > 0 && !query.isFetching && (query.data?.hits ?? []).length === 0 && (
+        <p className="mt-4 text-sm text-mute">
+          Sin coincidencias. Refina la búsqueda — o{' '}
+          <a
+            href="/recall/report-unknown-lot"
+            className="underline hover:text-ink"
+          >
+            reporta sin lote conocido
+          </a>
+          .
+        </p>
       )}
     </>
   );

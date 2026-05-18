@@ -49,6 +49,7 @@ const NAV_GROUPS: ReadonlyArray<NavGroup> = [
     label: 'Operaciones',
     items: [
       { to: '/haccp/record', label: 'HACCP' },
+      { to: '/compliance/export', label: 'Expediente APPCC', roles: ['OWNER', 'MANAGER'] },
       { to: '/recall/investigate', label: 'Recall', roles: ['OWNER', 'MANAGER'] },
       { to: '/photo-ingest/review', label: 'Foto-ingestión', roles: ['OWNER', 'MANAGER'] },
       { to: '/m3/review-queue', label: 'Cola revisión', roles: ['OWNER', 'MANAGER'] },
