@@ -2,9 +2,9 @@
 schema: agents-md/v1
 version: 1.0.0
 inherits_from:
-  - github.com/Wizarck/ai-playbook@v0.24.0
+  - github.com/Wizarck/ai-playbook@v0.24.1
 skills_sources:
-  - Wizarck/ai-playbook@v0.24.0
+  - Wizarck/ai-playbook@v0.24.1
   - Wizarck/eligia-skills@v0.3.0
 updated: 2026-05-15
 project: nexandro
